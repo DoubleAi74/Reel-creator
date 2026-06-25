@@ -1,0 +1,347 @@
+{
+  "audio": {
+    "duration": 320.388934,
+    "endOffset": null,
+    "name": "Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3",
+    "startOffset": 0
+  },
+  "background": {
+    "assetName": null,
+    "color": "#101018",
+    "gradient": {
+      "angle": 160,
+      "from": "#1a1a2e",
+      "to": "#0f0c29"
+    },
+    "scrim": {
+      "color": "#000000",
+      "enabled": true,
+      "opacity": 0.4
+    },
+    "type": "gradient"
+  },
+  "lines": [
+    {
+      "id": "line-001",
+      "original": "आज से तेरी सारी गलियां मेरी हो गई",
+      "romanization": "",
+      "start": 59.579999923706055,
+      "translation": "From today, all your streets have become mine.",
+      "words": [
+        {
+          "end": 60.81999969482422,
+          "start": 59.579999923706055,
+          "text": "आज"
+        },
+        {
+          "end": 61.18000030517578,
+          "start": 60.81999969482422,
+          "text": "से"
+        },
+        {
+          "end": 62.34000015258789,
+          "start": 61.18000030517578,
+          "text": "तेरी"
+        },
+        {
+          "end": 63.13999938964844,
+          "start": 62.34000015258789,
+          "text": "सारी"
+        },
+        {
+          "end": 64.20000076293945,
+          "start": 63.13999938964844,
+          "text": "गलियां"
+        },
+        {
+          "end": 64.65999984741211,
+          "start": 64.20000076293945,
+          "text": "मेरी"
+        },
+        {
+          "end": 65.29999923706055,
+          "start": 64.65999984741211,
+          "text": "हो"
+        },
+        {
+          "end": 65.60000038146973,
+          "start": 65.29999923706055,
+          "text": "गई"
+        }
+      ]
+    },
+    {
+      "id": "line-002",
+      "original": "आज से मेरा घर तेरा हो गया",
+      "romanization": "",
+      "start": 65.60000038146973,
+      "translation": "From today, my home has become yours.",
+      "words": [
+        {
+          "end": 66.79999923706055,
+          "start": 65.60000038146973,
+          "text": "आज"
+        },
+        {
+          "end": 67.36000061035156,
+          "start": 66.79999923706055,
+          "text": "से"
+        },
+        {
+          "end": 68.63999938964844,
+          "start": 67.36000061035156,
+          "text": "मेरा"
+        },
+        {
+          "end": 69.15999984741211,
+          "start": 68.63999938964844,
+          "text": "घर"
+        },
+        {
+          "end": 70.02000045776367,
+          "start": 69.15999984741211,
+          "text": "तेरा"
+        },
+        {
+          "end": 70.54000091552734,
+          "start": 70.02000045776367,
+          "text": "हो"
+        },
+        {
+          "end": 71.81999969482422,
+          "start": 70.54000091552734,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "line-003",
+      "original": "आज से मेरी सारी खुशियां तेरी हो गई",
+      "romanization": "",
+      "start": 71.81999969482422,
+      "translation": "From today, all my happiness has become yours.",
+      "words": [
+        {
+          "end": 72.95999908447266,
+          "start": 71.81999969482422,
+          "text": "आज"
+        },
+        {
+          "end": 73.36000061035156,
+          "start": 72.95999908447266,
+          "text": "से"
+        },
+        {
+          "end": 74.61999893188477,
+          "start": 73.36000061035156,
+          "text": "मेरी"
+        },
+        {
+          "end": 75.13999938964844,
+          "start": 74.61999893188477,
+          "text": "सारी"
+        },
+        {
+          "end": 76.15999984741211,
+          "start": 75.13999938964844,
+          "text": "खुशियां"
+        },
+        {
+          "end": 76.61999893188477,
+          "start": 76.15999984741211,
+          "text": "तेरी"
+        },
+        {
+          "end": 77.22000122070312,
+          "start": 76.61999893188477,
+          "text": "हो"
+        },
+        {
+          "end": 77.61999893188477,
+          "start": 77.22000122070312,
+          "text": "गई"
+        }
+      ]
+    },
+    {
+      "id": "line-004",
+      "original": "आज से तेरा ग़म मेरा हो गया",
+      "romanization": "",
+      "start": 77.61999893188477,
+      "translation": "From today, your sorrow has become mine.",
+      "words": [
+        {
+          "end": 78.93999862670898,
+          "start": 77.61999893188477,
+          "text": "आज"
+        },
+        {
+          "end": 79.36000061035156,
+          "start": 78.93999862670898,
+          "text": "से"
+        },
+        {
+          "end": 80.79999923706055,
+          "start": 79.36000061035156,
+          "text": "तेरा"
+        },
+        {
+          "end": 81.0999984741211,
+          "start": 80.79999923706055,
+          "text": "ग़म"
+        },
+        {
+          "end": 82.0999984741211,
+          "start": 81.0999984741211,
+          "text": "मेरा"
+        },
+        {
+          "end": 82.52000045776367,
+          "start": 82.0999984741211,
+          "text": "हो"
+        },
+        {
+          "end": 82.88000106811523,
+          "start": 82.52000045776367,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "line-005",
+      "original": "ओ तेरे काँधे का जो तिल है",
+      "romanization": "",
+      "start": 82.88000106811523,
+      "translation": "Oh, the mole on your shoulder.",
+      "words": [
+        {
+          "end": 83.43999862670898,
+          "start": 82.88000106811523,
+          "text": "ओ"
+        },
+        {
+          "end": 83.77999877929688,
+          "start": 83.43999862670898,
+          "text": "तेरे"
+        },
+        {
+          "end": 84.55999994277954,
+          "start": 83.71999979019165,
+          "text": "काँधे"
+        },
+        {
+          "end": 84.65999984741211,
+          "start": 84.55999994277954,
+          "text": "का"
+        },
+        {
+          "end": 84.90000009536743,
+          "start": 84.65999984741211,
+          "text": "जो"
+        },
+        {
+          "end": 85.28000020980835,
+          "start": 84.90000009536743,
+          "text": "तिल"
+        },
+        {
+          "end": 86.19999980926514,
+          "start": 85.28000020980835,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "line-006",
+      "original": "ओ तेरे सीने में जो दिल है",
+      "romanization": "",
+      "start": 86.19999980926514,
+      "translation": "Oh, the heart that rests in your chest.",
+      "words": [
+        {
+          "end": 86.47999954223633,
+          "start": 86.19999980926514,
+          "text": "ओ"
+        },
+        {
+          "end": 86.77999973297119,
+          "start": 86.47999954223633,
+          "text": "तेरे"
+        },
+        {
+          "end": 87.64000034332275,
+          "start": 86.77999973297119,
+          "text": "सीने"
+        },
+        {
+          "end": 87.68000030517578,
+          "start": 87.64000034332275,
+          "text": "में"
+        },
+        {
+          "end": 87.92000007629395,
+          "start": 87.68000030517578,
+          "text": "जो"
+        },
+        {
+          "end": 88.27999973297119,
+          "start": 87.92000007629395,
+          "text": "दिल"
+        },
+        {
+          "end": 88.73999977111816,
+          "start": 88.27999973297119,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "line-007",
+      "original": "वो मेरी धड़कन में शामिल है",
+      "romanization": "",
+      "start": 91.99999904632568,
+      "translation": "It now lives inside my heartbeat.",
+      "words": []
+    },
+    {
+      "id": "line-008",
+      "original": "तेरे होने से ही सब हासिल है",
+      "romanization": "",
+      "start": 97.79999828338623,
+      "translation": "With you here, everything finally lands.",
+      "words": []
+    }
+  ],
+  "meta": {
+    "artist": "Arijit Singh",
+    "title": "Aaj Se Teri"
+  },
+  "style": {
+    "animation": {
+      "durationMs": 350,
+      "slidePx": 40,
+      "type": "fade-slide"
+    },
+    "color": "#FFF9EE",
+    "font": "noto-world",
+    "originalSize": 64,
+    "outline": {
+      "color": "#000000",
+      "enabled": false,
+      "width": 2
+    },
+    "preset": "clean",
+    "romanizationColor": "#E4ECFA",
+    "romanizationSize": 40,
+    "shadow": {
+      "blur": 12,
+      "color": "#000000",
+      "enabled": true,
+      "opacity": 0.55
+    },
+    "translationColor": "#C9D7F2",
+    "translationSize": 44,
+    "verticalPosition": 0.74
+  },
+  "version": 1
+}

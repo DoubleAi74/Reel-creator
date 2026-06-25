@@ -1,0 +1,39 @@
+{
+  "name": "reel-creator",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "visual:parity": "node scripts/visual-parity.mjs"
+  },
+  "dependencies": {
+    "@fontsource/noto-sans": "^5.2.10",
+    "@fontsource/noto-sans-arabic": "^5.2.10",
+    "@fontsource/noto-sans-devanagari": "^5.2.8",
+    "@fontsource/noto-sans-jp": "^5.2.9",
+    "@fontsource/noto-sans-kr": "^5.2.9",
+    "@remotion/bundler": "^4.0.474",
+    "@remotion/player": "^4.0.474",
+    "@remotion/renderer": "^4.0.474",
+    "next": "16.2.7",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remotion": "^4.0.474",
+    "sharp": "^0.34.5",
+    "wavesurfer.js": "^7.12.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
+    "playwright": "^1.61.0",
+    "tailwindcss": "^4",
+    "vitest": "^4.1.8"
+  }
+}

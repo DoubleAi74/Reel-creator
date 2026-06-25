@@ -1,0 +1,12 @@
+{
+  "consoleErrors": [],
+  "exportPath": ".timing-runs/phase7-ui-export.json",
+  "lineCount": 8,
+  "timedCount": 8,
+  "timingTextIncludes50Timed": false,
+  "timingSourceCounts": {
+    "unknown": 8
+  },
+  "wordLineCount": 6,
+  "wordCount": 44
+}

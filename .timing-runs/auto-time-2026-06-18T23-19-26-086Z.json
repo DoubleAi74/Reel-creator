@@ -1,0 +1,7053 @@
+{
+  "audio": "samples/Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3",
+  "baseUrl": "http://127.0.0.1:3000",
+  "capturedAt": "2026-06-18T23:19:26.086Z",
+  "durationMs": 79491,
+  "lineCount": 50,
+  "request": {
+    "sourceLanguage": "hi"
+  },
+  "result": {
+    "canonicalLineCount": 50,
+    "canonicalSource": "user",
+    "duration": 320.388934,
+    "gapFillSummary": {
+      "finalWeakLineCount": 0,
+      "initialWeakLineCount": 9,
+      "pass2": {
+        "errorCount": 0,
+        "newWordCount": 62,
+        "windowCount": 6
+      },
+      "pass3": {
+        "errorCount": 0,
+        "newWordCount": 0,
+        "windowCount": 0
+      },
+      "repeatTemplateCount": 0,
+      "whisperPassCount": 2
+    },
+    "language": "hindi",
+    "lineCount": 50,
+    "lines": [
+      {
+        "id": "aaj-se-teri-01",
+        "index": 1,
+        "original": "आज से तेरी सारी गलियां मेरी हो गई",
+        "romanization": "",
+        "start": 41.439998626708984,
+        "translation": "",
+        "confidence": "medium",
+        "end": 47.27999973297119,
+        "matchRatio": 0.875,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 42.84000015258789,
+            "start": 41.439998626708984,
+            "text": "आज"
+          },
+          {
+            "end": 43.29999923706055,
+            "start": 42.84000015258789,
+            "text": "से"
+          },
+          {
+            "end": 44.31999969482422,
+            "start": 43.29999923706055,
+            "text": "तेरी"
+          },
+          {
+            "end": 44.97999954223633,
+            "start": 44.31999969482422,
+            "text": "सारी"
+          },
+          {
+            "end": 46.17999982833862,
+            "start": 45.15999984741211,
+            "text": "गलियां"
+          },
+          {
+            "end": 46.639999866485596,
+            "start": 46.17999982833862,
+            "text": "मेरी"
+          },
+          {
+            "end": 47.27999973297119,
+            "start": 46.639999866485596,
+            "text": "हो"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.840001106262207,
+            "gapAfterSec": 6.240001678466797,
+            "gapBeforeSec": null,
+            "matchedWordCount": 7,
+            "matchRatio": 0.875,
+            "tokenCount": 8
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-02",
+        "index": 2,
+        "original": "आज से मेरा घर तेरा हो गया",
+        "romanization": "",
+        "start": 47.68000030517578,
+        "translation": "",
+        "confidence": "medium",
+        "end": 52.53999996185303,
+        "matchRatio": 0.8571428571428571,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 48.77999973297119,
+            "start": 47.68000030517578,
+            "text": "आज"
+          },
+          {
+            "end": 49.30000019073486,
+            "start": 48.77999973297119,
+            "text": "से"
+          },
+          {
+            "end": 50.579999923706055,
+            "start": 49.30000019073486,
+            "text": "मेरा"
+          },
+          {
+            "end": 51.11999988555908,
+            "start": 50.579999923706055,
+            "text": "घर"
+          },
+          {
+            "end": 51.97999954223633,
+            "start": 51.11999988555908,
+            "text": "तेरा"
+          },
+          {
+            "end": 52.53999996185303,
+            "start": 51.97999954223633,
+            "text": "हो"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 4.859999656677246,
+            "gapAfterSec": 13.079999923706055,
+            "gapBeforeSec": 6.240001678466797,
+            "matchedWordCount": 6,
+            "matchRatio": 0.8571428571428571,
+            "tokenCount": 7
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-03",
+        "index": 3,
+        "original": "आज से तेरी सारी गलियां मेरी हो गई",
+        "romanization": "",
+        "start": 60.760000228881836,
+        "translation": "",
+        "confidence": "medium",
+        "end": 65.29999923706055,
+        "matchRatio": 0.75,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 61.34000015258789,
+            "start": 60.760000228881836,
+            "text": "से"
+          },
+          {
+            "end": 62.44000053405762,
+            "start": 61.34000015258789,
+            "text": "तेरी"
+          },
+          {
+            "end": 63.15999984741211,
+            "start": 62.44000053405762,
+            "text": "सारी"
+          },
+          {
+            "end": 64.15999984741211,
+            "start": 63.15999984741211,
+            "text": "गलियां"
+          },
+          {
+            "end": 64.6200008392334,
+            "start": 64.15999984741211,
+            "text": "मेरी"
+          },
+          {
+            "end": 65.29999923706055,
+            "start": 64.6200008392334,
+            "text": "हो"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 4.539999008178711,
+            "gapAfterSec": 5.459999084472656,
+            "gapBeforeSec": 13.079999923706055,
+            "matchedWordCount": 6,
+            "matchRatio": 0.75,
+            "tokenCount": 8
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-04",
+        "index": 4,
+        "original": "आज से मेरा घर तेरा हो गया",
+        "romanization": "",
+        "start": 66.21999931335449,
+        "translation": "",
+        "confidence": "high",
+        "end": 71.79999923706055,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 66.81999969482422,
+            "start": 66.21999931335449,
+            "text": "आज"
+          },
+          {
+            "end": 67.34000015258789,
+            "start": 66.81999969482422,
+            "text": "से"
+          },
+          {
+            "end": 68.81999969482422,
+            "start": 67.34000015258789,
+            "text": "मेरा"
+          },
+          {
+            "end": 69.10000038146973,
+            "start": 68.81999969482422,
+            "text": "घर"
+          },
+          {
+            "end": 70.10000038146973,
+            "start": 69.10000038146973,
+            "text": "तेरा"
+          },
+          {
+            "end": 70.54000091552734,
+            "start": 70.10000038146973,
+            "text": "हो"
+          },
+          {
+            "end": 71.79999923706055,
+            "start": 70.54000091552734,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.579999923706055,
+            "gapAfterSec": 5.680002212524414,
+            "gapBeforeSec": 5.459999084472656,
+            "matchedWordCount": 7,
+            "matchRatio": 1,
+            "tokenCount": 7
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-05",
+        "index": 5,
+        "original": "आज से मेरी सारी खुशियां तेरी हो गई",
+        "romanization": "",
+        "start": 71.9000015258789,
+        "translation": "",
+        "confidence": "medium",
+        "end": 77.27999877929688,
+        "matchRatio": 0.875,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 72.93999862670898,
+            "start": 71.9000015258789,
+            "text": "आज"
+          },
+          {
+            "end": 73.36000061035156,
+            "start": 72.93999862670898,
+            "text": "से"
+          },
+          {
+            "end": 74.63999938964844,
+            "start": 73.36000061035156,
+            "text": "मेरी"
+          },
+          {
+            "end": 75.13999938964844,
+            "start": 74.63999938964844,
+            "text": "सारी"
+          },
+          {
+            "end": 76.18000030517578,
+            "start": 75.13999938964844,
+            "text": "खुशियां"
+          },
+          {
+            "end": 76.63999938964844,
+            "start": 76.18000030517578,
+            "text": "तेरी"
+          },
+          {
+            "end": 77.27999877929688,
+            "start": 76.63999938964844,
+            "text": "हो"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.379997253417969,
+            "gapAfterSec": 6.219997406005859,
+            "gapBeforeSec": 5.680002212524414,
+            "matchedWordCount": 7,
+            "matchRatio": 0.875,
+            "tokenCount": 8
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-06",
+        "index": 6,
+        "original": "आज से तेरा घम मेरा हो गया",
+        "romanization": "",
+        "start": 78.11999893188477,
+        "translation": "",
+        "confidence": "medium",
+        "end": 82.97999954223633,
+        "matchRatio": 0.8571428571428571,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 78.91999816894531,
+            "start": 78.11999893188477,
+            "text": "आज"
+          },
+          {
+            "end": 79.36000061035156,
+            "start": 78.91999816894531,
+            "text": "से"
+          },
+          {
+            "end": 80.79999923706055,
+            "start": 79.36000061035156,
+            "text": "तेरा"
+          },
+          {
+            "end": 82.11999893188477,
+            "start": 81.29999923706055,
+            "text": "मेरा"
+          },
+          {
+            "end": 82.52000045776367,
+            "start": 82.11999893188477,
+            "text": "हो"
+          },
+          {
+            "end": 82.97999954223633,
+            "start": 82.52000045776367,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 4.8600006103515625,
+            "gapAfterSec": 4.8600006103515625,
+            "gapBeforeSec": 6.219997406005859,
+            "matchedWordCount": 6,
+            "matchRatio": 0.8571428571428571,
+            "tokenCount": 7
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-07",
+        "index": 7,
+        "original": "ओ तेरे कान्दे का जो तिल है",
+        "romanization": "",
+        "start": 82.97999954223633,
+        "translation": "",
+        "confidence": "medium",
+        "end": 86.19999980926514,
+        "matchRatio": 0.8571428571428571,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 83.47999954223633,
+            "start": 82.97999954223633,
+            "text": "ओ"
+          },
+          {
+            "end": 83.7400016784668,
+            "start": 83.47999954223633,
+            "text": "तेरे"
+          },
+          {
+            "end": 84.53999996185303,
+            "start": 83.73999977111816,
+            "text": "कान्दे"
+          },
+          {
+            "end": 84.71999979019165,
+            "start": 84.53999996185303,
+            "text": "का"
+          },
+          {
+            "end": 85.30000019073486,
+            "start": 84.94000005722046,
+            "text": "तिल"
+          },
+          {
+            "end": 86.19999980926514,
+            "start": 85.30000019073486,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.2200002670288086,
+            "gapAfterSec": 2.7200002670288086,
+            "gapBeforeSec": 4.8600006103515625,
+            "matchedWordCount": 6,
+            "matchRatio": 0.8571428571428571,
+            "tokenCount": 7
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-08",
+        "index": 8,
+        "original": "ओ तेरे सीने में जो दिल है",
+        "romanization": "",
+        "start": 85.69999980926514,
+        "translation": "",
+        "confidence": "high",
+        "end": 88.96000003814697,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 86.3799998164177,
+            "start": 85.69999980926514,
+            "text": "ओ"
+          },
+          {
+            "end": 86.81999969482422,
+            "start": 86.19999980926514,
+            "text": "तेरे"
+          },
+          {
+            "end": 87.57999980449677,
+            "start": 86.799999833107,
+            "text": "सीने"
+          },
+          {
+            "end": 87.72000026702881,
+            "start": 87.38000011444092,
+            "text": "में"
+          },
+          {
+            "end": 87.91999983787537,
+            "start": 87.73999977111816,
+            "text": "जो"
+          },
+          {
+            "end": 88.25999975204468,
+            "start": 87.91999983787537,
+            "text": "दिल"
+          },
+          {
+            "end": 88.96000003814697,
+            "start": 88.23999977111816,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.260000228881836,
+            "gapAfterSec": 3.260000228881836,
+            "gapBeforeSec": 2.7200002670288086,
+            "matchedWordCount": 7,
+            "matchRatio": 1,
+            "tokenCount": 7
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-09",
+        "index": 9,
+        "original": "ओ तेरी बिजली का जो बिल है",
+        "romanization": "",
+        "start": 88.96000003814697,
+        "translation": "",
+        "confidence": "medium",
+        "end": 92.03999996185303,
+        "matchRatio": 0.7142857142857143,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 89.80000019073486,
+            "start": 88.96000003814697,
+            "text": "तेरी"
+          },
+          {
+            "end": 90.53999996185303,
+            "start": 89.80000019073486,
+            "text": "बिजली"
+          },
+          {
+            "end": 90.64000034332275,
+            "start": 90.53999996185303,
+            "text": "का"
+          },
+          {
+            "end": 91.23999977111816,
+            "start": 90.64000034332275,
+            "text": "बिल"
+          },
+          {
+            "end": 92.03999996185303,
+            "start": 91.23999977111816,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [
+            {
+              "code": "weak_text_evidence",
+              "message": "Matched words cover less than the expected share of this lyric line.",
+              "severity": "review"
+            }
+          ],
+          "metrics": {
+            "durationSec": 3.0799999237060547,
+            "gapAfterSec": 3.0799999237060547,
+            "gapBeforeSec": 3.260000228881836,
+            "matchedWordCount": 5,
+            "matchRatio": 0.7142857142857143,
+            "tokenCount": 7
+          },
+          "riskLevel": "review",
+          "textEvidenceConfidence": "low",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-10",
+        "index": 10,
+        "original": "आज से मेरा हो गया",
+        "romanization": "",
+        "start": 92.03999996185303,
+        "translation": "",
+        "confidence": "high",
+        "end": 94.97999954223633,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 92.68000030517578,
+            "start": 92.03999996185303,
+            "text": "आज"
+          },
+          {
+            "end": 93.18000030517578,
+            "start": 92.68000030517578,
+            "text": "से"
+          },
+          {
+            "end": 93.96000003814697,
+            "start": 93.18000030517578,
+            "text": "मेरा"
+          },
+          {
+            "end": 94.52000045776367,
+            "start": 93.96000003814697,
+            "text": "हो"
+          },
+          {
+            "end": 94.97999954223633,
+            "start": 94.52000045776367,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.939999580383301,
+            "gapAfterSec": 2.939999580383301,
+            "gapBeforeSec": 3.0799999237060547,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-11",
+        "index": 11,
+        "original": "ओ मेरे खाबों का अमबर",
+        "romanization": "",
+        "start": 94.97999954223633,
+        "translation": "",
+        "confidence": "medium",
+        "end": 97.73999953269958,
+        "matchRatio": 0.8,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 95.79999923706055,
+            "start": 94.97999954223633,
+            "text": "मेरे"
+          },
+          {
+            "end": 96.5799994468689,
+            "start": 95.77999949455261,
+            "text": "खाबों"
+          },
+          {
+            "end": 96.84000015258789,
+            "start": 96.45999908447266,
+            "text": "का"
+          },
+          {
+            "end": 97.73999953269958,
+            "start": 96.9399995803833,
+            "text": "अमबर"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.759999990463257,
+            "gapAfterSec": 2.759999990463257,
+            "gapBeforeSec": 2.939999580383301,
+            "matchedWordCount": 4,
+            "matchRatio": 0.8,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-12",
+        "index": 12,
+        "original": "ओ मेरी खुशियों का समंदर",
+        "romanization": "",
+        "start": 97.73999953269958,
+        "translation": "",
+        "confidence": "high",
+        "end": 100.7999997138977,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 98.47999954223633,
+            "start": 97.73999953269958,
+            "text": "ओ"
+          },
+          {
+            "end": 98.81999969482422,
+            "start": 98.47999954223633,
+            "text": "मेरी"
+          },
+          {
+            "end": 99.53999948501587,
+            "start": 98.81999969482422,
+            "text": "खुशियों"
+          },
+          {
+            "end": 99.75999975204468,
+            "start": 99.53999948501587,
+            "text": "का"
+          },
+          {
+            "end": 100.7999997138977,
+            "start": 99.75999975204468,
+            "text": "समंदर"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.06000018119812,
+            "gapAfterSec": 3.06000018119812,
+            "gapBeforeSec": 2.759999990463257,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-13",
+        "index": 13,
+        "original": "ओ मेरे पिन कोड का नंबर",
+        "romanization": "",
+        "start": 100.7999997138977,
+        "translation": "",
+        "confidence": "high",
+        "end": 103.5,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 101.47999954223633,
+            "start": 100.7999997138977,
+            "text": "ओ"
+          },
+          {
+            "end": 101.7999997138977,
+            "start": 101.47999954223633,
+            "text": "मेरे"
+          },
+          {
+            "end": 102.19999933242798,
+            "start": 101.7999997138977,
+            "text": "पिन"
+          },
+          {
+            "end": 102.61999988555908,
+            "start": 102.19999933242798,
+            "text": "कोड"
+          },
+          {
+            "end": 102.95999908447266,
+            "start": 102.61999988555908,
+            "text": "का"
+          },
+          {
+            "end": 103.5,
+            "start": 102.95999908447266,
+            "text": "नंबर"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.700000286102295,
+            "gapAfterSec": 2.220000743865967,
+            "gapBeforeSec": 3.06000018119812,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-14",
+        "index": 14,
+        "original": "आज से तेरा हो गया",
+        "romanization": "",
+        "start": 103.02000045776367,
+        "translation": "",
+        "confidence": "high",
+        "end": 107.02000045776367,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 104.70000076293945,
+            "start": 103.02000045776367,
+            "text": "आज"
+          },
+          {
+            "end": 105.15999984741211,
+            "start": 104.70000076293945,
+            "text": "से"
+          },
+          {
+            "end": 106,
+            "start": 105.15999984741211,
+            "text": "तेरा"
+          },
+          {
+            "end": 106.55999946594238,
+            "start": 106,
+            "text": "हो"
+          },
+          {
+            "end": 107.02000045776367,
+            "start": 106.55999946594238,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 4,
+            "gapAfterSec": 36.35999870300293,
+            "gapBeforeSec": 2.220000743865967,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-15",
+        "index": 15,
+        "original": "तेरे माथे के कुम कुम को मैं तिलक लगा के घूंगूंगा",
+        "romanization": "",
+        "start": 139.3799991607666,
+        "translation": "",
+        "confidence": "high",
+        "end": 144.89999961853027,
+        "matchRatio": 0.9090909090909091,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 140.7800006866455,
+            "start": 139.3799991607666,
+            "text": "तेरे"
+          },
+          {
+            "end": 141.60000038146973,
+            "start": 140.7800006866455,
+            "text": "माथे"
+          },
+          {
+            "end": 141.79999923706055,
+            "start": 141.60000038146973,
+            "text": "के"
+          },
+          {
+            "end": 142.5,
+            "start": 141.79999923706055,
+            "text": "कुम"
+          },
+          {
+            "end": 142.7199993133545,
+            "start": 142.5,
+            "text": "कुम"
+          },
+          {
+            "end": 143,
+            "start": 142.7199993133545,
+            "text": "को"
+          },
+          {
+            "end": 143.47999954223633,
+            "start": 143,
+            "text": "मैं"
+          },
+          {
+            "end": 143.92000007629395,
+            "start": 143.47999954223633,
+            "text": "तिलक"
+          },
+          {
+            "end": 144.6200008392334,
+            "start": 143.92000007629395,
+            "text": "लगा"
+          },
+          {
+            "end": 144.89999961853027,
+            "start": 144.6200008392334,
+            "text": "के"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.520000457763672,
+            "gapAfterSec": 6.5400004386901855,
+            "gapBeforeSec": 36.35999870300293,
+            "matchedWordCount": 10,
+            "matchRatio": 0.9090909090909091,
+            "tokenCount": 11
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-16",
+        "index": 16,
+        "original": "तेरी बाली की छन छन को मैं दिल से लगा के जूंगूंगा",
+        "romanization": "",
+        "start": 145.9199995994568,
+        "translation": "",
+        "confidence": "high",
+        "end": 152.17999982833862,
+        "matchRatio": 0.9166666666666666,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 146.83999967575073,
+            "start": 145.9199995994568,
+            "text": "तेरी"
+          },
+          {
+            "end": 147.4399995803833,
+            "start": 146.83999967575073,
+            "text": "बाली"
+          },
+          {
+            "end": 147.89999961853027,
+            "start": 147.4399995803833,
+            "text": "की"
+          },
+          {
+            "end": 148.23999953269958,
+            "start": 147.89999961853027,
+            "text": "छन"
+          },
+          {
+            "end": 148.97999954223633,
+            "start": 148.69999980926514,
+            "text": "को"
+          },
+          {
+            "end": 149.47999954223633,
+            "start": 148.97999954223633,
+            "text": "मैं"
+          },
+          {
+            "end": 149.77999877929688,
+            "start": 149.47999954223633,
+            "text": "दिल"
+          },
+          {
+            "end": 149.97999954223633,
+            "start": 149.73999977111816,
+            "text": "से"
+          },
+          {
+            "end": 150.5999984741211,
+            "start": 149.97999954223633,
+            "text": "लगा"
+          },
+          {
+            "end": 150.8400001525879,
+            "start": 150.5999984741211,
+            "text": "के"
+          },
+          {
+            "end": 152.17999982833862,
+            "start": 150.81999969482422,
+            "text": "जूंगूंगा"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 6.260000228881836,
+            "gapAfterSec": 6.480001926422119,
+            "gapBeforeSec": 6.5400004386901855,
+            "matchedWordCount": 11,
+            "matchRatio": 0.9166666666666666,
+            "tokenCount": 12
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-17",
+        "index": 17,
+        "original": "मेरी चोटी सी भूलों को तु नदिया में बहा देना",
+        "romanization": "",
+        "start": 152.4000015258789,
+        "translation": "",
+        "confidence": "high",
+        "end": 158.13999938964844,
+        "matchRatio": 0.9,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 153.18000030517578,
+            "start": 152.4000015258789,
+            "text": "मेरी"
+          },
+          {
+            "end": 153.9000015258789,
+            "start": 153.18000030517578,
+            "text": "चोटी"
+          },
+          {
+            "end": 154.2599983215332,
+            "start": 153.9000015258789,
+            "text": "सी"
+          },
+          {
+            "end": 154.97999954223633,
+            "start": 154.2599983215332,
+            "text": "भूलों"
+          },
+          {
+            "end": 155.61999893188477,
+            "start": 154.97999954223633,
+            "text": "को"
+          },
+          {
+            "end": 156.5800018310547,
+            "start": 155.9199981689453,
+            "text": "नदिया"
+          },
+          {
+            "end": 156.68000030517578,
+            "start": 156.5800018310547,
+            "text": "में"
+          },
+          {
+            "end": 157.3400001525879,
+            "start": 156.68000030517578,
+            "text": "बहा"
+          },
+          {
+            "end": 158.13999938964844,
+            "start": 157.3400001525879,
+            "text": "देना"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.739997863769531,
+            "gapAfterSec": 5.739997863769531,
+            "gapBeforeSec": 6.480001926422119,
+            "matchedWordCount": 9,
+            "matchRatio": 0.9,
+            "tokenCount": 10
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-18",
+        "index": 18,
+        "original": "तेरे जूड़े के फूलों को मैं अपनी शर्ट में पहनूंगा",
+        "romanization": "",
+        "start": 158.13999938964844,
+        "translation": "",
+        "confidence": "high",
+        "end": 164.47999954223633,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 158.81999969482422,
+            "start": 158.13999938964844,
+            "text": "तेरे"
+          },
+          {
+            "end": 159.77999877929688,
+            "start": 158.81999969482422,
+            "text": "जूड़े"
+          },
+          {
+            "end": 159.9199981689453,
+            "start": 159.77999877929688,
+            "text": "के"
+          },
+          {
+            "end": 160.6599998474121,
+            "start": 159.9199981689453,
+            "text": "फूलों"
+          },
+          {
+            "end": 160.97999954223633,
+            "start": 160.6599998474121,
+            "text": "को"
+          },
+          {
+            "end": 161.5,
+            "start": 160.97999954223633,
+            "text": "मैं"
+          },
+          {
+            "end": 161.97999954223633,
+            "start": 161.5,
+            "text": "अपनी"
+          },
+          {
+            "end": 162.61999988555908,
+            "start": 162.05999994277954,
+            "text": "शर्ट"
+          },
+          {
+            "end": 162.88000011444092,
+            "start": 162.61999988555908,
+            "text": "में"
+          },
+          {
+            "end": 164.47999954223633,
+            "start": 162.88000011444092,
+            "text": "पहनूंगा"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 6.340000152587891,
+            "gapAfterSec": 6.340000152587891,
+            "gapBeforeSec": 5.739997863769531,
+            "matchedWordCount": 10,
+            "matchRatio": 1,
+            "tokenCount": 10
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-19",
+        "index": 19,
+        "original": "बस मेरे लिए तू माल पुए कभी-कभी बना देना",
+        "romanization": "",
+        "start": 164.47999954223633,
+        "translation": "",
+        "confidence": "high",
+        "end": 170.5,
+        "matchRatio": 0.9,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 165.14000034332275,
+            "start": 164.47999954223633,
+            "text": "बस"
+          },
+          {
+            "end": 165.7200002670288,
+            "start": 165.14000034332275,
+            "text": "मेरे"
+          },
+          {
+            "end": 166.10000038146973,
+            "start": 165.7200002670288,
+            "text": "लिए"
+          },
+          {
+            "end": 166.6599998474121,
+            "start": 166.10000038146973,
+            "text": "तू"
+          },
+          {
+            "end": 167.07999992370605,
+            "start": 166.6599998474121,
+            "text": "माल"
+          },
+          {
+            "end": 167.7799997329712,
+            "start": 167.07999992370605,
+            "text": "पुए"
+          },
+          {
+            "end": 168.11999988555908,
+            "start": 167.7799997329712,
+            "text": "कभी-कभी"
+          },
+          {
+            "end": 169.31999969482422,
+            "start": 168.64000034332275,
+            "text": "बना"
+          },
+          {
+            "end": 170.5,
+            "start": 169.31999969482422,
+            "text": "देना"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 6.020000457763672,
+            "gapAfterSec": 6.020000457763672,
+            "gapBeforeSec": 6.340000152587891,
+            "matchedWordCount": 9,
+            "matchRatio": 0.9,
+            "tokenCount": 10
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-20",
+        "index": 20,
+        "original": "आज से मेरी सारी रतियां तेरी हो गईं",
+        "romanization": "",
+        "start": 170.5,
+        "translation": "",
+        "confidence": "high",
+        "end": 176.68000030517578,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 171.80000019073486,
+            "start": 170.5,
+            "text": "आज"
+          },
+          {
+            "end": 172.26000022888184,
+            "start": 171.80000019073486,
+            "text": "से"
+          },
+          {
+            "end": 173.3799991607666,
+            "start": 172.26000022888184,
+            "text": "मेरी"
+          },
+          {
+            "end": 174.13999938964844,
+            "start": 173.3799991607666,
+            "text": "सारी"
+          },
+          {
+            "end": 175.1599998474121,
+            "start": 174.13999938964844,
+            "text": "रतियां"
+          },
+          {
+            "end": 175.6200008392334,
+            "start": 175.1599998474121,
+            "text": "तेरी"
+          },
+          {
+            "end": 176.23999977111816,
+            "start": 175.6200008392334,
+            "text": "हो"
+          },
+          {
+            "end": 176.68000030517578,
+            "start": 176.23999977111816,
+            "text": "गईं"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 6.180000305175781,
+            "gapAfterSec": 6.180000305175781,
+            "gapBeforeSec": 6.020000457763672,
+            "matchedWordCount": 8,
+            "matchRatio": 1,
+            "tokenCount": 8
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-21",
+        "index": 21,
+        "original": "आज से तेरा दिन मेरा हो गया",
+        "romanization": "",
+        "start": 176.68000030517578,
+        "translation": "",
+        "confidence": "high",
+        "end": 181.94000053405762,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 177.81999969482422,
+            "start": 176.68000030517578,
+            "text": "आज"
+          },
+          {
+            "end": 178.31999969482422,
+            "start": 177.81999969482422,
+            "text": "से"
+          },
+          {
+            "end": 179.45999908447266,
+            "start": 178.31999969482422,
+            "text": "तेरा"
+          },
+          {
+            "end": 180.13999938964844,
+            "start": 179.45999908447266,
+            "text": "दिन"
+          },
+          {
+            "end": 181.1200008392334,
+            "start": 180.13999938964844,
+            "text": "मेरा"
+          },
+          {
+            "end": 181.54000091552734,
+            "start": 181.1200008392334,
+            "text": "हो"
+          },
+          {
+            "end": 181.94000053405762,
+            "start": 181.54000091552734,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.260000228881836,
+            "gapAfterSec": 5.479999542236328,
+            "gapBeforeSec": 6.180000305175781,
+            "matchedWordCount": 7,
+            "matchRatio": 1,
+            "tokenCount": 7
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-22",
+        "index": 22,
+        "original": "तेरे कन्धे का जो तिल है",
+        "romanization": "",
+        "start": 182.1599998474121,
+        "translation": "",
+        "confidence": "medium",
+        "end": 184.63999938964844,
+        "matchRatio": 0.8333333333333334,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 182.7800006866455,
+            "start": 182.1599998474121,
+            "text": "तेरे"
+          },
+          {
+            "end": 183.55999946594238,
+            "start": 182.7800006866455,
+            "text": "कन्धे"
+          },
+          {
+            "end": 183.70000076293945,
+            "start": 183.55999946594238,
+            "text": "का"
+          },
+          {
+            "end": 184.26000022888184,
+            "start": 183.70000076293945,
+            "text": "तिल"
+          },
+          {
+            "end": 184.63999938964844,
+            "start": 184.26000022888184,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.479999542236328,
+            "gapAfterSec": 3.239999532699585,
+            "gapBeforeSec": 5.479999542236328,
+            "matchedWordCount": 5,
+            "matchRatio": 0.8333333333333334,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-23",
+        "index": 23,
+        "original": "तेरे सीने में जो दिल है",
+        "romanization": "",
+        "start": 185.3999993801117,
+        "translation": "",
+        "confidence": "high",
+        "end": 188.22000122070312,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 185.99999940395355,
+            "start": 185.3999993801117,
+            "text": "तेरे"
+          },
+          {
+            "end": 186.5999994277954,
+            "start": 185.99999940395355,
+            "text": "सीने"
+          },
+          {
+            "end": 186.7199993133545,
+            "start": 186.57999992370605,
+            "text": "में"
+          },
+          {
+            "end": 186.97999930381775,
+            "start": 186.739999294281,
+            "text": "जो"
+          },
+          {
+            "end": 187.29999947547913,
+            "start": 186.97999930381775,
+            "text": "दिल"
+          },
+          {
+            "end": 188.22000122070312,
+            "start": 187.2800006866455,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.8200018405914307,
+            "gapAfterSec": 2.8200018405914307,
+            "gapBeforeSec": 3.239999532699585,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-24",
+        "index": 24,
+        "original": "तेरी बिजली का जो बिल है",
+        "romanization": "",
+        "start": 188.22000122070312,
+        "translation": "",
+        "confidence": "high",
+        "end": 190.5799994468689,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 188.7599983215332,
+            "start": 188.22000122070312,
+            "text": "तेरी"
+          },
+          {
+            "end": 189.4399995803833,
+            "start": 188.77999925613403,
+            "text": "बिजली"
+          },
+          {
+            "end": 189.7199993133545,
+            "start": 189.4399995803833,
+            "text": "का"
+          },
+          {
+            "end": 189.9199995994568,
+            "start": 189.7199993133545,
+            "text": "जो"
+          },
+          {
+            "end": 190.2400016784668,
+            "start": 189.7599983215332,
+            "text": "बिल"
+          },
+          {
+            "end": 190.5799994468689,
+            "start": 190.19999933242798,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.3599982261657715,
+            "gapAfterSec": 2.6399993896484375,
+            "gapBeforeSec": 2.8200018405914307,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-25",
+        "index": 25,
+        "original": "आज से मेरा हो गया",
+        "romanization": "",
+        "start": 190.86000061035156,
+        "translation": "",
+        "confidence": "high",
+        "end": 194.0999984741211,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 191.7599983215332,
+            "start": 190.86000061035156,
+            "text": "आज"
+          },
+          {
+            "end": 192.22000122070312,
+            "start": 191.7599983215332,
+            "text": "से"
+          },
+          {
+            "end": 193.11999893188477,
+            "start": 192.22000122070312,
+            "text": "मेरा"
+          },
+          {
+            "end": 193.54000091552734,
+            "start": 193.11999893188477,
+            "text": "हो"
+          },
+          {
+            "end": 194.0999984741211,
+            "start": 193.54000091552734,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.2399978637695312,
+            "gapAfterSec": 3.6199989318847656,
+            "gapBeforeSec": 2.6399993896484375,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-26",
+        "index": 26,
+        "original": "मेरे खाबों का अमबर",
+        "romanization": "",
+        "start": 194.47999954223633,
+        "translation": "",
+        "confidence": "medium",
+        "end": 195.93999862670898,
+        "matchRatio": 0.75,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 194.79999923706055,
+            "start": 194.47999954223633,
+            "text": "मेरे"
+          },
+          {
+            "end": 195.56000137329102,
+            "start": 194.79999923706055,
+            "text": "खाबों"
+          },
+          {
+            "end": 195.93999862670898,
+            "start": 195.56000137329102,
+            "text": "का"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 1.4599990844726562,
+            "gapAfterSec": 3.0600013732910156,
+            "gapBeforeSec": 3.6199989318847656,
+            "matchedWordCount": 3,
+            "matchRatio": 0.75,
+            "tokenCount": 4
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-27",
+        "index": 27,
+        "original": "मेरी खुशियों का समंदर",
+        "romanization": "",
+        "start": 197.54000091552734,
+        "translation": "",
+        "confidence": "high",
+        "end": 199.82000017166138,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 197.8400001525879,
+            "start": 197.54000091552734,
+            "text": "मेरी"
+          },
+          {
+            "end": 198.45999908447266,
+            "start": 197.8400001525879,
+            "text": "खुशियों"
+          },
+          {
+            "end": 198.77999877929688,
+            "start": 198.45999908447266,
+            "text": "का"
+          },
+          {
+            "end": 199.82000017166138,
+            "start": 198.72000002861023,
+            "text": "समंदर"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.279999256134033,
+            "gapAfterSec": 2.279999256134033,
+            "gapBeforeSec": 3.0600013732910156,
+            "matchedWordCount": 4,
+            "matchRatio": 1,
+            "tokenCount": 4
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-28",
+        "index": 28,
+        "original": "मेरे पिन कोड का नंबर",
+        "romanization": "",
+        "start": 199.82000017166138,
+        "translation": "",
+        "confidence": "high",
+        "end": 203.19999980926514,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 200.76000022888184,
+            "start": 199.82000017166138,
+            "text": "मेरे"
+          },
+          {
+            "end": 201.19999980926514,
+            "start": 200.76000022888184,
+            "text": "पिन"
+          },
+          {
+            "end": 201.6599998474121,
+            "start": 201.19999980926514,
+            "text": "कोड"
+          },
+          {
+            "end": 201.88000011444092,
+            "start": 201.6599998474121,
+            "text": "का"
+          },
+          {
+            "end": 203.19999980926514,
+            "start": 201.88000011444092,
+            "text": "नंबर"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.3799996376037598,
+            "gapAfterSec": 3.3799996376037598,
+            "gapBeforeSec": 2.279999256134033,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-29",
+        "index": 29,
+        "original": "आज से तेरा हो गया",
+        "romanization": "",
+        "start": 203.19999980926514,
+        "translation": "",
+        "confidence": "high",
+        "end": 205.89999961853027,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 203.69999980926514,
+            "start": 203.19999980926514,
+            "text": "आज"
+          },
+          {
+            "end": 204.10000038146973,
+            "start": 203.69999980926514,
+            "text": "से"
+          },
+          {
+            "end": 204.96000003814697,
+            "start": 204.10000038146973,
+            "text": "तेरा"
+          },
+          {
+            "end": 205.52000045776367,
+            "start": 204.96000003814697,
+            "text": "हो"
+          },
+          {
+            "end": 205.89999961853027,
+            "start": 205.52000045776367,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.6999998092651367,
+            "gapAfterSec": 26.219998359680176,
+            "gapBeforeSec": 3.3799996376037598,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-30",
+        "index": 30,
+        "original": "तु मांगे सरदी में अमियां",
+        "romanization": "",
+        "start": 229.4199981689453,
+        "translation": "",
+        "confidence": "high",
+        "end": 233.0999984741211,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 230.45999908447266,
+            "start": 229.4199981689453,
+            "text": "तु"
+          },
+          {
+            "end": 231.11999893188477,
+            "start": 230.45999908447266,
+            "text": "मांगे"
+          },
+          {
+            "end": 231.93999862670898,
+            "start": 231.11999893188477,
+            "text": "सरदी"
+          },
+          {
+            "end": 232.18000030517578,
+            "start": 231.93999862670898,
+            "text": "में"
+          },
+          {
+            "end": 233.0999984741211,
+            "start": 232.18000030517578,
+            "text": "अमियां"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.6800003051757812,
+            "gapAfterSec": 3.6800003051757812,
+            "gapBeforeSec": 26.219998359680176,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-31",
+        "index": 31,
+        "original": "जो मांगे गर्मी में मुम्फलियां",
+        "romanization": "",
+        "start": 233.0999984741211,
+        "translation": "",
+        "confidence": "high",
+        "end": 236.2599983215332,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 233.43999862670898,
+            "start": 233.0999984741211,
+            "text": "जो"
+          },
+          {
+            "end": 234.20000076293945,
+            "start": 233.43999862670898,
+            "text": "मांगे"
+          },
+          {
+            "end": 234.7599983215332,
+            "start": 234.20000076293945,
+            "text": "गर्मी"
+          },
+          {
+            "end": 234.93999862670898,
+            "start": 234.7599983215332,
+            "text": "में"
+          },
+          {
+            "end": 236.2599983215332,
+            "start": 234.93999862670898,
+            "text": "मुम्फलियां"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.1599998474121094,
+            "gapAfterSec": 3.1599998474121094,
+            "gapBeforeSec": 3.6800003051757812,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-32",
+        "index": 32,
+        "original": "तु बारिश में अगर कह दे",
+        "romanization": "",
+        "start": 236.2599983215332,
+        "translation": "",
+        "confidence": "high",
+        "end": 238.97999954223633,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 236.45999908447266,
+            "start": 236.2599983215332,
+            "text": "तु"
+          },
+          {
+            "end": 237.0999984741211,
+            "start": 236.45999908447266,
+            "text": "बारिश"
+          },
+          {
+            "end": 237.68000030517578,
+            "start": 237.0999984741211,
+            "text": "में"
+          },
+          {
+            "end": 238.20000076293945,
+            "start": 237.68000030517578,
+            "text": "अगर"
+          },
+          {
+            "end": 238.54000091552734,
+            "start": 238.20000076293945,
+            "text": "कह"
+          },
+          {
+            "end": 238.97999954223633,
+            "start": 238.54000091552734,
+            "text": "दे"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.720001220703125,
+            "gapAfterSec": 2.720001220703125,
+            "gapBeforeSec": 3.1599998474121094,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-33",
+        "index": 33,
+        "original": "जा मेरे लिए तु धूप खिला",
+        "romanization": "",
+        "start": 238.97999954223633,
+        "translation": "",
+        "confidence": "high",
+        "end": 242.07999992370605,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 239.43999862670898,
+            "start": 238.97999954223633,
+            "text": "जा"
+          },
+          {
+            "end": 239.95999908447266,
+            "start": 239.43999862670898,
+            "text": "मेरे"
+          },
+          {
+            "end": 239.97999954223633,
+            "start": 239.95999908447266,
+            "text": "लिए"
+          },
+          {
+            "end": 240.8600001335144,
+            "start": 240.32000017166138,
+            "text": "तु"
+          },
+          {
+            "end": 241.38000011444092,
+            "start": 240.8600001335144,
+            "text": "धूप"
+          },
+          {
+            "end": 242.07999992370605,
+            "start": 241.38000011444092,
+            "text": "खिला"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.1000003814697266,
+            "gapAfterSec": 11.479999542236328,
+            "gapBeforeSec": 2.720001220703125,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-34",
+        "index": 34,
+        "original": "तो मैं सूरज को जटक दूँगा",
+        "romanization": "",
+        "start": 250.45999908447266,
+        "translation": "",
+        "confidence": "high",
+        "end": 253.97999954223633,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 251.3799991607666,
+            "start": 250.45999908447266,
+            "text": "तो"
+          },
+          {
+            "end": 251.79999923706055,
+            "start": 251.3799991607666,
+            "text": "मैं"
+          },
+          {
+            "end": 252.44000053405762,
+            "start": 251.79999923706055,
+            "text": "सूरज"
+          },
+          {
+            "end": 252.7199993133545,
+            "start": 252.44000053405762,
+            "text": "को"
+          },
+          {
+            "end": 253.1599998474121,
+            "start": 252.7199993133545,
+            "text": "जटक"
+          },
+          {
+            "end": 253.97999954223633,
+            "start": 253.1599998474121,
+            "text": "दूँगा"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.520000457763672,
+            "gapAfterSec": 3.520000457763672,
+            "gapBeforeSec": 11.479999542236328,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-35",
+        "index": 35,
+        "original": "तो मैं सावन को गटक लूँगा",
+        "romanization": "",
+        "start": 253.97999954223633,
+        "translation": "",
+        "confidence": "high",
+        "end": 257.04000091552734,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 254.42000007629395,
+            "start": 253.97999954223633,
+            "text": "तो"
+          },
+          {
+            "end": 254.79999923706055,
+            "start": 254.42000007629395,
+            "text": "मैं"
+          },
+          {
+            "end": 255.44000053405762,
+            "start": 254.79999923706055,
+            "text": "सावन"
+          },
+          {
+            "end": 255.7199993133545,
+            "start": 255.44000053405762,
+            "text": "को"
+          },
+          {
+            "end": 256.1800003051758,
+            "start": 255.7199993133545,
+            "text": "गटक"
+          },
+          {
+            "end": 257.04000091552734,
+            "start": 256.1800003051758,
+            "text": "लूँगा"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.0600013732910156,
+            "gapAfterSec": 3.0600013732910156,
+            "gapBeforeSec": 3.520000457763672,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-36",
+        "index": 36,
+        "original": "तो सारे तारों संग चंदा",
+        "romanization": "",
+        "start": 257.04000091552734,
+        "translation": "",
+        "confidence": "high",
+        "end": 260.07999992370605,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 257.42000007629395,
+            "start": 257.04000091552734,
+            "text": "तो"
+          },
+          {
+            "end": 258.1800003051758,
+            "start": 257.42000007629395,
+            "text": "सारे"
+          },
+          {
+            "end": 258.95999908447266,
+            "start": 258.1800003051758,
+            "text": "तारों"
+          },
+          {
+            "end": 259.2199993133545,
+            "start": 258.95999908447266,
+            "text": "संग"
+          },
+          {
+            "end": 260.07999992370605,
+            "start": 259.2199993133545,
+            "text": "चंदा"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.039999008178711,
+            "gapAfterSec": 3.039999008178711,
+            "gapBeforeSec": 3.0600013732910156,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-37",
+        "index": 37,
+        "original": "मैं तेरी गोद में रख दूँगा",
+        "romanization": "",
+        "start": 260.07999992370605,
+        "translation": "",
+        "confidence": "high",
+        "end": 263.5,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 260.5200004577637,
+            "start": 260.07999992370605,
+            "text": "मैं"
+          },
+          {
+            "end": 261.1000003814697,
+            "start": 260.5200004577637,
+            "text": "तेरी"
+          },
+          {
+            "end": 261.6200008392334,
+            "start": 261.1000003814697,
+            "text": "गोद"
+          },
+          {
+            "end": 261.86000061035156,
+            "start": 261.6200008392334,
+            "text": "में"
+          },
+          {
+            "end": 262.20000076293945,
+            "start": 261.86000061035156,
+            "text": "रख"
+          },
+          {
+            "end": 263.5,
+            "start": 262.20000076293945,
+            "text": "दूँगा"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.4200000762939453,
+            "gapAfterSec": 3.4200000762939453,
+            "gapBeforeSec": 3.039999008178711,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-38",
+        "index": 38,
+        "original": "बस मेरे लिए तु खिलके कभी मुश्कुरा देना",
+        "romanization": "",
+        "start": 263.5,
+        "translation": "",
+        "confidence": "medium",
+        "end": 269.7799987792969,
+        "matchRatio": 0.875,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 264.1200008392334,
+            "start": 263.5,
+            "text": "बस"
+          },
+          {
+            "end": 264.7199993133545,
+            "start": 264.1200008392334,
+            "text": "मेरे"
+          },
+          {
+            "end": 265.1000003814697,
+            "start": 264.7199993133545,
+            "text": "लिए"
+          },
+          {
+            "end": 265.6200008392334,
+            "start": 265.1000003814697,
+            "text": "तु"
+          },
+          {
+            "end": 266.79999923706055,
+            "start": 266.2400016784668,
+            "text": "कभी"
+          },
+          {
+            "end": 268.3400001525879,
+            "start": 266.79999923706055,
+            "text": "मुश्कुरा"
+          },
+          {
+            "end": 269.7799987792969,
+            "start": 268.3400001525879,
+            "text": "देना"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 6.279998779296875,
+            "gapAfterSec": 6.279998779296875,
+            "gapBeforeSec": 3.4200000762939453,
+            "matchedWordCount": 7,
+            "matchRatio": 0.875,
+            "tokenCount": 8
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-39",
+        "index": 39,
+        "original": "आज से मेरी सारी सदियां तेरी हो गई",
+        "romanization": "",
+        "start": 269.7799987792969,
+        "translation": "",
+        "confidence": "medium",
+        "end": 275.2599983215332,
+        "matchRatio": 0.875,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 270.7799987792969,
+            "start": 269.7799987792969,
+            "text": "आज"
+          },
+          {
+            "end": 271.2599983215332,
+            "start": 270.7799987792969,
+            "text": "से"
+          },
+          {
+            "end": 272.4799995422363,
+            "start": 271.2599983215332,
+            "text": "मेरी"
+          },
+          {
+            "end": 273.1599998474121,
+            "start": 272.4799995422363,
+            "text": "सारी"
+          },
+          {
+            "end": 274.13999938964844,
+            "start": 273.1599998474121,
+            "text": "सदियां"
+          },
+          {
+            "end": 274.61999893188477,
+            "start": 274.13999938964844,
+            "text": "तेरी"
+          },
+          {
+            "end": 275.2599983215332,
+            "start": 274.61999893188477,
+            "text": "हो"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.479999542236328,
+            "gapAfterSec": 5.94000244140625,
+            "gapBeforeSec": 6.279998779296875,
+            "matchedWordCount": 7,
+            "matchRatio": 0.875,
+            "tokenCount": 8
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-40",
+        "index": 40,
+        "original": "आज से तेरा पल मेरा हो गया",
+        "romanization": "",
+        "start": 275.7200012207031,
+        "translation": "",
+        "confidence": "high",
+        "end": 280.81999826431274,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 276.9199981689453,
+            "start": 275.7200012207031,
+            "text": "आज"
+          },
+          {
+            "end": 277.35999822616577,
+            "start": 276.8799982070923,
+            "text": "से"
+          },
+          {
+            "end": 278.6399984359741,
+            "start": 277.35999822616577,
+            "text": "तेरा"
+          },
+          {
+            "end": 279.1199984550476,
+            "start": 278.6399984359741,
+            "text": "पल"
+          },
+          {
+            "end": 280.1399984359741,
+            "start": 279.1199984550476,
+            "text": "मेरा"
+          },
+          {
+            "end": 280.51999855041504,
+            "start": 280.1399984359741,
+            "text": "हो"
+          },
+          {
+            "end": 280.81999826431274,
+            "start": 280.51999855041504,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.099997043609619,
+            "gapAfterSec": 4.799998760223389,
+            "gapBeforeSec": 5.94000244140625,
+            "matchedWordCount": 7,
+            "matchRatio": 1,
+            "tokenCount": 7
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-41",
+        "index": 41,
+        "original": "तेरे कान्धे का जो तिल है",
+        "romanization": "",
+        "start": 280.5199999809265,
+        "translation": "",
+        "confidence": "medium",
+        "end": 283.5600004196167,
+        "matchRatio": 0.8333333333333334,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 281.5200004577637,
+            "start": 280.5199999809265,
+            "text": "तेरे"
+          },
+          {
+            "end": 282.5200004577637,
+            "start": 281.5200004577637,
+            "text": "कान्धे"
+          },
+          {
+            "end": 282.69999980926514,
+            "start": 282.5200004577637,
+            "text": "का"
+          },
+          {
+            "end": 283.0200004577637,
+            "start": 282.69999980926514,
+            "text": "जो"
+          },
+          {
+            "end": 283.5600004196167,
+            "start": 283.23999977111816,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.0400004386901855,
+            "gapAfterSec": 3.0400004386901855,
+            "gapBeforeSec": 4.799998760223389,
+            "matchedWordCount": 5,
+            "matchRatio": 0.8333333333333334,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "medium",
+          "timingConfidence": "medium"
+        }
+      },
+      {
+        "id": "aaj-se-teri-42",
+        "index": 42,
+        "original": "तेरे सीने में जो दिल है",
+        "romanization": "",
+        "start": 283.5600004196167,
+        "translation": "",
+        "confidence": "high",
+        "end": 287.039999961853,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 284.76000022888184,
+            "start": 283.5600004196167,
+            "text": "तेरे"
+          },
+          {
+            "end": 285.57999992370605,
+            "start": 284.76000022888184,
+            "text": "सीने"
+          },
+          {
+            "end": 285.6800003051758,
+            "start": 285.57999992370605,
+            "text": "में"
+          },
+          {
+            "end": 285.8800001144409,
+            "start": 285.6800003051758,
+            "text": "जो"
+          },
+          {
+            "end": 286.23999977111816,
+            "start": 285.8800001144409,
+            "text": "दिल"
+          },
+          {
+            "end": 287.039999961853,
+            "start": 286.23999977111816,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.479999542236328,
+            "gapAfterSec": 3.479999542236328,
+            "gapBeforeSec": 3.0400004386901855,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-43",
+        "index": 43,
+        "original": "तेरी बिजली का जो बिल है",
+        "romanization": "",
+        "start": 287.039999961853,
+        "translation": "",
+        "confidence": "high",
+        "end": 290.04000091552734,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 287.7799997329712,
+            "start": 287.039999961853,
+            "text": "तेरी"
+          },
+          {
+            "end": 288.42000007629395,
+            "start": 287.7799997329712,
+            "text": "बिजली"
+          },
+          {
+            "end": 288.73999977111816,
+            "start": 288.42000007629395,
+            "text": "का"
+          },
+          {
+            "end": 288.92000007629395,
+            "start": 288.73999977111816,
+            "text": "जो"
+          },
+          {
+            "end": 289.20000076293945,
+            "start": 288.92000007629395,
+            "text": "बिल"
+          },
+          {
+            "end": 290.04000091552734,
+            "start": 289.20000076293945,
+            "text": "है"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 3.0000009536743164,
+            "gapAfterSec": 3.0000009536743164,
+            "gapBeforeSec": 3.479999542236328,
+            "matchedWordCount": 6,
+            "matchRatio": 1,
+            "tokenCount": 6
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-44",
+        "index": 44,
+        "original": "आज से मेरा हो गया",
+        "romanization": "",
+        "start": 290.04000091552734,
+        "translation": "",
+        "confidence": "high",
+        "end": 292.92000007629395,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 290.6800003051758,
+            "start": 290.04000091552734,
+            "text": "आज"
+          },
+          {
+            "end": 291.1800003051758,
+            "start": 290.6800003051758,
+            "text": "से"
+          },
+          {
+            "end": 292.0599994659424,
+            "start": 291.1800003051758,
+            "text": "मेरा"
+          },
+          {
+            "end": 292.57999992370605,
+            "start": 292.0599994659424,
+            "text": "हो"
+          },
+          {
+            "end": 292.92000007629395,
+            "start": 292.57999992370605,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.8799991607666016,
+            "gapAfterSec": 3.3799991607666016,
+            "gapBeforeSec": 3.0000009536743164,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-45",
+        "index": 45,
+        "original": "मेरे खाबों का अंबर",
+        "romanization": "",
+        "start": 293.42000007629395,
+        "translation": "",
+        "confidence": "high",
+        "end": 295.73999977111816,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 293.73999977111816,
+            "start": 293.42000007629395,
+            "text": "मेरे"
+          },
+          {
+            "end": 294.5599994659424,
+            "start": 293.73999977111816,
+            "text": "खाबों"
+          },
+          {
+            "end": 294.8799991607666,
+            "start": 294.5599994659424,
+            "text": "का"
+          },
+          {
+            "end": 295.73999977111816,
+            "start": 294.8799991607666,
+            "text": "अंबर"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.3199996948242188,
+            "gapAfterSec": 3.059999465942383,
+            "gapBeforeSec": 3.3799991607666016,
+            "matchedWordCount": 4,
+            "matchRatio": 1,
+            "tokenCount": 4
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-46",
+        "index": 46,
+        "original": "मेरी खुशियों का समंदर",
+        "romanization": "",
+        "start": 296.4799995422363,
+        "translation": "",
+        "confidence": "high",
+        "end": 298.76000022888184,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 296.73999977111816,
+            "start": 296.4799995422363,
+            "text": "मेरी"
+          },
+          {
+            "end": 297.4400005340576,
+            "start": 296.73999977111816,
+            "text": "खुशियों"
+          },
+          {
+            "end": 297.73999977111816,
+            "start": 297.4400005340576,
+            "text": "का"
+          },
+          {
+            "end": 298.76000022888184,
+            "start": 297.73999977111816,
+            "text": "समंदर"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.280000686645508,
+            "gapAfterSec": 3.020000457763672,
+            "gapBeforeSec": 3.059999465942383,
+            "matchedWordCount": 4,
+            "matchRatio": 1,
+            "tokenCount": 4
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-47",
+        "index": 47,
+        "original": "मेरे पिन कोड का नंबर",
+        "romanization": "",
+        "start": 299.5,
+        "translation": "",
+        "confidence": "high",
+        "end": 302.2199993133545,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 299.76000022888184,
+            "start": 299.5,
+            "text": "मेरे"
+          },
+          {
+            "end": 300.2199993133545,
+            "start": 299.76000022888184,
+            "text": "पिन"
+          },
+          {
+            "end": 300.63999938964844,
+            "start": 300.2199993133545,
+            "text": "कोड"
+          },
+          {
+            "end": 300.9400005340576,
+            "start": 300.63999938964844,
+            "text": "का"
+          },
+          {
+            "end": 302.2199993133545,
+            "start": 300.9400005340576,
+            "text": "नंबर"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 2.719999313354492,
+            "gapAfterSec": 2.719999313354492,
+            "gapBeforeSec": 3.020000457763672,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-48",
+        "index": 48,
+        "original": "आज से तेरा हो गया",
+        "romanization": "",
+        "start": 302.2199993133545,
+        "translation": "",
+        "confidence": "high",
+        "end": 307.4799995422363,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 302.73999977111816,
+            "start": 302.2199993133545,
+            "text": "आज"
+          },
+          {
+            "end": 303.07999992370605,
+            "start": 302.73999977111816,
+            "text": "से"
+          },
+          {
+            "end": 305.4799995422363,
+            "start": 303.07999992370605,
+            "text": "तेरा"
+          },
+          {
+            "end": 306.29999923706055,
+            "start": 305.4799995422363,
+            "text": "हो"
+          },
+          {
+            "end": 307.4799995422363,
+            "start": 306.29999923706055,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.260000228881836,
+            "gapAfterSec": 6.200000286102295,
+            "gapBeforeSec": 2.719999313354492,
+            "matchedWordCount": 5,
+            "matchRatio": 1,
+            "tokenCount": 5
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-49",
+        "index": 49,
+        "original": "आज से तेरी सारी गलियां मेरी हो गई",
+        "romanization": "",
+        "start": 308.4199995994568,
+        "translation": "",
+        "confidence": "high",
+        "end": 314.33999967575073,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 309.65999960899353,
+            "start": 308.4199995994568,
+            "text": "आज"
+          },
+          {
+            "end": 309.99999952316284,
+            "start": 309.65999960899353,
+            "text": "से"
+          },
+          {
+            "end": 311.33999967575073,
+            "start": 309.99999952316284,
+            "text": "तेरी"
+          },
+          {
+            "end": 311.9399995803833,
+            "start": 311.33999967575073,
+            "text": "सारी"
+          },
+          {
+            "end": 312.9599995613098,
+            "start": 311.9399995803833,
+            "text": "गलियां"
+          },
+          {
+            "end": 313.44000005722046,
+            "start": 312.9399999976158,
+            "text": "मेरी"
+          },
+          {
+            "end": 314.0599994659424,
+            "start": 313.4199995994568,
+            "text": "हो"
+          },
+          {
+            "end": 314.33999967575073,
+            "start": 314.0599994659424,
+            "text": "गई"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.920000076293945,
+            "gapAfterSec": 6.0400004386901855,
+            "gapBeforeSec": 6.200000286102295,
+            "matchedWordCount": 8,
+            "matchRatio": 1,
+            "tokenCount": 8
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      },
+      {
+        "id": "aaj-se-teri-50",
+        "index": 50,
+        "original": "आज से मेरा घर तेरा हो गया",
+        "romanization": "",
+        "start": 314.460000038147,
+        "translation": "",
+        "confidence": "high",
+        "end": 319.76000022888184,
+        "matchRatio": 1,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 315.55999994277954,
+            "start": 314.460000038147,
+            "text": "आज"
+          },
+          {
+            "end": 316.07999992370605,
+            "start": 315.55999994277954,
+            "text": "से"
+          },
+          {
+            "end": 317.3200001716614,
+            "start": 316.07999992370605,
+            "text": "मेरा"
+          },
+          {
+            "end": 317.90000009536743,
+            "start": 317.3200001716614,
+            "text": "घर"
+          },
+          {
+            "end": 318.73999977111816,
+            "start": 317.90000009536743,
+            "text": "तेरा"
+          },
+          {
+            "end": 319.28000020980835,
+            "start": 318.73999977111816,
+            "text": "हो"
+          },
+          {
+            "end": 319.76000022888184,
+            "start": 319.28000020980835,
+            "text": "गया"
+          }
+        ],
+        "quality": {
+          "flags": [],
+          "metrics": {
+            "durationSec": 5.300000190734863,
+            "gapAfterSec": null,
+            "gapBeforeSec": 6.0400004386901855,
+            "matchedWordCount": 7,
+            "matchRatio": 1,
+            "tokenCount": 7
+          },
+          "riskLevel": "ok",
+          "textEvidenceConfidence": "high",
+          "timingConfidence": "high"
+        }
+      }
+    ],
+    "lyricPolishSummary": {
+      "changedLineCount": 0,
+      "originalTextChangeCount": 0,
+      "romanizationChangeCount": 0,
+      "status": "not-run",
+      "translationChangeCount": 0
+    },
+    "matches": [
+      {
+        "confidence": "medium",
+        "end": 47.27999973297119,
+        "id": "aaj-se-teri-01",
+        "index": 0,
+        "lineNumber": 1,
+        "matchRatio": 0.875,
+        "matchedWordCount": 7,
+        "original": "आज से तेरी सारी गलियां मेरी हो गई",
+        "start": 41.439998626708984,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 42.84000015258789,
+            "start": 41.439998626708984,
+            "text": "आज"
+          },
+          {
+            "end": 43.29999923706055,
+            "start": 42.84000015258789,
+            "text": "से"
+          },
+          {
+            "end": 44.31999969482422,
+            "start": 43.29999923706055,
+            "text": "तेरी"
+          },
+          {
+            "end": 44.97999954223633,
+            "start": 44.31999969482422,
+            "text": "सारी"
+          },
+          {
+            "end": 46.17999982833862,
+            "start": 45.15999984741211,
+            "text": "गलियां"
+          },
+          {
+            "end": 46.639999866485596,
+            "start": 46.17999982833862,
+            "text": "मेरी"
+          },
+          {
+            "end": 47.27999973297119,
+            "start": 46.639999866485596,
+            "text": "हो"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 52.53999996185303,
+        "id": "aaj-se-teri-02",
+        "index": 1,
+        "lineNumber": 2,
+        "matchRatio": 0.8571428571428571,
+        "matchedWordCount": 6,
+        "original": "आज से मेरा घर तेरा हो गया",
+        "start": 47.68000030517578,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 48.77999973297119,
+            "start": 47.68000030517578,
+            "text": "आज"
+          },
+          {
+            "end": 49.30000019073486,
+            "start": 48.77999973297119,
+            "text": "से"
+          },
+          {
+            "end": 50.579999923706055,
+            "start": 49.30000019073486,
+            "text": "मेरा"
+          },
+          {
+            "end": 51.11999988555908,
+            "start": 50.579999923706055,
+            "text": "घर"
+          },
+          {
+            "end": 51.97999954223633,
+            "start": 51.11999988555908,
+            "text": "तेरा"
+          },
+          {
+            "end": 52.53999996185303,
+            "start": 51.97999954223633,
+            "text": "हो"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 65.29999923706055,
+        "id": "aaj-se-teri-03",
+        "index": 2,
+        "lineNumber": 3,
+        "matchRatio": 0.75,
+        "matchedWordCount": 6,
+        "original": "आज से तेरी सारी गलियां मेरी हो गई",
+        "start": 60.760000228881836,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 61.34000015258789,
+            "start": 60.760000228881836,
+            "text": "से"
+          },
+          {
+            "end": 62.44000053405762,
+            "start": 61.34000015258789,
+            "text": "तेरी"
+          },
+          {
+            "end": 63.15999984741211,
+            "start": 62.44000053405762,
+            "text": "सारी"
+          },
+          {
+            "end": 64.15999984741211,
+            "start": 63.15999984741211,
+            "text": "गलियां"
+          },
+          {
+            "end": 64.6200008392334,
+            "start": 64.15999984741211,
+            "text": "मेरी"
+          },
+          {
+            "end": 65.29999923706055,
+            "start": 64.6200008392334,
+            "text": "हो"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 71.79999923706055,
+        "id": "aaj-se-teri-04",
+        "index": 3,
+        "lineNumber": 4,
+        "matchRatio": 1,
+        "matchedWordCount": 7,
+        "original": "आज से मेरा घर तेरा हो गया",
+        "start": 66.21999931335449,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 66.81999969482422,
+            "start": 66.21999931335449,
+            "text": "आज"
+          },
+          {
+            "end": 67.34000015258789,
+            "start": 66.81999969482422,
+            "text": "से"
+          },
+          {
+            "end": 68.81999969482422,
+            "start": 67.34000015258789,
+            "text": "मेरा"
+          },
+          {
+            "end": 69.10000038146973,
+            "start": 68.81999969482422,
+            "text": "घर"
+          },
+          {
+            "end": 70.10000038146973,
+            "start": 69.10000038146973,
+            "text": "तेरा"
+          },
+          {
+            "end": 70.54000091552734,
+            "start": 70.10000038146973,
+            "text": "हो"
+          },
+          {
+            "end": 71.79999923706055,
+            "start": 70.54000091552734,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 77.27999877929688,
+        "id": "aaj-se-teri-05",
+        "index": 4,
+        "lineNumber": 5,
+        "matchRatio": 0.875,
+        "matchedWordCount": 7,
+        "original": "आज से मेरी सारी खुशियां तेरी हो गई",
+        "start": 71.9000015258789,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 72.93999862670898,
+            "start": 71.9000015258789,
+            "text": "आज"
+          },
+          {
+            "end": 73.36000061035156,
+            "start": 72.93999862670898,
+            "text": "से"
+          },
+          {
+            "end": 74.63999938964844,
+            "start": 73.36000061035156,
+            "text": "मेरी"
+          },
+          {
+            "end": 75.13999938964844,
+            "start": 74.63999938964844,
+            "text": "सारी"
+          },
+          {
+            "end": 76.18000030517578,
+            "start": 75.13999938964844,
+            "text": "खुशियां"
+          },
+          {
+            "end": 76.63999938964844,
+            "start": 76.18000030517578,
+            "text": "तेरी"
+          },
+          {
+            "end": 77.27999877929688,
+            "start": 76.63999938964844,
+            "text": "हो"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 82.97999954223633,
+        "id": "aaj-se-teri-06",
+        "index": 5,
+        "lineNumber": 6,
+        "matchRatio": 0.8571428571428571,
+        "matchedWordCount": 6,
+        "original": "आज से तेरा घम मेरा हो गया",
+        "start": 78.11999893188477,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 78.91999816894531,
+            "start": 78.11999893188477,
+            "text": "आज"
+          },
+          {
+            "end": 79.36000061035156,
+            "start": 78.91999816894531,
+            "text": "से"
+          },
+          {
+            "end": 80.79999923706055,
+            "start": 79.36000061035156,
+            "text": "तेरा"
+          },
+          {
+            "end": 82.11999893188477,
+            "start": 81.29999923706055,
+            "text": "मेरा"
+          },
+          {
+            "end": 82.52000045776367,
+            "start": 82.11999893188477,
+            "text": "हो"
+          },
+          {
+            "end": 82.97999954223633,
+            "start": 82.52000045776367,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 86.19999980926514,
+        "id": "aaj-se-teri-07",
+        "index": 6,
+        "lineNumber": 7,
+        "matchRatio": 0.8571428571428571,
+        "matchedWordCount": 6,
+        "original": "ओ तेरे कान्दे का जो तिल है",
+        "start": 82.97999954223633,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 83.47999954223633,
+            "start": 82.97999954223633,
+            "text": "ओ"
+          },
+          {
+            "end": 83.7400016784668,
+            "start": 83.47999954223633,
+            "text": "तेरे"
+          },
+          {
+            "end": 84.53999996185303,
+            "start": 83.73999977111816,
+            "text": "कान्दे"
+          },
+          {
+            "end": 84.71999979019165,
+            "start": 84.53999996185303,
+            "text": "का"
+          },
+          {
+            "end": 85.30000019073486,
+            "start": 84.94000005722046,
+            "text": "तिल"
+          },
+          {
+            "end": 86.19999980926514,
+            "start": 85.30000019073486,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 88.96000003814697,
+        "id": "aaj-se-teri-08",
+        "index": 7,
+        "lineNumber": 8,
+        "matchRatio": 1,
+        "matchedWordCount": 7,
+        "original": "ओ तेरे सीने में जो दिल है",
+        "start": 85.69999980926514,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 86.3799998164177,
+            "start": 85.69999980926514,
+            "text": "ओ"
+          },
+          {
+            "end": 86.81999969482422,
+            "start": 86.19999980926514,
+            "text": "तेरे"
+          },
+          {
+            "end": 87.57999980449677,
+            "start": 86.799999833107,
+            "text": "सीने"
+          },
+          {
+            "end": 87.72000026702881,
+            "start": 87.38000011444092,
+            "text": "में"
+          },
+          {
+            "end": 87.91999983787537,
+            "start": 87.73999977111816,
+            "text": "जो"
+          },
+          {
+            "end": 88.25999975204468,
+            "start": 87.91999983787537,
+            "text": "दिल"
+          },
+          {
+            "end": 88.96000003814697,
+            "start": 88.23999977111816,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 92.03999996185303,
+        "id": "aaj-se-teri-09",
+        "index": 8,
+        "lineNumber": 9,
+        "matchRatio": 0.7142857142857143,
+        "matchedWordCount": 5,
+        "original": "ओ तेरी बिजली का जो बिल है",
+        "start": 88.96000003814697,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 89.80000019073486,
+            "start": 88.96000003814697,
+            "text": "तेरी"
+          },
+          {
+            "end": 90.53999996185303,
+            "start": 89.80000019073486,
+            "text": "बिजली"
+          },
+          {
+            "end": 90.64000034332275,
+            "start": 90.53999996185303,
+            "text": "का"
+          },
+          {
+            "end": 91.23999977111816,
+            "start": 90.64000034332275,
+            "text": "बिल"
+          },
+          {
+            "end": 92.03999996185303,
+            "start": 91.23999977111816,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 94.97999954223633,
+        "id": "aaj-se-teri-10",
+        "index": 9,
+        "lineNumber": 10,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "आज से मेरा हो गया",
+        "start": 92.03999996185303,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 92.68000030517578,
+            "start": 92.03999996185303,
+            "text": "आज"
+          },
+          {
+            "end": 93.18000030517578,
+            "start": 92.68000030517578,
+            "text": "से"
+          },
+          {
+            "end": 93.96000003814697,
+            "start": 93.18000030517578,
+            "text": "मेरा"
+          },
+          {
+            "end": 94.52000045776367,
+            "start": 93.96000003814697,
+            "text": "हो"
+          },
+          {
+            "end": 94.97999954223633,
+            "start": 94.52000045776367,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 97.73999953269958,
+        "id": "aaj-se-teri-11",
+        "index": 10,
+        "lineNumber": 11,
+        "matchRatio": 0.8,
+        "matchedWordCount": 4,
+        "original": "ओ मेरे खाबों का अमबर",
+        "start": 94.97999954223633,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 95.79999923706055,
+            "start": 94.97999954223633,
+            "text": "मेरे"
+          },
+          {
+            "end": 96.5799994468689,
+            "start": 95.77999949455261,
+            "text": "खाबों"
+          },
+          {
+            "end": 96.84000015258789,
+            "start": 96.45999908447266,
+            "text": "का"
+          },
+          {
+            "end": 97.73999953269958,
+            "start": 96.9399995803833,
+            "text": "अमबर"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 100.7999997138977,
+        "id": "aaj-se-teri-12",
+        "index": 11,
+        "lineNumber": 12,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "ओ मेरी खुशियों का समंदर",
+        "start": 97.73999953269958,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 98.47999954223633,
+            "start": 97.73999953269958,
+            "text": "ओ"
+          },
+          {
+            "end": 98.81999969482422,
+            "start": 98.47999954223633,
+            "text": "मेरी"
+          },
+          {
+            "end": 99.53999948501587,
+            "start": 98.81999969482422,
+            "text": "खुशियों"
+          },
+          {
+            "end": 99.75999975204468,
+            "start": 99.53999948501587,
+            "text": "का"
+          },
+          {
+            "end": 100.7999997138977,
+            "start": 99.75999975204468,
+            "text": "समंदर"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 103.5,
+        "id": "aaj-se-teri-13",
+        "index": 12,
+        "lineNumber": 13,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "ओ मेरे पिन कोड का नंबर",
+        "start": 100.7999997138977,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 101.47999954223633,
+            "start": 100.7999997138977,
+            "text": "ओ"
+          },
+          {
+            "end": 101.7999997138977,
+            "start": 101.47999954223633,
+            "text": "मेरे"
+          },
+          {
+            "end": 102.19999933242798,
+            "start": 101.7999997138977,
+            "text": "पिन"
+          },
+          {
+            "end": 102.61999988555908,
+            "start": 102.19999933242798,
+            "text": "कोड"
+          },
+          {
+            "end": 102.95999908447266,
+            "start": 102.61999988555908,
+            "text": "का"
+          },
+          {
+            "end": 103.5,
+            "start": 102.95999908447266,
+            "text": "नंबर"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 107.02000045776367,
+        "id": "aaj-se-teri-14",
+        "index": 13,
+        "lineNumber": 14,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "आज से तेरा हो गया",
+        "start": 103.02000045776367,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 104.70000076293945,
+            "start": 103.02000045776367,
+            "text": "आज"
+          },
+          {
+            "end": 105.15999984741211,
+            "start": 104.70000076293945,
+            "text": "से"
+          },
+          {
+            "end": 106,
+            "start": 105.15999984741211,
+            "text": "तेरा"
+          },
+          {
+            "end": 106.55999946594238,
+            "start": 106,
+            "text": "हो"
+          },
+          {
+            "end": 107.02000045776367,
+            "start": 106.55999946594238,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 144.89999961853027,
+        "id": "aaj-se-teri-15",
+        "index": 14,
+        "lineNumber": 15,
+        "matchRatio": 0.9090909090909091,
+        "matchedWordCount": 10,
+        "original": "तेरे माथे के कुम कुम को मैं तिलक लगा के घूंगूंगा",
+        "start": 139.3799991607666,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 140.7800006866455,
+            "start": 139.3799991607666,
+            "text": "तेरे"
+          },
+          {
+            "end": 141.60000038146973,
+            "start": 140.7800006866455,
+            "text": "माथे"
+          },
+          {
+            "end": 141.79999923706055,
+            "start": 141.60000038146973,
+            "text": "के"
+          },
+          {
+            "end": 142.5,
+            "start": 141.79999923706055,
+            "text": "कुम"
+          },
+          {
+            "end": 142.7199993133545,
+            "start": 142.5,
+            "text": "कुम"
+          },
+          {
+            "end": 143,
+            "start": 142.7199993133545,
+            "text": "को"
+          },
+          {
+            "end": 143.47999954223633,
+            "start": 143,
+            "text": "मैं"
+          },
+          {
+            "end": 143.92000007629395,
+            "start": 143.47999954223633,
+            "text": "तिलक"
+          },
+          {
+            "end": 144.6200008392334,
+            "start": 143.92000007629395,
+            "text": "लगा"
+          },
+          {
+            "end": 144.89999961853027,
+            "start": 144.6200008392334,
+            "text": "के"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 152.17999982833862,
+        "id": "aaj-se-teri-16",
+        "index": 15,
+        "lineNumber": 16,
+        "matchRatio": 0.9166666666666666,
+        "matchedWordCount": 11,
+        "original": "तेरी बाली की छन छन को मैं दिल से लगा के जूंगूंगा",
+        "start": 145.9199995994568,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 146.83999967575073,
+            "start": 145.9199995994568,
+            "text": "तेरी"
+          },
+          {
+            "end": 147.4399995803833,
+            "start": 146.83999967575073,
+            "text": "बाली"
+          },
+          {
+            "end": 147.89999961853027,
+            "start": 147.4399995803833,
+            "text": "की"
+          },
+          {
+            "end": 148.23999953269958,
+            "start": 147.89999961853027,
+            "text": "छन"
+          },
+          {
+            "end": 148.97999954223633,
+            "start": 148.69999980926514,
+            "text": "को"
+          },
+          {
+            "end": 149.47999954223633,
+            "start": 148.97999954223633,
+            "text": "मैं"
+          },
+          {
+            "end": 149.77999877929688,
+            "start": 149.47999954223633,
+            "text": "दिल"
+          },
+          {
+            "end": 149.97999954223633,
+            "start": 149.73999977111816,
+            "text": "से"
+          },
+          {
+            "end": 150.5999984741211,
+            "start": 149.97999954223633,
+            "text": "लगा"
+          },
+          {
+            "end": 150.8400001525879,
+            "start": 150.5999984741211,
+            "text": "के"
+          },
+          {
+            "end": 152.17999982833862,
+            "start": 150.81999969482422,
+            "text": "जूंगूंगा"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 158.13999938964844,
+        "id": "aaj-se-teri-17",
+        "index": 16,
+        "lineNumber": 17,
+        "matchRatio": 0.9,
+        "matchedWordCount": 9,
+        "original": "मेरी चोटी सी भूलों को तु नदिया में बहा देना",
+        "start": 152.4000015258789,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 153.18000030517578,
+            "start": 152.4000015258789,
+            "text": "मेरी"
+          },
+          {
+            "end": 153.9000015258789,
+            "start": 153.18000030517578,
+            "text": "चोटी"
+          },
+          {
+            "end": 154.2599983215332,
+            "start": 153.9000015258789,
+            "text": "सी"
+          },
+          {
+            "end": 154.97999954223633,
+            "start": 154.2599983215332,
+            "text": "भूलों"
+          },
+          {
+            "end": 155.61999893188477,
+            "start": 154.97999954223633,
+            "text": "को"
+          },
+          {
+            "end": 156.5800018310547,
+            "start": 155.9199981689453,
+            "text": "नदिया"
+          },
+          {
+            "end": 156.68000030517578,
+            "start": 156.5800018310547,
+            "text": "में"
+          },
+          {
+            "end": 157.3400001525879,
+            "start": 156.68000030517578,
+            "text": "बहा"
+          },
+          {
+            "end": 158.13999938964844,
+            "start": 157.3400001525879,
+            "text": "देना"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 164.47999954223633,
+        "id": "aaj-se-teri-18",
+        "index": 17,
+        "lineNumber": 18,
+        "matchRatio": 1,
+        "matchedWordCount": 10,
+        "original": "तेरे जूड़े के फूलों को मैं अपनी शर्ट में पहनूंगा",
+        "start": 158.13999938964844,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 158.81999969482422,
+            "start": 158.13999938964844,
+            "text": "तेरे"
+          },
+          {
+            "end": 159.77999877929688,
+            "start": 158.81999969482422,
+            "text": "जूड़े"
+          },
+          {
+            "end": 159.9199981689453,
+            "start": 159.77999877929688,
+            "text": "के"
+          },
+          {
+            "end": 160.6599998474121,
+            "start": 159.9199981689453,
+            "text": "फूलों"
+          },
+          {
+            "end": 160.97999954223633,
+            "start": 160.6599998474121,
+            "text": "को"
+          },
+          {
+            "end": 161.5,
+            "start": 160.97999954223633,
+            "text": "मैं"
+          },
+          {
+            "end": 161.97999954223633,
+            "start": 161.5,
+            "text": "अपनी"
+          },
+          {
+            "end": 162.61999988555908,
+            "start": 162.05999994277954,
+            "text": "शर्ट"
+          },
+          {
+            "end": 162.88000011444092,
+            "start": 162.61999988555908,
+            "text": "में"
+          },
+          {
+            "end": 164.47999954223633,
+            "start": 162.88000011444092,
+            "text": "पहनूंगा"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 170.5,
+        "id": "aaj-se-teri-19",
+        "index": 18,
+        "lineNumber": 19,
+        "matchRatio": 0.9,
+        "matchedWordCount": 9,
+        "original": "बस मेरे लिए तू माल पुए कभी-कभी बना देना",
+        "start": 164.47999954223633,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 165.14000034332275,
+            "start": 164.47999954223633,
+            "text": "बस"
+          },
+          {
+            "end": 165.7200002670288,
+            "start": 165.14000034332275,
+            "text": "मेरे"
+          },
+          {
+            "end": 166.10000038146973,
+            "start": 165.7200002670288,
+            "text": "लिए"
+          },
+          {
+            "end": 166.6599998474121,
+            "start": 166.10000038146973,
+            "text": "तू"
+          },
+          {
+            "end": 167.07999992370605,
+            "start": 166.6599998474121,
+            "text": "माल"
+          },
+          {
+            "end": 167.7799997329712,
+            "start": 167.07999992370605,
+            "text": "पुए"
+          },
+          {
+            "end": 168.11999988555908,
+            "start": 167.7799997329712,
+            "text": "कभी-कभी"
+          },
+          {
+            "end": 169.31999969482422,
+            "start": 168.64000034332275,
+            "text": "बना"
+          },
+          {
+            "end": 170.5,
+            "start": 169.31999969482422,
+            "text": "देना"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 176.68000030517578,
+        "id": "aaj-se-teri-20",
+        "index": 19,
+        "lineNumber": 20,
+        "matchRatio": 1,
+        "matchedWordCount": 8,
+        "original": "आज से मेरी सारी रतियां तेरी हो गईं",
+        "start": 170.5,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 171.80000019073486,
+            "start": 170.5,
+            "text": "आज"
+          },
+          {
+            "end": 172.26000022888184,
+            "start": 171.80000019073486,
+            "text": "से"
+          },
+          {
+            "end": 173.3799991607666,
+            "start": 172.26000022888184,
+            "text": "मेरी"
+          },
+          {
+            "end": 174.13999938964844,
+            "start": 173.3799991607666,
+            "text": "सारी"
+          },
+          {
+            "end": 175.1599998474121,
+            "start": 174.13999938964844,
+            "text": "रतियां"
+          },
+          {
+            "end": 175.6200008392334,
+            "start": 175.1599998474121,
+            "text": "तेरी"
+          },
+          {
+            "end": 176.23999977111816,
+            "start": 175.6200008392334,
+            "text": "हो"
+          },
+          {
+            "end": 176.68000030517578,
+            "start": 176.23999977111816,
+            "text": "गईं"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 181.94000053405762,
+        "id": "aaj-se-teri-21",
+        "index": 20,
+        "lineNumber": 21,
+        "matchRatio": 1,
+        "matchedWordCount": 7,
+        "original": "आज से तेरा दिन मेरा हो गया",
+        "start": 176.68000030517578,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 177.81999969482422,
+            "start": 176.68000030517578,
+            "text": "आज"
+          },
+          {
+            "end": 178.31999969482422,
+            "start": 177.81999969482422,
+            "text": "से"
+          },
+          {
+            "end": 179.45999908447266,
+            "start": 178.31999969482422,
+            "text": "तेरा"
+          },
+          {
+            "end": 180.13999938964844,
+            "start": 179.45999908447266,
+            "text": "दिन"
+          },
+          {
+            "end": 181.1200008392334,
+            "start": 180.13999938964844,
+            "text": "मेरा"
+          },
+          {
+            "end": 181.54000091552734,
+            "start": 181.1200008392334,
+            "text": "हो"
+          },
+          {
+            "end": 181.94000053405762,
+            "start": 181.54000091552734,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 184.63999938964844,
+        "id": "aaj-se-teri-22",
+        "index": 21,
+        "lineNumber": 22,
+        "matchRatio": 0.8333333333333334,
+        "matchedWordCount": 5,
+        "original": "तेरे कन्धे का जो तिल है",
+        "start": 182.1599998474121,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 182.7800006866455,
+            "start": 182.1599998474121,
+            "text": "तेरे"
+          },
+          {
+            "end": 183.55999946594238,
+            "start": 182.7800006866455,
+            "text": "कन्धे"
+          },
+          {
+            "end": 183.70000076293945,
+            "start": 183.55999946594238,
+            "text": "का"
+          },
+          {
+            "end": 184.26000022888184,
+            "start": 183.70000076293945,
+            "text": "तिल"
+          },
+          {
+            "end": 184.63999938964844,
+            "start": 184.26000022888184,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 188.22000122070312,
+        "id": "aaj-se-teri-23",
+        "index": 22,
+        "lineNumber": 23,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "तेरे सीने में जो दिल है",
+        "start": 185.3999993801117,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 185.99999940395355,
+            "start": 185.3999993801117,
+            "text": "तेरे"
+          },
+          {
+            "end": 186.5999994277954,
+            "start": 185.99999940395355,
+            "text": "सीने"
+          },
+          {
+            "end": 186.7199993133545,
+            "start": 186.57999992370605,
+            "text": "में"
+          },
+          {
+            "end": 186.97999930381775,
+            "start": 186.739999294281,
+            "text": "जो"
+          },
+          {
+            "end": 187.29999947547913,
+            "start": 186.97999930381775,
+            "text": "दिल"
+          },
+          {
+            "end": 188.22000122070312,
+            "start": 187.2800006866455,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 190.5799994468689,
+        "id": "aaj-se-teri-24",
+        "index": 23,
+        "lineNumber": 24,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "तेरी बिजली का जो बिल है",
+        "start": 188.22000122070312,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 188.7599983215332,
+            "start": 188.22000122070312,
+            "text": "तेरी"
+          },
+          {
+            "end": 189.4399995803833,
+            "start": 188.77999925613403,
+            "text": "बिजली"
+          },
+          {
+            "end": 189.7199993133545,
+            "start": 189.4399995803833,
+            "text": "का"
+          },
+          {
+            "end": 189.9199995994568,
+            "start": 189.7199993133545,
+            "text": "जो"
+          },
+          {
+            "end": 190.2400016784668,
+            "start": 189.7599983215332,
+            "text": "बिल"
+          },
+          {
+            "end": 190.5799994468689,
+            "start": 190.19999933242798,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 194.0999984741211,
+        "id": "aaj-se-teri-25",
+        "index": 24,
+        "lineNumber": 25,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "आज से मेरा हो गया",
+        "start": 190.86000061035156,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 191.7599983215332,
+            "start": 190.86000061035156,
+            "text": "आज"
+          },
+          {
+            "end": 192.22000122070312,
+            "start": 191.7599983215332,
+            "text": "से"
+          },
+          {
+            "end": 193.11999893188477,
+            "start": 192.22000122070312,
+            "text": "मेरा"
+          },
+          {
+            "end": 193.54000091552734,
+            "start": 193.11999893188477,
+            "text": "हो"
+          },
+          {
+            "end": 194.0999984741211,
+            "start": 193.54000091552734,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 195.93999862670898,
+        "id": "aaj-se-teri-26",
+        "index": 25,
+        "lineNumber": 26,
+        "matchRatio": 0.75,
+        "matchedWordCount": 3,
+        "original": "मेरे खाबों का अमबर",
+        "start": 194.47999954223633,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 194.79999923706055,
+            "start": 194.47999954223633,
+            "text": "मेरे"
+          },
+          {
+            "end": 195.56000137329102,
+            "start": 194.79999923706055,
+            "text": "खाबों"
+          },
+          {
+            "end": 195.93999862670898,
+            "start": 195.56000137329102,
+            "text": "का"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 199.82000017166138,
+        "id": "aaj-se-teri-27",
+        "index": 26,
+        "lineNumber": 27,
+        "matchRatio": 1,
+        "matchedWordCount": 4,
+        "original": "मेरी खुशियों का समंदर",
+        "start": 197.54000091552734,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 197.8400001525879,
+            "start": 197.54000091552734,
+            "text": "मेरी"
+          },
+          {
+            "end": 198.45999908447266,
+            "start": 197.8400001525879,
+            "text": "खुशियों"
+          },
+          {
+            "end": 198.77999877929688,
+            "start": 198.45999908447266,
+            "text": "का"
+          },
+          {
+            "end": 199.82000017166138,
+            "start": 198.72000002861023,
+            "text": "समंदर"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 203.19999980926514,
+        "id": "aaj-se-teri-28",
+        "index": 27,
+        "lineNumber": 28,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "मेरे पिन कोड का नंबर",
+        "start": 199.82000017166138,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 200.76000022888184,
+            "start": 199.82000017166138,
+            "text": "मेरे"
+          },
+          {
+            "end": 201.19999980926514,
+            "start": 200.76000022888184,
+            "text": "पिन"
+          },
+          {
+            "end": 201.6599998474121,
+            "start": 201.19999980926514,
+            "text": "कोड"
+          },
+          {
+            "end": 201.88000011444092,
+            "start": 201.6599998474121,
+            "text": "का"
+          },
+          {
+            "end": 203.19999980926514,
+            "start": 201.88000011444092,
+            "text": "नंबर"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 205.89999961853027,
+        "id": "aaj-se-teri-29",
+        "index": 28,
+        "lineNumber": 29,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "आज से तेरा हो गया",
+        "start": 203.19999980926514,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 203.69999980926514,
+            "start": 203.19999980926514,
+            "text": "आज"
+          },
+          {
+            "end": 204.10000038146973,
+            "start": 203.69999980926514,
+            "text": "से"
+          },
+          {
+            "end": 204.96000003814697,
+            "start": 204.10000038146973,
+            "text": "तेरा"
+          },
+          {
+            "end": 205.52000045776367,
+            "start": 204.96000003814697,
+            "text": "हो"
+          },
+          {
+            "end": 205.89999961853027,
+            "start": 205.52000045776367,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 233.0999984741211,
+        "id": "aaj-se-teri-30",
+        "index": 29,
+        "lineNumber": 30,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "तु मांगे सरदी में अमियां",
+        "start": 229.4199981689453,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 230.45999908447266,
+            "start": 229.4199981689453,
+            "text": "तु"
+          },
+          {
+            "end": 231.11999893188477,
+            "start": 230.45999908447266,
+            "text": "मांगे"
+          },
+          {
+            "end": 231.93999862670898,
+            "start": 231.11999893188477,
+            "text": "सरदी"
+          },
+          {
+            "end": 232.18000030517578,
+            "start": 231.93999862670898,
+            "text": "में"
+          },
+          {
+            "end": 233.0999984741211,
+            "start": 232.18000030517578,
+            "text": "अमियां"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 236.2599983215332,
+        "id": "aaj-se-teri-31",
+        "index": 30,
+        "lineNumber": 31,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "जो मांगे गर्मी में मुम्फलियां",
+        "start": 233.0999984741211,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 233.43999862670898,
+            "start": 233.0999984741211,
+            "text": "जो"
+          },
+          {
+            "end": 234.20000076293945,
+            "start": 233.43999862670898,
+            "text": "मांगे"
+          },
+          {
+            "end": 234.7599983215332,
+            "start": 234.20000076293945,
+            "text": "गर्मी"
+          },
+          {
+            "end": 234.93999862670898,
+            "start": 234.7599983215332,
+            "text": "में"
+          },
+          {
+            "end": 236.2599983215332,
+            "start": 234.93999862670898,
+            "text": "मुम्फलियां"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 238.97999954223633,
+        "id": "aaj-se-teri-32",
+        "index": 31,
+        "lineNumber": 32,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "तु बारिश में अगर कह दे",
+        "start": 236.2599983215332,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 236.45999908447266,
+            "start": 236.2599983215332,
+            "text": "तु"
+          },
+          {
+            "end": 237.0999984741211,
+            "start": 236.45999908447266,
+            "text": "बारिश"
+          },
+          {
+            "end": 237.68000030517578,
+            "start": 237.0999984741211,
+            "text": "में"
+          },
+          {
+            "end": 238.20000076293945,
+            "start": 237.68000030517578,
+            "text": "अगर"
+          },
+          {
+            "end": 238.54000091552734,
+            "start": 238.20000076293945,
+            "text": "कह"
+          },
+          {
+            "end": 238.97999954223633,
+            "start": 238.54000091552734,
+            "text": "दे"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 242.07999992370605,
+        "id": "aaj-se-teri-33",
+        "index": 32,
+        "lineNumber": 33,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "जा मेरे लिए तु धूप खिला",
+        "start": 238.97999954223633,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 239.43999862670898,
+            "start": 238.97999954223633,
+            "text": "जा"
+          },
+          {
+            "end": 239.95999908447266,
+            "start": 239.43999862670898,
+            "text": "मेरे"
+          },
+          {
+            "end": 239.97999954223633,
+            "start": 239.95999908447266,
+            "text": "लिए"
+          },
+          {
+            "end": 240.8600001335144,
+            "start": 240.32000017166138,
+            "text": "तु"
+          },
+          {
+            "end": 241.38000011444092,
+            "start": 240.8600001335144,
+            "text": "धूप"
+          },
+          {
+            "end": 242.07999992370605,
+            "start": 241.38000011444092,
+            "text": "खिला"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 253.97999954223633,
+        "id": "aaj-se-teri-34",
+        "index": 33,
+        "lineNumber": 34,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "तो मैं सूरज को जटक दूँगा",
+        "start": 250.45999908447266,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 251.3799991607666,
+            "start": 250.45999908447266,
+            "text": "तो"
+          },
+          {
+            "end": 251.79999923706055,
+            "start": 251.3799991607666,
+            "text": "मैं"
+          },
+          {
+            "end": 252.44000053405762,
+            "start": 251.79999923706055,
+            "text": "सूरज"
+          },
+          {
+            "end": 252.7199993133545,
+            "start": 252.44000053405762,
+            "text": "को"
+          },
+          {
+            "end": 253.1599998474121,
+            "start": 252.7199993133545,
+            "text": "जटक"
+          },
+          {
+            "end": 253.97999954223633,
+            "start": 253.1599998474121,
+            "text": "दूँगा"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 257.04000091552734,
+        "id": "aaj-se-teri-35",
+        "index": 34,
+        "lineNumber": 35,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "तो मैं सावन को गटक लूँगा",
+        "start": 253.97999954223633,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 254.42000007629395,
+            "start": 253.97999954223633,
+            "text": "तो"
+          },
+          {
+            "end": 254.79999923706055,
+            "start": 254.42000007629395,
+            "text": "मैं"
+          },
+          {
+            "end": 255.44000053405762,
+            "start": 254.79999923706055,
+            "text": "सावन"
+          },
+          {
+            "end": 255.7199993133545,
+            "start": 255.44000053405762,
+            "text": "को"
+          },
+          {
+            "end": 256.1800003051758,
+            "start": 255.7199993133545,
+            "text": "गटक"
+          },
+          {
+            "end": 257.04000091552734,
+            "start": 256.1800003051758,
+            "text": "लूँगा"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 260.07999992370605,
+        "id": "aaj-se-teri-36",
+        "index": 35,
+        "lineNumber": 36,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "तो सारे तारों संग चंदा",
+        "start": 257.04000091552734,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 257.42000007629395,
+            "start": 257.04000091552734,
+            "text": "तो"
+          },
+          {
+            "end": 258.1800003051758,
+            "start": 257.42000007629395,
+            "text": "सारे"
+          },
+          {
+            "end": 258.95999908447266,
+            "start": 258.1800003051758,
+            "text": "तारों"
+          },
+          {
+            "end": 259.2199993133545,
+            "start": 258.95999908447266,
+            "text": "संग"
+          },
+          {
+            "end": 260.07999992370605,
+            "start": 259.2199993133545,
+            "text": "चंदा"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 263.5,
+        "id": "aaj-se-teri-37",
+        "index": 36,
+        "lineNumber": 37,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "मैं तेरी गोद में रख दूँगा",
+        "start": 260.07999992370605,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 260.5200004577637,
+            "start": 260.07999992370605,
+            "text": "मैं"
+          },
+          {
+            "end": 261.1000003814697,
+            "start": 260.5200004577637,
+            "text": "तेरी"
+          },
+          {
+            "end": 261.6200008392334,
+            "start": 261.1000003814697,
+            "text": "गोद"
+          },
+          {
+            "end": 261.86000061035156,
+            "start": 261.6200008392334,
+            "text": "में"
+          },
+          {
+            "end": 262.20000076293945,
+            "start": 261.86000061035156,
+            "text": "रख"
+          },
+          {
+            "end": 263.5,
+            "start": 262.20000076293945,
+            "text": "दूँगा"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 269.7799987792969,
+        "id": "aaj-se-teri-38",
+        "index": 37,
+        "lineNumber": 38,
+        "matchRatio": 0.875,
+        "matchedWordCount": 7,
+        "original": "बस मेरे लिए तु खिलके कभी मुश्कुरा देना",
+        "start": 263.5,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 264.1200008392334,
+            "start": 263.5,
+            "text": "बस"
+          },
+          {
+            "end": 264.7199993133545,
+            "start": 264.1200008392334,
+            "text": "मेरे"
+          },
+          {
+            "end": 265.1000003814697,
+            "start": 264.7199993133545,
+            "text": "लिए"
+          },
+          {
+            "end": 265.6200008392334,
+            "start": 265.1000003814697,
+            "text": "तु"
+          },
+          {
+            "end": 266.79999923706055,
+            "start": 266.2400016784668,
+            "text": "कभी"
+          },
+          {
+            "end": 268.3400001525879,
+            "start": 266.79999923706055,
+            "text": "मुश्कुरा"
+          },
+          {
+            "end": 269.7799987792969,
+            "start": 268.3400001525879,
+            "text": "देना"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 275.2599983215332,
+        "id": "aaj-se-teri-39",
+        "index": 38,
+        "lineNumber": 39,
+        "matchRatio": 0.875,
+        "matchedWordCount": 7,
+        "original": "आज से मेरी सारी सदियां तेरी हो गई",
+        "start": 269.7799987792969,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 270.7799987792969,
+            "start": 269.7799987792969,
+            "text": "आज"
+          },
+          {
+            "end": 271.2599983215332,
+            "start": 270.7799987792969,
+            "text": "से"
+          },
+          {
+            "end": 272.4799995422363,
+            "start": 271.2599983215332,
+            "text": "मेरी"
+          },
+          {
+            "end": 273.1599998474121,
+            "start": 272.4799995422363,
+            "text": "सारी"
+          },
+          {
+            "end": 274.13999938964844,
+            "start": 273.1599998474121,
+            "text": "सदियां"
+          },
+          {
+            "end": 274.61999893188477,
+            "start": 274.13999938964844,
+            "text": "तेरी"
+          },
+          {
+            "end": 275.2599983215332,
+            "start": 274.61999893188477,
+            "text": "हो"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 280.81999826431274,
+        "id": "aaj-se-teri-40",
+        "index": 39,
+        "lineNumber": 40,
+        "matchRatio": 1,
+        "matchedWordCount": 7,
+        "original": "आज से तेरा पल मेरा हो गया",
+        "start": 275.7200012207031,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 276.9199981689453,
+            "start": 275.7200012207031,
+            "text": "आज"
+          },
+          {
+            "end": 277.35999822616577,
+            "start": 276.8799982070923,
+            "text": "से"
+          },
+          {
+            "end": 278.6399984359741,
+            "start": 277.35999822616577,
+            "text": "तेरा"
+          },
+          {
+            "end": 279.1199984550476,
+            "start": 278.6399984359741,
+            "text": "पल"
+          },
+          {
+            "end": 280.1399984359741,
+            "start": 279.1199984550476,
+            "text": "मेरा"
+          },
+          {
+            "end": 280.51999855041504,
+            "start": 280.1399984359741,
+            "text": "हो"
+          },
+          {
+            "end": 280.81999826431274,
+            "start": 280.51999855041504,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "medium",
+        "end": 283.5600004196167,
+        "id": "aaj-se-teri-41",
+        "index": 40,
+        "lineNumber": 41,
+        "matchRatio": 0.8333333333333334,
+        "matchedWordCount": 5,
+        "original": "तेरे कान्धे का जो तिल है",
+        "start": 280.5199999809265,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 281.5200004577637,
+            "start": 280.5199999809265,
+            "text": "तेरे"
+          },
+          {
+            "end": 282.5200004577637,
+            "start": 281.5200004577637,
+            "text": "कान्धे"
+          },
+          {
+            "end": 282.69999980926514,
+            "start": 282.5200004577637,
+            "text": "का"
+          },
+          {
+            "end": 283.0200004577637,
+            "start": 282.69999980926514,
+            "text": "जो"
+          },
+          {
+            "end": 283.5600004196167,
+            "start": 283.23999977111816,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 287.039999961853,
+        "id": "aaj-se-teri-42",
+        "index": 41,
+        "lineNumber": 42,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "तेरे सीने में जो दिल है",
+        "start": 283.5600004196167,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 284.76000022888184,
+            "start": 283.5600004196167,
+            "text": "तेरे"
+          },
+          {
+            "end": 285.57999992370605,
+            "start": 284.76000022888184,
+            "text": "सीने"
+          },
+          {
+            "end": 285.6800003051758,
+            "start": 285.57999992370605,
+            "text": "में"
+          },
+          {
+            "end": 285.8800001144409,
+            "start": 285.6800003051758,
+            "text": "जो"
+          },
+          {
+            "end": 286.23999977111816,
+            "start": 285.8800001144409,
+            "text": "दिल"
+          },
+          {
+            "end": 287.039999961853,
+            "start": 286.23999977111816,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 290.04000091552734,
+        "id": "aaj-se-teri-43",
+        "index": 42,
+        "lineNumber": 43,
+        "matchRatio": 1,
+        "matchedWordCount": 6,
+        "original": "तेरी बिजली का जो बिल है",
+        "start": 287.039999961853,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 287.7799997329712,
+            "start": 287.039999961853,
+            "text": "तेरी"
+          },
+          {
+            "end": 288.42000007629395,
+            "start": 287.7799997329712,
+            "text": "बिजली"
+          },
+          {
+            "end": 288.73999977111816,
+            "start": 288.42000007629395,
+            "text": "का"
+          },
+          {
+            "end": 288.92000007629395,
+            "start": 288.73999977111816,
+            "text": "जो"
+          },
+          {
+            "end": 289.20000076293945,
+            "start": 288.92000007629395,
+            "text": "बिल"
+          },
+          {
+            "end": 290.04000091552734,
+            "start": 289.20000076293945,
+            "text": "है"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 292.92000007629395,
+        "id": "aaj-se-teri-44",
+        "index": 43,
+        "lineNumber": 44,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "आज से मेरा हो गया",
+        "start": 290.04000091552734,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 290.6800003051758,
+            "start": 290.04000091552734,
+            "text": "आज"
+          },
+          {
+            "end": 291.1800003051758,
+            "start": 290.6800003051758,
+            "text": "से"
+          },
+          {
+            "end": 292.0599994659424,
+            "start": 291.1800003051758,
+            "text": "मेरा"
+          },
+          {
+            "end": 292.57999992370605,
+            "start": 292.0599994659424,
+            "text": "हो"
+          },
+          {
+            "end": 292.92000007629395,
+            "start": 292.57999992370605,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 295.73999977111816,
+        "id": "aaj-se-teri-45",
+        "index": 44,
+        "lineNumber": 45,
+        "matchRatio": 1,
+        "matchedWordCount": 4,
+        "original": "मेरे खाबों का अंबर",
+        "start": 293.42000007629395,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 293.73999977111816,
+            "start": 293.42000007629395,
+            "text": "मेरे"
+          },
+          {
+            "end": 294.5599994659424,
+            "start": 293.73999977111816,
+            "text": "खाबों"
+          },
+          {
+            "end": 294.8799991607666,
+            "start": 294.5599994659424,
+            "text": "का"
+          },
+          {
+            "end": 295.73999977111816,
+            "start": 294.8799991607666,
+            "text": "अंबर"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 298.76000022888184,
+        "id": "aaj-se-teri-46",
+        "index": 45,
+        "lineNumber": 46,
+        "matchRatio": 1,
+        "matchedWordCount": 4,
+        "original": "मेरी खुशियों का समंदर",
+        "start": 296.4799995422363,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 296.73999977111816,
+            "start": 296.4799995422363,
+            "text": "मेरी"
+          },
+          {
+            "end": 297.4400005340576,
+            "start": 296.73999977111816,
+            "text": "खुशियों"
+          },
+          {
+            "end": 297.73999977111816,
+            "start": 297.4400005340576,
+            "text": "का"
+          },
+          {
+            "end": 298.76000022888184,
+            "start": 297.73999977111816,
+            "text": "समंदर"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 302.2199993133545,
+        "id": "aaj-se-teri-47",
+        "index": 46,
+        "lineNumber": 47,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "मेरे पिन कोड का नंबर",
+        "start": 299.5,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 299.76000022888184,
+            "start": 299.5,
+            "text": "मेरे"
+          },
+          {
+            "end": 300.2199993133545,
+            "start": 299.76000022888184,
+            "text": "पिन"
+          },
+          {
+            "end": 300.63999938964844,
+            "start": 300.2199993133545,
+            "text": "कोड"
+          },
+          {
+            "end": 300.9400005340576,
+            "start": 300.63999938964844,
+            "text": "का"
+          },
+          {
+            "end": 302.2199993133545,
+            "start": 300.9400005340576,
+            "text": "नंबर"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 307.4799995422363,
+        "id": "aaj-se-teri-48",
+        "index": 47,
+        "lineNumber": 48,
+        "matchRatio": 1,
+        "matchedWordCount": 5,
+        "original": "आज से तेरा हो गया",
+        "start": 302.2199993133545,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 302.73999977111816,
+            "start": 302.2199993133545,
+            "text": "आज"
+          },
+          {
+            "end": 303.07999992370605,
+            "start": 302.73999977111816,
+            "text": "से"
+          },
+          {
+            "end": 305.4799995422363,
+            "start": 303.07999992370605,
+            "text": "तेरा"
+          },
+          {
+            "end": 306.29999923706055,
+            "start": 305.4799995422363,
+            "text": "हो"
+          },
+          {
+            "end": 307.4799995422363,
+            "start": 306.29999923706055,
+            "text": "गया"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 314.33999967575073,
+        "id": "aaj-se-teri-49",
+        "index": 48,
+        "lineNumber": 49,
+        "matchRatio": 1,
+        "matchedWordCount": 8,
+        "original": "आज से तेरी सारी गलियां मेरी हो गई",
+        "start": 308.4199995994568,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 309.65999960899353,
+            "start": 308.4199995994568,
+            "text": "आज"
+          },
+          {
+            "end": 309.99999952316284,
+            "start": 309.65999960899353,
+            "text": "से"
+          },
+          {
+            "end": 311.33999967575073,
+            "start": 309.99999952316284,
+            "text": "तेरी"
+          },
+          {
+            "end": 311.9399995803833,
+            "start": 311.33999967575073,
+            "text": "सारी"
+          },
+          {
+            "end": 312.9599995613098,
+            "start": 311.9399995803833,
+            "text": "गलियां"
+          },
+          {
+            "end": 313.44000005722046,
+            "start": 312.9399999976158,
+            "text": "मेरी"
+          },
+          {
+            "end": 314.0599994659424,
+            "start": 313.4199995994568,
+            "text": "हो"
+          },
+          {
+            "end": 314.33999967575073,
+            "start": 314.0599994659424,
+            "text": "गई"
+          }
+        ]
+      },
+      {
+        "confidence": "high",
+        "end": 319.76000022888184,
+        "id": "aaj-se-teri-50",
+        "index": 49,
+        "lineNumber": 50,
+        "matchRatio": 1,
+        "matchedWordCount": 7,
+        "original": "आज से मेरा घर तेरा हो गया",
+        "start": 314.460000038147,
+        "timingSource": "word-match",
+        "words": [
+          {
+            "end": 315.55999994277954,
+            "start": 314.460000038147,
+            "text": "आज"
+          },
+          {
+            "end": 316.07999992370605,
+            "start": 315.55999994277954,
+            "text": "से"
+          },
+          {
+            "end": 317.3200001716614,
+            "start": 316.07999992370605,
+            "text": "मेरा"
+          },
+          {
+            "end": 317.90000009536743,
+            "start": 317.3200001716614,
+            "text": "घर"
+          },
+          {
+            "end": 318.73999977111816,
+            "start": 317.90000009536743,
+            "text": "तेरा"
+          },
+          {
+            "end": 319.28000020980835,
+            "start": 318.73999977111816,
+            "text": "हो"
+          },
+          {
+            "end": 319.76000022888184,
+            "start": 319.28000020980835,
+            "text": "गया"
+          }
+        ]
+      }
+    ],
+    "qualitySummary": {
+      "auditStatus": "not-run",
+      "flagsByCode": {
+        "weak_text_evidence": 1
+      },
+      "generatedLineCount": 0,
+      "highRiskLineCount": 0,
+      "okLineCount": 49,
+      "reviewLineCount": 1,
+      "totalLines": 50
+    },
+    "sourceLanguage": "Hindi",
+    "sourceRepairSummary": {
+      "candidateLineCount": 0,
+      "changedLineCount": 0,
+      "flaggedLineCount": 0,
+      "flagsByCode": {},
+      "model": "gpt-5.4-mini",
+      "status": "not-run"
+    },
+    "timingLanguage": "hi",
+    "timingSummary": {
+      "estimatedCount": 0,
+      "highConfidenceCount": 37,
+      "lineCount": 50,
+      "lowConfidenceCount": 0,
+      "matchedCount": 50,
+      "mediumConfidenceCount": 13,
+      "repeatTemplateCount": 0,
+      "timedCount": 50,
+      "unmatchedCount": 0,
+      "wordMatchedCount": 50
+    },
+    "wordCount": 360,
+    "words": [
+      {
+        "end": 5.559999942779541,
+        "start": 5.440000057220459,
+        "word": "आज"
+      },
+      {
+        "end": 5.619999885559082,
+        "start": 5.559999942779541,
+        "word": "तेरी"
+      },
+      {
+        "end": 5.659999847412109,
+        "start": 5.619999885559082,
+        "word": "गईं"
+      },
+      {
+        "end": 10.039999961853027,
+        "start": 5.679999828338623,
+        "word": "से"
+      },
+      {
+        "end": 10.0600004196167,
+        "start": 10.039999961853027,
+        "word": "हो"
+      },
+      {
+        "end": 12,
+        "start": 10.0600004196167,
+        "word": "गया"
+      },
+      {
+        "end": 42.84000015258789,
+        "start": 41.439998626708984,
+        "word": "आज"
+      },
+      {
+        "end": 43.29999923706055,
+        "start": 42.84000015258789,
+        "word": "से"
+      },
+      {
+        "end": 44.31999969482422,
+        "start": 43.29999923706055,
+        "word": "तेरी"
+      },
+      {
+        "end": 44.97999954223633,
+        "start": 44.31999969482422,
+        "word": "सारी"
+      },
+      {
+        "end": 46.17999982833862,
+        "start": 45.15999984741211,
+        "word": "गलियां"
+      },
+      {
+        "end": 46.639999866485596,
+        "start": 46.17999982833862,
+        "word": "मेरी"
+      },
+      {
+        "end": 47.27999973297119,
+        "start": 46.639999866485596,
+        "word": "हो"
+      },
+      {
+        "end": 47.68000030517578,
+        "start": 47.27999973297119,
+        "word": "गयें"
+      },
+      {
+        "end": 48.77999973297119,
+        "start": 47.68000030517578,
+        "word": "आज"
+      },
+      {
+        "end": 49.30000019073486,
+        "start": 48.77999973297119,
+        "word": "से"
+      },
+      {
+        "end": 50.579999923706055,
+        "start": 49.30000019073486,
+        "word": "मेरा"
+      },
+      {
+        "end": 51.11999988555908,
+        "start": 50.579999923706055,
+        "word": "गर"
+      },
+      {
+        "end": 51.97999954223633,
+        "start": 51.11999988555908,
+        "word": "तेरा"
+      },
+      {
+        "end": 52.53999996185303,
+        "start": 51.97999954223633,
+        "word": "हो"
+      },
+      {
+        "end": 60.760000228881836,
+        "start": 52.53999996185303,
+        "word": "गयाआज"
+      },
+      {
+        "end": 61.34000015258789,
+        "start": 60.760000228881836,
+        "word": "से"
+      },
+      {
+        "end": 62.44000053405762,
+        "start": 61.34000015258789,
+        "word": "तेरी"
+      },
+      {
+        "end": 63.15999984741211,
+        "start": 62.44000053405762,
+        "word": "सारी"
+      },
+      {
+        "end": 64.15999984741211,
+        "start": 63.15999984741211,
+        "word": "गलियां"
+      },
+      {
+        "end": 64.6200008392334,
+        "start": 64.15999984741211,
+        "word": "मेरी"
+      },
+      {
+        "end": 65.29999923706055,
+        "start": 64.6200008392334,
+        "word": "हो"
+      },
+      {
+        "end": 66.21999931335449,
+        "start": 65.29999923706055,
+        "word": "गयें"
+      },
+      {
+        "end": 66.81999969482422,
+        "start": 66.21999931335449,
+        "word": "आज"
+      },
+      {
+        "end": 67.34000015258789,
+        "start": 66.81999969482422,
+        "word": "से"
+      },
+      {
+        "end": 68.81999969482422,
+        "start": 67.34000015258789,
+        "word": "मेरा"
+      },
+      {
+        "end": 69.10000038146973,
+        "start": 68.81999969482422,
+        "word": "गर"
+      },
+      {
+        "end": 70.10000038146973,
+        "start": 69.10000038146973,
+        "word": "तेरा"
+      },
+      {
+        "end": 70.54000091552734,
+        "start": 70.10000038146973,
+        "word": "हो"
+      },
+      {
+        "end": 71.79999923706055,
+        "start": 70.54000091552734,
+        "word": "गया"
+      },
+      {
+        "end": 72.93999862670898,
+        "start": 71.9000015258789,
+        "word": "आज"
+      },
+      {
+        "end": 73.36000061035156,
+        "start": 72.93999862670898,
+        "word": "से"
+      },
+      {
+        "end": 74.63999938964844,
+        "start": 73.36000061035156,
+        "word": "मेरी"
+      },
+      {
+        "end": 75.13999938964844,
+        "start": 74.63999938964844,
+        "word": "सारी"
+      },
+      {
+        "end": 76.18000030517578,
+        "start": 75.13999938964844,
+        "word": "खुशियां"
+      },
+      {
+        "end": 76.63999938964844,
+        "start": 76.18000030517578,
+        "word": "तेरी"
+      },
+      {
+        "end": 77.27999877929688,
+        "start": 76.63999938964844,
+        "word": "हो"
+      },
+      {
+        "end": 78.11999893188477,
+        "start": 77.27999877929688,
+        "word": "गयें"
+      },
+      {
+        "end": 78.91999816894531,
+        "start": 78.11999893188477,
+        "word": "आज"
+      },
+      {
+        "end": 79.36000061035156,
+        "start": 78.91999816894531,
+        "word": "से"
+      },
+      {
+        "end": 80.79999923706055,
+        "start": 79.36000061035156,
+        "word": "तेरा"
+      },
+      {
+        "end": 81.66000008583069,
+        "start": 80.29999995231628,
+        "word": "लगं"
+      },
+      {
+        "end": 81.29999923706055,
+        "start": 80.79999923706055,
+        "word": "गंब"
+      },
+      {
+        "end": 82.11999893188477,
+        "start": 81.29999923706055,
+        "word": "मेरा"
+      },
+      {
+        "end": 82.52000045776367,
+        "start": 82.11999893188477,
+        "word": "हो"
+      },
+      {
+        "end": 82.97999954223633,
+        "start": 82.52000045776367,
+        "word": "गया"
+      },
+      {
+        "end": 83.73999977111816,
+        "start": 82.92000007629395,
+        "word": "तेरे"
+      },
+      {
+        "end": 83.47999954223633,
+        "start": 82.97999954223633,
+        "word": "ओ"
+      },
+      {
+        "end": 83.7400016784668,
+        "start": 83.47999954223633,
+        "word": "तेरे"
+      },
+      {
+        "end": 84.53999996185303,
+        "start": 83.73999977111816,
+        "word": "कांदे"
+      },
+      {
+        "end": 83.97999954223633,
+        "start": 83.7400016784668,
+        "word": "काम"
+      },
+      {
+        "end": 84.71999979019165,
+        "start": 84.53999996185303,
+        "word": "का"
+      },
+      {
+        "end": 84.94000005722046,
+        "start": 84.71999979019165,
+        "word": "जद"
+      },
+      {
+        "end": 85.30000019073486,
+        "start": 84.94000005722046,
+        "word": "तिल"
+      },
+      {
+        "end": 86.19999980926514,
+        "start": 85.30000019073486,
+        "word": "है"
+      },
+      {
+        "end": 86.3799998164177,
+        "start": 85.69999980926514,
+        "word": "ओ"
+      },
+      {
+        "end": 86.81999969482422,
+        "start": 86.19999980926514,
+        "word": "तेरे"
+      },
+      {
+        "end": 87.57999980449677,
+        "start": 86.799999833107,
+        "word": "सीने"
+      },
+      {
+        "end": 87.38000011444092,
+        "start": 86.81999969482422,
+        "word": "सीकड"
+      },
+      {
+        "end": 87.72000026702881,
+        "start": 87.38000011444092,
+        "word": "में"
+      },
+      {
+        "end": 88.02000045776367,
+        "start": 87.72000026702881,
+        "word": "जद"
+      },
+      {
+        "end": 87.91999983787537,
+        "start": 87.73999977111816,
+        "word": "जो"
+      },
+      {
+        "end": 88.25999975204468,
+        "start": 87.91999983787537,
+        "word": "दिल"
+      },
+      {
+        "end": 88.96000003814697,
+        "start": 88.23999977111816,
+        "word": "है"
+      },
+      {
+        "end": 89.80000019073486,
+        "start": 88.96000003814697,
+        "word": "तेरी"
+      },
+      {
+        "end": 90.53999996185303,
+        "start": 89.80000019073486,
+        "word": "बिजली"
+      },
+      {
+        "end": 90.64000034332275,
+        "start": 90.53999996185303,
+        "word": "का"
+      },
+      {
+        "end": 91.23999977111816,
+        "start": 90.64000034332275,
+        "word": "जबिल"
+      },
+      {
+        "end": 92.03999996185303,
+        "start": 91.23999977111816,
+        "word": "है"
+      },
+      {
+        "end": 92.68000030517578,
+        "start": 92.03999996185303,
+        "word": "आज"
+      },
+      {
+        "end": 93.18000030517578,
+        "start": 92.68000030517578,
+        "word": "से"
+      },
+      {
+        "end": 93.96000003814697,
+        "start": 93.18000030517578,
+        "word": "मिरा"
+      },
+      {
+        "end": 94.52000045776367,
+        "start": 93.96000003814697,
+        "word": "हो"
+      },
+      {
+        "end": 95.39999955892563,
+        "start": 94.47999954223633,
+        "word": "ओ"
+      },
+      {
+        "end": 94.97999954223633,
+        "start": 94.52000045776367,
+        "word": "गया"
+      },
+      {
+        "end": 95.79999923706055,
+        "start": 94.97999954223633,
+        "word": "मेरे"
+      },
+      {
+        "end": 96.5799994468689,
+        "start": 95.77999949455261,
+        "word": "खाबों"
+      },
+      {
+        "end": 96.84000015258789,
+        "start": 96.45999908447266,
+        "word": "का"
+      },
+      {
+        "end": 103.02000045776367,
+        "start": 96.84000015258789,
+        "word": "अ"
+      },
+      {
+        "end": 97.73999953269958,
+        "start": 96.9399995803833,
+        "word": "अमबर"
+      },
+      {
+        "end": 98.47999954223633,
+        "start": 97.73999953269958,
+        "word": "ओ"
+      },
+      {
+        "end": 98.81999969482422,
+        "start": 98.47999954223633,
+        "word": "मेरी"
+      },
+      {
+        "end": 99.53999948501587,
+        "start": 98.81999969482422,
+        "word": "खुशियों"
+      },
+      {
+        "end": 99.75999975204468,
+        "start": 99.53999948501587,
+        "word": "का"
+      },
+      {
+        "end": 100.7999997138977,
+        "start": 99.75999975204468,
+        "word": "समंदर"
+      },
+      {
+        "end": 101.47999954223633,
+        "start": 100.7999997138977,
+        "word": "ओ"
+      },
+      {
+        "end": 101.7999997138977,
+        "start": 101.47999954223633,
+        "word": "मेरे"
+      },
+      {
+        "end": 102.19999933242798,
+        "start": 101.7999997138977,
+        "word": "पिन"
+      },
+      {
+        "end": 102.61999988555908,
+        "start": 102.19999933242798,
+        "word": "कोड"
+      },
+      {
+        "end": 102.95999908447266,
+        "start": 102.61999988555908,
+        "word": "का"
+      },
+      {
+        "end": 103.5,
+        "start": 102.95999908447266,
+        "word": "नंबर"
+      },
+      {
+        "end": 104.70000076293945,
+        "start": 103.02000045776367,
+        "word": "आज"
+      },
+      {
+        "end": 105.15999984741211,
+        "start": 104.70000076293945,
+        "word": "से"
+      },
+      {
+        "end": 106,
+        "start": 105.15999984741211,
+        "word": "तेरा"
+      },
+      {
+        "end": 106.55999946594238,
+        "start": 106,
+        "word": "हो"
+      },
+      {
+        "end": 107.02000045776367,
+        "start": 106.55999946594238,
+        "word": "गया"
+      },
+      {
+        "end": 131.76000022888184,
+        "start": 130.35999965667725,
+        "word": "तेरे"
+      },
+      {
+        "end": 132.76000022888184,
+        "start": 131.76000022888184,
+        "word": "माथे"
+      },
+      {
+        "end": 140.7800006866455,
+        "start": 139.3799991607666,
+        "word": "तेरे"
+      },
+      {
+        "end": 141.60000038146973,
+        "start": 140.7800006866455,
+        "word": "माथे"
+      },
+      {
+        "end": 141.79999923706055,
+        "start": 141.60000038146973,
+        "word": "के"
+      },
+      {
+        "end": 142.5,
+        "start": 141.79999923706055,
+        "word": "कुम"
+      },
+      {
+        "end": 142.7199993133545,
+        "start": 142.5,
+        "word": "कुम"
+      },
+      {
+        "end": 143,
+        "start": 142.7199993133545,
+        "word": "को"
+      },
+      {
+        "end": 143.47999954223633,
+        "start": 143,
+        "word": "मैं"
+      },
+      {
+        "end": 143.92000007629395,
+        "start": 143.47999954223633,
+        "word": "तिलक"
+      },
+      {
+        "end": 144.6200008392334,
+        "start": 143.92000007629395,
+        "word": "लगा"
+      },
+      {
+        "end": 144.89999961853027,
+        "start": 144.6200008392334,
+        "word": "के"
+      },
+      {
+        "end": 145.92000007629395,
+        "start": 144.89999961853027,
+        "word": "घूंगा"
+      },
+      {
+        "end": 146.83999967575073,
+        "start": 145.9199995994568,
+        "word": "तेरी"
+      },
+      {
+        "end": 147.4399995803833,
+        "start": 146.83999967575073,
+        "word": "बाली"
+      },
+      {
+        "end": 147.89999961853027,
+        "start": 147.4399995803833,
+        "word": "की"
+      },
+      {
+        "end": 147.86000061035156,
+        "start": 147.55999946594238,
+        "word": "के"
+      },
+      {
+        "end": 148.26000022888184,
+        "start": 147.86000061035156,
+        "word": "छुन"
+      },
+      {
+        "end": 148.23999953269958,
+        "start": 147.89999961853027,
+        "word": "छन"
+      },
+      {
+        "end": 148.97999954223633,
+        "start": 148.69999980926514,
+        "word": "को"
+      },
+      {
+        "end": 149.47999954223633,
+        "start": 148.97999954223633,
+        "word": "मैं"
+      },
+      {
+        "end": 149.77999877929688,
+        "start": 149.47999954223633,
+        "word": "दिल"
+      },
+      {
+        "end": 149.97999954223633,
+        "start": 149.73999977111816,
+        "word": "से"
+      },
+      {
+        "end": 150.5999984741211,
+        "start": 149.97999954223633,
+        "word": "लगा"
+      },
+      {
+        "end": 150.8400001525879,
+        "start": 150.5999984741211,
+        "word": "के"
+      },
+      {
+        "end": 152.17999982833862,
+        "start": 150.81999969482422,
+        "word": "जूंगूंगा"
+      },
+      {
+        "end": 152.4000015258789,
+        "start": 150.8400001525879,
+        "word": "घूंगा"
+      },
+      {
+        "end": 153.18000030517578,
+        "start": 152.4000015258789,
+        "word": "मेरी"
+      },
+      {
+        "end": 153.9000015258789,
+        "start": 153.18000030517578,
+        "word": "छोटी"
+      },
+      {
+        "end": 154.2599983215332,
+        "start": 153.9000015258789,
+        "word": "सी"
+      },
+      {
+        "end": 154.97999954223633,
+        "start": 154.2599983215332,
+        "word": "भूलों"
+      },
+      {
+        "end": 155.61999893188477,
+        "start": 154.97999954223633,
+        "word": "को"
+      },
+      {
+        "end": 155.9199981689453,
+        "start": 155.61999893188477,
+        "word": "तुम"
+      },
+      {
+        "end": 156.5800018310547,
+        "start": 155.9199981689453,
+        "word": "नदिया"
+      },
+      {
+        "end": 156.62000000476837,
+        "start": 156,
+        "word": "तेरे"
+      },
+      {
+        "end": 156.68000030517578,
+        "start": 156.5800018310547,
+        "word": "में"
+      },
+      {
+        "end": 157.3400001525879,
+        "start": 156.68000030517578,
+        "word": "बहा"
+      },
+      {
+        "end": 158.13999938964844,
+        "start": 157.3400001525879,
+        "word": "देना"
+      },
+      {
+        "end": 158.81999969482422,
+        "start": 158.13999938964844,
+        "word": "तेरे"
+      },
+      {
+        "end": 159.77999877929688,
+        "start": 158.81999969482422,
+        "word": "जूड़े"
+      },
+      {
+        "end": 159.9199981689453,
+        "start": 159.77999877929688,
+        "word": "के"
+      },
+      {
+        "end": 160.6599998474121,
+        "start": 159.9199981689453,
+        "word": "फूलों"
+      },
+      {
+        "end": 160.97999954223633,
+        "start": 160.6599998474121,
+        "word": "को"
+      },
+      {
+        "end": 161.5,
+        "start": 160.97999954223633,
+        "word": "मैं"
+      },
+      {
+        "end": 161.97999954223633,
+        "start": 161.5,
+        "word": "अपनी"
+      },
+      {
+        "end": 162.61999988555908,
+        "start": 162.05999994277954,
+        "word": "शर्ट"
+      },
+      {
+        "end": 162.88000011444092,
+        "start": 162.61999988555908,
+        "word": "में"
+      },
+      {
+        "end": 164.47999954223633,
+        "start": 162.88000011444092,
+        "word": "पहनूंगा"
+      },
+      {
+        "end": 165.14000034332275,
+        "start": 164.47999954223633,
+        "word": "बस"
+      },
+      {
+        "end": 165.7200002670288,
+        "start": 165.14000034332275,
+        "word": "मेरे"
+      },
+      {
+        "end": 166.10000038146973,
+        "start": 165.7200002670288,
+        "word": "लिए"
+      },
+      {
+        "end": 166.6599998474121,
+        "start": 166.10000038146973,
+        "word": "तू"
+      },
+      {
+        "end": 167.07999992370605,
+        "start": 166.6599998474121,
+        "word": "माल"
+      },
+      {
+        "end": 167.7799997329712,
+        "start": 167.07999992370605,
+        "word": "पुए"
+      },
+      {
+        "end": 168.11999988555908,
+        "start": 167.7799997329712,
+        "word": "कभी"
+      },
+      {
+        "end": 169.31999969482422,
+        "start": 168.64000034332275,
+        "word": "बना"
+      },
+      {
+        "end": 170.5,
+        "start": 169.31999969482422,
+        "word": "देना"
+      },
+      {
+        "end": 171.80000019073486,
+        "start": 170.5,
+        "word": "आज"
+      },
+      {
+        "end": 172.26000022888184,
+        "start": 171.80000019073486,
+        "word": "से"
+      },
+      {
+        "end": 173.3799991607666,
+        "start": 172.26000022888184,
+        "word": "मेरी"
+      },
+      {
+        "end": 174.13999938964844,
+        "start": 173.3799991607666,
+        "word": "सारी"
+      },
+      {
+        "end": 175.1599998474121,
+        "start": 174.13999938964844,
+        "word": "रतियां"
+      },
+      {
+        "end": 175.6200008392334,
+        "start": 175.1599998474121,
+        "word": "तेरी"
+      },
+      {
+        "end": 176.23999977111816,
+        "start": 175.6200008392334,
+        "word": "हो"
+      },
+      {
+        "end": 176.68000030517578,
+        "start": 176.23999977111816,
+        "word": "गईं"
+      },
+      {
+        "end": 177.81999969482422,
+        "start": 176.68000030517578,
+        "word": "आज"
+      },
+      {
+        "end": 178.31999969482422,
+        "start": 177.81999969482422,
+        "word": "से"
+      },
+      {
+        "end": 179.45999908447266,
+        "start": 178.31999969482422,
+        "word": "तेरा"
+      },
+      {
+        "end": 180.13999938964844,
+        "start": 179.45999908447266,
+        "word": "दिन"
+      },
+      {
+        "end": 181.1200008392334,
+        "start": 180.13999938964844,
+        "word": "मेरा"
+      },
+      {
+        "end": 181.54000091552734,
+        "start": 181.1200008392334,
+        "word": "हो"
+      },
+      {
+        "end": 181.94000053405762,
+        "start": 181.54000091552734,
+        "word": "गया"
+      },
+      {
+        "end": 182.7800006866455,
+        "start": 182.1599998474121,
+        "word": "तएरे"
+      },
+      {
+        "end": 183.55999946594238,
+        "start": 182.7800006866455,
+        "word": "कांदे"
+      },
+      {
+        "end": 183.70000076293945,
+        "start": 183.55999946594238,
+        "word": "का"
+      },
+      {
+        "end": 184.26000022888184,
+        "start": 183.70000076293945,
+        "word": "जतिल"
+      },
+      {
+        "end": 184.63999938964844,
+        "start": 184.26000022888184,
+        "word": "है"
+      },
+      {
+        "end": 185.81999969482422,
+        "start": 184.63999938964844,
+        "word": "तेरे"
+      },
+      {
+        "end": 185.99999940395355,
+        "start": 185.3999993801117,
+        "word": "तेरे"
+      },
+      {
+        "end": 186.57999992370605,
+        "start": 185.81999969482422,
+        "word": "सीखा"
+      },
+      {
+        "end": 186.5999994277954,
+        "start": 185.99999940395355,
+        "word": "सीने"
+      },
+      {
+        "end": 186.7199993133545,
+        "start": 186.57999992370605,
+        "word": "में"
+      },
+      {
+        "end": 187.2800006866455,
+        "start": 186.7199993133545,
+        "word": "जतिल"
+      },
+      {
+        "end": 186.97999930381775,
+        "start": 186.739999294281,
+        "word": "जो"
+      },
+      {
+        "end": 187.29999947547913,
+        "start": 186.97999930381775,
+        "word": "दिल"
+      },
+      {
+        "end": 188.22000122070312,
+        "start": 187.2800006866455,
+        "word": "है"
+      },
+      {
+        "end": 188.77999925613403,
+        "start": 187.55999946594238,
+        "word": "तेरी"
+      },
+      {
+        "end": 188.7599983215332,
+        "start": 188.22000122070312,
+        "word": "तेरी"
+      },
+      {
+        "end": 189.56000137329102,
+        "start": 188.7599983215332,
+        "word": "पिचली"
+      },
+      {
+        "end": 189.4399995803833,
+        "start": 188.77999925613403,
+        "word": "बिजली"
+      },
+      {
+        "end": 189.7199993133545,
+        "start": 189.4399995803833,
+        "word": "का"
+      },
+      {
+        "end": 189.9199995994568,
+        "start": 189.7199993133545,
+        "word": "जो"
+      },
+      {
+        "end": 190.2400016784668,
+        "start": 189.7599983215332,
+        "word": "जबिल"
+      },
+      {
+        "end": 190.19999933242798,
+        "start": 189.9199995994568,
+        "word": "बिल"
+      },
+      {
+        "end": 190.5799994468689,
+        "start": 190.19999933242798,
+        "word": "है"
+      },
+      {
+        "end": 191.7599983215332,
+        "start": 190.86000061035156,
+        "word": "आज"
+      },
+      {
+        "end": 192.22000122070312,
+        "start": 191.7599983215332,
+        "word": "से"
+      },
+      {
+        "end": 193.11999893188477,
+        "start": 192.22000122070312,
+        "word": "मेरा"
+      },
+      {
+        "end": 193.54000091552734,
+        "start": 193.11999893188477,
+        "word": "हो"
+      },
+      {
+        "end": 194.0999984741211,
+        "start": 193.54000091552734,
+        "word": "गया"
+      },
+      {
+        "end": 194.47999954223633,
+        "start": 194.0999984741211,
+        "word": "ओ"
+      },
+      {
+        "end": 194.79999923706055,
+        "start": 194.47999954223633,
+        "word": "मेरे"
+      },
+      {
+        "end": 195.56000137329102,
+        "start": 194.79999923706055,
+        "word": "खाबों"
+      },
+      {
+        "end": 195.62000000476837,
+        "start": 195,
+        "word": "कबों"
+      },
+      {
+        "end": 195.93999862670898,
+        "start": 195.56000137329102,
+        "word": "का"
+      },
+      {
+        "end": 197,
+        "start": 195.93999862670898,
+        "word": "हंगर"
+      },
+      {
+        "end": 196.8400000333786,
+        "start": 195.95999997854233,
+        "word": "अंगर"
+      },
+      {
+        "end": 197.79999995231628,
+        "start": 196.8400000333786,
+        "word": "मेरी"
+      },
+      {
+        "end": 197.54000091552734,
+        "start": 197,
+        "word": "ओ"
+      },
+      {
+        "end": 197.8400001525879,
+        "start": 197.54000091552734,
+        "word": "मेरी"
+      },
+      {
+        "end": 198.45999908447266,
+        "start": 197.8400001525879,
+        "word": "खुशियों"
+      },
+      {
+        "end": 198.77999877929688,
+        "start": 198.45999908447266,
+        "word": "का"
+      },
+      {
+        "end": 199.82000017166138,
+        "start": 198.72000002861023,
+        "word": "समंदर"
+      },
+      {
+        "end": 199.8400001525879,
+        "start": 198.77999877929688,
+        "word": "समंधर"
+      },
+      {
+        "end": 200.76000022888184,
+        "start": 199.82000017166138,
+        "word": "मेरे"
+      },
+      {
+        "end": 201.19999980926514,
+        "start": 200.76000022888184,
+        "word": "पिन"
+      },
+      {
+        "end": 201.6599998474121,
+        "start": 201.19999980926514,
+        "word": "कोड"
+      },
+      {
+        "end": 201.88000011444092,
+        "start": 201.6599998474121,
+        "word": "का"
+      },
+      {
+        "end": 203.19999980926514,
+        "start": 201.88000011444092,
+        "word": "नंबर"
+      },
+      {
+        "end": 203.69999980926514,
+        "start": 203.19999980926514,
+        "word": "आज"
+      },
+      {
+        "end": 204.10000038146973,
+        "start": 203.69999980926514,
+        "word": "से"
+      },
+      {
+        "end": 204.96000003814697,
+        "start": 204.10000038146973,
+        "word": "तेरा"
+      },
+      {
+        "end": 205.52000045776367,
+        "start": 204.96000003814697,
+        "word": "हो"
+      },
+      {
+        "end": 205.89999961853027,
+        "start": 205.52000045776367,
+        "word": "गया"
+      },
+      {
+        "end": 230.45999908447266,
+        "start": 229.4199981689453,
+        "word": "तू"
+      },
+      {
+        "end": 231.11999893188477,
+        "start": 230.45999908447266,
+        "word": "मांगे"
+      },
+      {
+        "end": 231.93999862670898,
+        "start": 231.11999893188477,
+        "word": "सर्दी"
+      },
+      {
+        "end": 232.18000030517578,
+        "start": 231.93999862670898,
+        "word": "में"
+      },
+      {
+        "end": 233.0999984741211,
+        "start": 232.18000030517578,
+        "word": "अमियां"
+      },
+      {
+        "end": 233.43999862670898,
+        "start": 233.0999984741211,
+        "word": "जो"
+      },
+      {
+        "end": 234.20000076293945,
+        "start": 233.43999862670898,
+        "word": "मांगे"
+      },
+      {
+        "end": 234.7599983215332,
+        "start": 234.20000076293945,
+        "word": "गर्मी"
+      },
+      {
+        "end": 234.93999862670898,
+        "start": 234.7599983215332,
+        "word": "में"
+      },
+      {
+        "end": 236.2599983215332,
+        "start": 234.93999862670898,
+        "word": "मुंफलियां"
+      },
+      {
+        "end": 236.45999908447266,
+        "start": 236.2599983215332,
+        "word": "तू"
+      },
+      {
+        "end": 237.0999984741211,
+        "start": 236.45999908447266,
+        "word": "बारिश"
+      },
+      {
+        "end": 237.07999992370605,
+        "start": 236.46000003814697,
+        "word": "बारिष"
+      },
+      {
+        "end": 237.68000030517578,
+        "start": 237.0999984741211,
+        "word": "में"
+      },
+      {
+        "end": 238.20000076293945,
+        "start": 237.68000030517578,
+        "word": "अगर"
+      },
+      {
+        "end": 238.54000091552734,
+        "start": 238.20000076293945,
+        "word": "कह"
+      },
+      {
+        "end": 238.97999954223633,
+        "start": 238.54000091552734,
+        "word": "दे"
+      },
+      {
+        "end": 239.46000003814697,
+        "start": 238.92000007629395,
+        "word": "जो"
+      },
+      {
+        "end": 239.43999862670898,
+        "start": 238.97999954223633,
+        "word": "जा"
+      },
+      {
+        "end": 239.95999908447266,
+        "start": 239.43999862670898,
+        "word": "मेरे"
+      },
+      {
+        "end": 239.97999954223633,
+        "start": 239.95999908447266,
+        "word": "लिए"
+      },
+      {
+        "end": 240.8600001335144,
+        "start": 240.32000017166138,
+        "word": "तू"
+      },
+      {
+        "end": 241.38000011444092,
+        "start": 240.8600001335144,
+        "word": "धूप"
+      },
+      {
+        "end": 242.07999992370605,
+        "start": 241.38000011444092,
+        "word": "खिला"
+      },
+      {
+        "end": 242.4399995803833,
+        "start": 242.07999992370605,
+        "word": "तो"
+      },
+      {
+        "end": 242.80000019073486,
+        "start": 242.4399995803833,
+        "word": "मैं"
+      },
+      {
+        "end": 243.6599998474121,
+        "start": 242.80000019073486,
+        "word": "सूरज"
+      },
+      {
+        "end": 251.3799991607666,
+        "start": 250.45999908447266,
+        "word": "तो"
+      },
+      {
+        "end": 251.79999923706055,
+        "start": 251.3799991607666,
+        "word": "मैं"
+      },
+      {
+        "end": 252.44000053405762,
+        "start": 251.79999923706055,
+        "word": "सूरज"
+      },
+      {
+        "end": 252.7199993133545,
+        "start": 252.44000053405762,
+        "word": "को"
+      },
+      {
+        "end": 253.1599998474121,
+        "start": 252.7199993133545,
+        "word": "जटक"
+      },
+      {
+        "end": 253.97999954223633,
+        "start": 253.1599998474121,
+        "word": "दूँगा"
+      },
+      {
+        "end": 254.42000007629395,
+        "start": 253.97999954223633,
+        "word": "तो"
+      },
+      {
+        "end": 254.79999923706055,
+        "start": 254.42000007629395,
+        "word": "मैं"
+      },
+      {
+        "end": 255.44000053405762,
+        "start": 254.79999923706055,
+        "word": "साबन"
+      },
+      {
+        "end": 255.7199993133545,
+        "start": 255.44000053405762,
+        "word": "को"
+      },
+      {
+        "end": 256.1800003051758,
+        "start": 255.7199993133545,
+        "word": "गटक"
+      },
+      {
+        "end": 257.04000091552734,
+        "start": 256.1800003051758,
+        "word": "लूँगा"
+      },
+      {
+        "end": 257.42000007629395,
+        "start": 257.04000091552734,
+        "word": "तो"
+      },
+      {
+        "end": 258.1800003051758,
+        "start": 257.42000007629395,
+        "word": "सारे"
+      },
+      {
+        "end": 258.95999908447266,
+        "start": 258.1800003051758,
+        "word": "तारों"
+      },
+      {
+        "end": 259.2199993133545,
+        "start": 258.95999908447266,
+        "word": "संग"
+      },
+      {
+        "end": 260.07999992370605,
+        "start": 259.2199993133545,
+        "word": "चंदा"
+      },
+      {
+        "end": 260.5200004577637,
+        "start": 260.07999992370605,
+        "word": "मैं"
+      },
+      {
+        "end": 261.1000003814697,
+        "start": 260.5200004577637,
+        "word": "तेरी"
+      },
+      {
+        "end": 261.6200008392334,
+        "start": 261.1000003814697,
+        "word": "गोध"
+      },
+      {
+        "end": 261.86000061035156,
+        "start": 261.6200008392334,
+        "word": "में"
+      },
+      {
+        "end": 262.20000076293945,
+        "start": 261.86000061035156,
+        "word": "रख"
+      },
+      {
+        "end": 263.5,
+        "start": 262.20000076293945,
+        "word": "दूँगा"
+      },
+      {
+        "end": 264.1200008392334,
+        "start": 263.5,
+        "word": "बस"
+      },
+      {
+        "end": 264.7199993133545,
+        "start": 264.1200008392334,
+        "word": "मेरे"
+      },
+      {
+        "end": 265.1000003814697,
+        "start": 264.7199993133545,
+        "word": "लिए"
+      },
+      {
+        "end": 265.6200008392334,
+        "start": 265.1000003814697,
+        "word": "तू"
+      },
+      {
+        "end": 266.04000091552734,
+        "start": 265.6200008392334,
+        "word": "खिल"
+      },
+      {
+        "end": 266.2400016784668,
+        "start": 266.04000091552734,
+        "word": "के"
+      },
+      {
+        "end": 266.79999923706055,
+        "start": 266.2400016784668,
+        "word": "कभी"
+      },
+      {
+        "end": 268.3400001525879,
+        "start": 266.79999923706055,
+        "word": "मुस्कुरा"
+      },
+      {
+        "end": 269.7799987792969,
+        "start": 268.3400001525879,
+        "word": "देना"
+      },
+      {
+        "end": 270.7799987792969,
+        "start": 269.7799987792969,
+        "word": "आज"
+      },
+      {
+        "end": 271.2599983215332,
+        "start": 270.7799987792969,
+        "word": "से"
+      },
+      {
+        "end": 272.4799995422363,
+        "start": 271.2599983215332,
+        "word": "मेरी"
+      },
+      {
+        "end": 273.1599998474121,
+        "start": 272.4799995422363,
+        "word": "सारी"
+      },
+      {
+        "end": 274.13999938964844,
+        "start": 273.1599998474121,
+        "word": "सबियां"
+      },
+      {
+        "end": 274.61999893188477,
+        "start": 274.13999938964844,
+        "word": "तेरी"
+      },
+      {
+        "end": 275.2599983215332,
+        "start": 274.61999893188477,
+        "word": "हो"
+      },
+      {
+        "end": 275.6800003051758,
+        "start": 275.2599983215332,
+        "word": "गयें"
+      },
+      {
+        "end": 276.9199981689453,
+        "start": 275.7200012207031,
+        "word": "आज"
+      },
+      {
+        "end": 277.35999822616577,
+        "start": 276.8799982070923,
+        "word": "से"
+      },
+      {
+        "end": 278.6399984359741,
+        "start": 277.35999822616577,
+        "word": "तेरा"
+      },
+      {
+        "end": 278.9799995422363,
+        "start": 278.5,
+        "word": "पलूप"
+      },
+      {
+        "end": 279.1199984550476,
+        "start": 278.6399984359741,
+        "word": "पल"
+      },
+      {
+        "end": 280.1399984359741,
+        "start": 279.1199984550476,
+        "word": "मेरा"
+      },
+      {
+        "end": 280.51999855041504,
+        "start": 280.1399984359741,
+        "word": "हो"
+      },
+      {
+        "end": 280.81999826431274,
+        "start": 280.51999855041504,
+        "word": "गया"
+      },
+      {
+        "end": 281.5200004577637,
+        "start": 280.5199999809265,
+        "word": "तेरे"
+      },
+      {
+        "end": 282.5200004577637,
+        "start": 281.5200004577637,
+        "word": "कांदे"
+      },
+      {
+        "end": 282.69999980926514,
+        "start": 282.5200004577637,
+        "word": "का"
+      },
+      {
+        "end": 283.0200004577637,
+        "start": 282.69999980926514,
+        "word": "जो"
+      },
+      {
+        "end": 283.23999977111816,
+        "start": 283.0200004577637,
+        "word": "दिल"
+      },
+      {
+        "end": 283.5600004196167,
+        "start": 283.23999977111816,
+        "word": "है"
+      },
+      {
+        "end": 284.76000022888184,
+        "start": 283.5600004196167,
+        "word": "तेरे"
+      },
+      {
+        "end": 285.57999992370605,
+        "start": 284.76000022888184,
+        "word": "सीने"
+      },
+      {
+        "end": 285.6800003051758,
+        "start": 285.57999992370605,
+        "word": "में"
+      },
+      {
+        "end": 285.8800001144409,
+        "start": 285.6800003051758,
+        "word": "जो"
+      },
+      {
+        "end": 286.23999977111816,
+        "start": 285.8800001144409,
+        "word": "दिल"
+      },
+      {
+        "end": 287.039999961853,
+        "start": 286.23999977111816,
+        "word": "है"
+      },
+      {
+        "end": 287.7799997329712,
+        "start": 287.039999961853,
+        "word": "तेरी"
+      },
+      {
+        "end": 288.42000007629395,
+        "start": 287.7799997329712,
+        "word": "बिजली"
+      },
+      {
+        "end": 288.73999977111816,
+        "start": 288.42000007629395,
+        "word": "का"
+      },
+      {
+        "end": 288.92000007629395,
+        "start": 288.73999977111816,
+        "word": "जो"
+      },
+      {
+        "end": 289.20000076293945,
+        "start": 288.92000007629395,
+        "word": "बिल"
+      },
+      {
+        "end": 290.04000091552734,
+        "start": 289.20000076293945,
+        "word": "है"
+      },
+      {
+        "end": 290.6800003051758,
+        "start": 290.04000091552734,
+        "word": "आज"
+      },
+      {
+        "end": 291.1800003051758,
+        "start": 290.6800003051758,
+        "word": "से"
+      },
+      {
+        "end": 292.0599994659424,
+        "start": 291.1800003051758,
+        "word": "मेरा"
+      },
+      {
+        "end": 292.57999992370605,
+        "start": 292.0599994659424,
+        "word": "हो"
+      },
+      {
+        "end": 292.92000007629395,
+        "start": 292.57999992370605,
+        "word": "गया"
+      },
+      {
+        "end": 293.42000007629395,
+        "start": 292.92000007629395,
+        "word": "ओ"
+      },
+      {
+        "end": 293.73999977111816,
+        "start": 293.42000007629395,
+        "word": "मेरे"
+      },
+      {
+        "end": 294.5599994659424,
+        "start": 293.73999977111816,
+        "word": "खाबों"
+      },
+      {
+        "end": 294.8799991607666,
+        "start": 294.5599994659424,
+        "word": "का"
+      },
+      {
+        "end": 295.73999977111816,
+        "start": 294.8799991607666,
+        "word": "अंबर"
+      },
+      {
+        "end": 296.4799995422363,
+        "start": 295.73999977111816,
+        "word": "ओ"
+      },
+      {
+        "end": 296.73999977111816,
+        "start": 296.4799995422363,
+        "word": "मेरी"
+      },
+      {
+        "end": 297.4400005340576,
+        "start": 296.73999977111816,
+        "word": "खुशियों"
+      },
+      {
+        "end": 297.73999977111816,
+        "start": 297.4400005340576,
+        "word": "का"
+      },
+      {
+        "end": 298.76000022888184,
+        "start": 297.73999977111816,
+        "word": "समंजर"
+      },
+      {
+        "end": 299.5,
+        "start": 298.76000022888184,
+        "word": "ओ"
+      },
+      {
+        "end": 299.76000022888184,
+        "start": 299.5,
+        "word": "मेरे"
+      },
+      {
+        "end": 300.2199993133545,
+        "start": 299.76000022888184,
+        "word": "पिन"
+      },
+      {
+        "end": 300.63999938964844,
+        "start": 300.2199993133545,
+        "word": "कोड"
+      },
+      {
+        "end": 300.9400005340576,
+        "start": 300.63999938964844,
+        "word": "का"
+      },
+      {
+        "end": 302.2199993133545,
+        "start": 300.9400005340576,
+        "word": "नंबर"
+      },
+      {
+        "end": 302.73999977111816,
+        "start": 302.2199993133545,
+        "word": "आज"
+      },
+      {
+        "end": 303.07999992370605,
+        "start": 302.73999977111816,
+        "word": "से"
+      },
+      {
+        "end": 305.4799995422363,
+        "start": 303.07999992370605,
+        "word": "तेरा"
+      },
+      {
+        "end": 306.29999923706055,
+        "start": 305.4799995422363,
+        "word": "हो"
+      },
+      {
+        "end": 307.4799995422363,
+        "start": 306.29999923706055,
+        "word": "गया"
+      },
+      {
+        "end": 309.65999960899353,
+        "start": 308.4199995994568,
+        "word": "आज"
+      },
+      {
+        "end": 309.99999952316284,
+        "start": 309.65999960899353,
+        "word": "से"
+      },
+      {
+        "end": 311.33999967575073,
+        "start": 309.99999952316284,
+        "word": "तेरी"
+      },
+      {
+        "end": 311.9399995803833,
+        "start": 311.33999967575073,
+        "word": "सारी"
+      },
+      {
+        "end": 312.9599995613098,
+        "start": 311.9399995803833,
+        "word": "गलियां"
+      },
+      {
+        "end": 312.9399999976158,
+        "start": 312,
+        "word": "कलियां"
+      },
+      {
+        "end": 313.44000005722046,
+        "start": 312.9399999976158,
+        "word": "मेरी"
+      },
+      {
+        "end": 314.0599994659424,
+        "start": 313.4199995994568,
+        "word": "हो"
+      },
+      {
+        "end": 314.33999967575073,
+        "start": 314.0599994659424,
+        "word": "गई"
+      },
+      {
+        "end": 315.55999994277954,
+        "start": 314.460000038147,
+        "word": "आज"
+      },
+      {
+        "end": 316.07999992370605,
+        "start": 315.55999994277954,
+        "word": "से"
+      },
+      {
+        "end": 317.3200001716614,
+        "start": 316.07999992370605,
+        "word": "मेरा"
+      },
+      {
+        "end": 317.90000009536743,
+        "start": 317.3200001716614,
+        "word": "घर"
+      },
+      {
+        "end": 318.73999977111816,
+        "start": 317.90000009536743,
+        "word": "तेरा"
+      },
+      {
+        "end": 319.28000020980835,
+        "start": 318.73999977111816,
+        "word": "हो"
+      },
+      {
+        "end": 319.76000022888184,
+        "start": 319.28000020980835,
+        "word": "गया"
+      }
+    ]
+  },
+  "upload": {
+    "assetId": "53992a10-e2ed-4149-ba00-ac91dd356f93",
+    "durationSec": null,
+    "kind": "audio",
+    "name": "Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3",
+    "sizeBytes": 4282906
+  }
+}

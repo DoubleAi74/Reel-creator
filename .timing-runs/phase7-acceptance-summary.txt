@@ -1,0 +1,33 @@
+Phase 7 acceptance summary
+Generated: 2026-06-18
+
+Baseline
+- .timing-runs/baseline-scorecard.txt
+- First baseline capture: 32/50 timed, direct 32, interpolated 0, median sparse-label error 0.030s, max 0.420s.
+
+Real timing captures
+| Capture | Words | Lines timed | Direct | Repeat-template | Interpolated | Median err | Max err | Whisper passes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| .timing-runs/phase4-tuned-real-route-scorecard.txt | 379 | 50/50 | 50 | 0 | 0 | 0.260s | 0.660s | 2 |
+| .timing-runs/phase5-unified-route-scorecard.txt | 385 | 50/50 | 50 | 0 | 0 | 0.150s | 0.640s | 3 |
+| .timing-runs/phase7-prompt-on-scorecard.txt | 411 | 50/50 | 50 | 0 | 0 | 0.100s | 0.660s | 3 |
+| .timing-runs/phase7-ui-aaj-se-teri-scorecard.txt | 378 | 50/50 | 50 | 0 | 0 | 0.010s | 0.380s | 3 |
+
+Prompt A/B
+- Prompt on: .timing-runs/phase7-prompt-on-scorecard.txt
+  - 50/50 timed, direct 50, interpolated 0, median 0.100s, max 0.660s, 3 Whisper passes, duration 89.6s.
+- Prompt off: .timing-runs/phase7-prompt-off-scorecard.txt
+  - 50/50 timed, direct 46, repeat-template 2, interpolated 2, median 0.170s, max 0.860s, 3 Whisper passes, duration 173.7s.
+- Decision: keep lyrics-as-prompt enabled by default.
+
+UI E2E
+- Imported samples/aaj-se-teri.json, uploaded samples/Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3, set source language Hindi, clicked Auto-time from audio.
+- Response artifact: .timing-runs/phase7-ui-aaj-se-teri-response.json
+- Export artifact: .timing-runs/phase7-ui-aaj-se-teri-export.json
+- Summary artifact: .timing-runs/phase7-ui-aaj-se-teri-e2e-summary.json
+- Result: HTTP 200, no stream errors, no console errors, UI showed Auto-time complete and 50 timed, exported 50/50 timed lines, 50 lines with word arrays, 309 exported per-line words.
+
+Verification
+- npm test: 8 files passed, 66 tests passed.
+- npm run lint: clean.
+- Whisper budget: all accepted captures used 2 or 3 passes; no accepted run exceeded the max-3 constraint.

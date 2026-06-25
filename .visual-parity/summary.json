@@ -1,0 +1,2591 @@
+{
+  "currentUrl": "http://localhost:3000",
+  "referenceUrl": "http://localhost:4173/index_new.html",
+  "scenarios": [
+    {
+      "name": "desktop-1440-initial",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 65,
+          "left": 12.95,
+          "top": 12.95,
+          "width": 1414.09
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 692.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 1414.09
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 692.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 446.39
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 692.28,
+          "left": 472.3,
+          "top": 90.91,
+          "width": 954.75
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 655.75,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 918.22
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "16px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 242.77
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 475.02,
+          "left": 490.56,
+          "top": 107.67,
+          "width": 242.77
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "16px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 754.92,
+          "top": 109.17,
+          "width": 653.86
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 90.91,
+          "left": 12.95,
+          "top": 796.14,
+          "width": 1414.09
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 88.91,
+          "left": 13.95,
+          "top": 797.14,
+          "width": 1412.09
+        }
+      },
+      "diff": {
+        "changedPixels": 367734,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/desktop-1440-initial.png",
+        "meanChannelDelta": 11.82,
+        "mismatchRatio": 0.28375
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 65,
+          "left": 12.95,
+          "top": 12.95,
+          "width": 1414.09
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 690.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 1414.09
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 690.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 446.39
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 690.28,
+          "left": 472.3,
+          "top": 90.91,
+          "width": 954.75
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 653.75,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 918.22
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 242.77
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 475.02,
+          "left": 490.56,
+          "top": 107.67,
+          "width": 242.77
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 754.92,
+          "top": 109.17,
+          "width": 653.86
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 92.91,
+          "left": 12.95,
+          "top": 794.14,
+          "width": 1414.09
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 90.91,
+          "left": 13.95,
+          "top": 795.14,
+          "width": 1412.09
+        }
+      }
+    },
+    {
+      "name": "desktop-1280-initial",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 800,
+          "left": 0,
+          "top": 0,
+          "width": 1280
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 65,
+          "left": 11.52,
+          "top": 11.52,
+          "width": 1256.97
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 600.91,
+          "left": 11.52,
+          "top": 88.03,
+          "width": 1256.97
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 600.91,
+          "left": 11.52,
+          "top": 88.03,
+          "width": 396.8
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 600.91,
+          "left": 419.83,
+          "top": 88.03,
+          "width": 848.66
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 568.19,
+          "left": 436.19,
+          "top": 104.39,
+          "width": 815.94
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "16px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 458.83,
+          "left": 436.19,
+          "top": 104.39,
+          "width": 212.83
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 410.83,
+          "left": 437.63,
+          "top": 103.5,
+          "width": 209.95
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "16px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 458.83,
+          "left": 668.2,
+          "top": 104.39,
+          "width": 583.92
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 88.03,
+          "left": 11.52,
+          "top": 700.45,
+          "width": 1256.97
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 86.03,
+          "left": 12.52,
+          "top": 701.45,
+          "width": 1254.97
+        }
+      },
+      "diff": {
+        "changedPixels": 319708,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/desktop-1280-initial.png",
+        "meanChannelDelta": 14.11,
+        "mismatchRatio": 0.31221
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 800,
+          "left": 0,
+          "top": 0,
+          "width": 1280
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 65,
+          "left": 11.52,
+          "top": 11.52,
+          "width": 1256.97
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 598.91,
+          "left": 11.52,
+          "top": 88.03,
+          "width": 1256.97
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 598.91,
+          "left": 11.52,
+          "top": 88.03,
+          "width": 396.8
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 598.91,
+          "left": 419.83,
+          "top": 88.03,
+          "width": 848.66
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 566.19,
+          "left": 436.19,
+          "top": 104.39,
+          "width": 815.94
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 458.83,
+          "left": 436.19,
+          "top": 104.39,
+          "width": 231.27
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 410.83,
+          "left": 446.84,
+          "top": 103.5,
+          "width": 209.95
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 458.83,
+          "left": 686.64,
+          "top": 104.39,
+          "width": 565.48
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 90.03,
+          "left": 11.52,
+          "top": 698.45,
+          "width": 1256.97
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 88.03,
+          "left": 12.52,
+          "top": 699.45,
+          "width": 1254.97
+        }
+      }
+    },
+    {
+      "name": "compact-1000-initial",
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 800,
+          "left": 0,
+          "top": 0,
+          "width": 1000
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 65,
+          "left": 9,
+          "top": 9,
+          "width": 982
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 613,
+          "left": 9,
+          "top": 83,
+          "width": 982
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 613,
+          "left": 9,
+          "top": 83,
+          "width": 320
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 613,
+          "left": 338,
+          "top": 83,
+          "width": 653
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 587,
+          "left": 351,
+          "top": 96,
+          "width": 627
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 340.69,
+          "left": 351,
+          "top": 96,
+          "width": 212.83
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 292.69,
+          "left": 382.63,
+          "top": 96.5,
+          "width": 149.58
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 340.69,
+          "left": 578.83,
+          "top": 96,
+          "width": 399.17
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 86,
+          "left": 9,
+          "top": 705,
+          "width": 982
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 84,
+          "left": 10,
+          "top": 706,
+          "width": 980
+        }
+      },
+      "diff": {
+        "changedPixels": 234814,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/compact-1000-initial.png",
+        "meanChannelDelta": 14.12,
+        "mismatchRatio": 0.29352
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 800,
+          "left": 0,
+          "top": 0,
+          "width": 1000
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 65,
+          "left": 9,
+          "top": 9,
+          "width": 982
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 613,
+          "left": 9,
+          "top": 83,
+          "width": 982
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 613,
+          "left": 9,
+          "top": 83,
+          "width": 320
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 613,
+          "left": 338,
+          "top": 83,
+          "width": 653
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 587,
+          "left": 351,
+          "top": 96,
+          "width": 627
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 340.69,
+          "left": 351,
+          "top": 96,
+          "width": 231.27
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 292.69,
+          "left": 391.84,
+          "top": 96.5,
+          "width": 149.58
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 340.69,
+          "left": 597.27,
+          "top": 96,
+          "width": 380.73
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 86,
+          "left": 9,
+          "top": 705,
+          "width": 982
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 84,
+          "left": 10,
+          "top": 706,
+          "width": 980
+        }
+      }
+    },
+    {
+      "name": "compact-999-initial",
+      "viewport": {
+        "width": 999,
+        "height": 800
+      },
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1619.86,
+          "left": 0,
+          "top": 0,
+          "width": 999
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 65,
+          "left": 8.98,
+          "top": 8.98,
+          "width": 981.03
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1371.97,
+          "left": 8.98,
+          "top": 82.97,
+          "width": 981.03
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8.98,
+          "top": 754.94,
+          "width": 981.03
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 656,
+          "left": 8.98,
+          "top": 82.97,
+          "width": 981.03
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 630,
+          "left": 29.5,
+          "top": 95.97,
+          "width": 940
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "none",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 630,
+          "left": 29.5,
+          "top": 95.97,
+          "width": 940
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 146.95,
+          "left": 8.98,
+          "top": 1463.92,
+          "width": 981.03
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 144.95,
+          "left": 9.98,
+          "top": 1464.92,
+          "width": 979.03
+        }
+      },
+      "diff": {
+        "changedPixels": 64658,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/compact-999-initial.png",
+        "meanChannelDelta": 5.73,
+        "mismatchRatio": 0.0809
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1558.91,
+          "left": 0,
+          "top": 0,
+          "width": 999
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 65,
+          "left": 8.98,
+          "top": 8.98,
+          "width": 981.03
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1371.97,
+          "left": 8.98,
+          "top": 82.97,
+          "width": 981.03
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8.98,
+          "top": 754.94,
+          "width": 981.03
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 656,
+          "left": 8.98,
+          "top": 82.97,
+          "width": 981.03
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 630,
+          "left": 29.5,
+          "top": 95.97,
+          "width": 940
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "none",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 630,
+          "left": 29.5,
+          "top": 95.97,
+          "width": 940
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 86,
+          "left": 8.98,
+          "top": 1463.92,
+          "width": 981.03
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 84,
+          "left": 9.98,
+          "top": 1464.92,
+          "width": 979.03
+        }
+      }
+    },
+    {
+      "name": "mobile-390-initial",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1806.5,
+          "left": 0,
+          "top": 0,
+          "width": 390
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 146.5,
+          "left": 8,
+          "top": 8,
+          "width": 374
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1410,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 872.5,
+          "width": 374
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 674,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "none",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 674,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 218,
+          "left": 8,
+          "top": 1580.5,
+          "width": 374
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 216,
+          "left": 9,
+          "top": 1581.5,
+          "width": 372
+        }
+      },
+      "diff": {
+        "changedPixels": 64515,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/mobile-390-initial.png",
+        "meanChannelDelta": 12.87,
+        "mismatchRatio": 0.196
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1806.5,
+          "left": 0,
+          "top": 0,
+          "width": 390
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 146.5,
+          "left": 8,
+          "top": 8,
+          "width": 374
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1410,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 872.5,
+          "width": 374
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 674,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "none",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 674,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 218,
+          "left": 8,
+          "top": 1580.5,
+          "width": 374
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 216,
+          "left": 9,
+          "top": 1581.5,
+          "width": 372
+        }
+      }
+    },
+    {
+      "name": "mobile-390-board",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "action": "board",
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1806.5,
+          "left": 0,
+          "top": 0,
+          "width": 390
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 146.5,
+          "left": 8,
+          "top": 8,
+          "width": 374
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1410,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 872.5,
+          "width": 374
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 674,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "none",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 674,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 218,
+          "left": 8,
+          "top": 1580.5,
+          "width": 374
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 216,
+          "left": 9,
+          "top": 1581.5,
+          "width": 372
+        }
+      },
+      "diff": {
+        "changedPixels": 64515,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/mobile-390-board.png",
+        "meanChannelDelta": 12.87,
+        "mismatchRatio": 0.196
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1806.5,
+          "left": 0,
+          "top": 0,
+          "width": 390
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 146.5,
+          "left": 8,
+          "top": 8,
+          "width": 374
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1410,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 872.5,
+          "width": 374
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 674,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "none",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 674,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 218,
+          "left": 8,
+          "top": 1580.5,
+          "width": 374
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 216,
+          "left": 9,
+          "top": 1581.5,
+          "width": 372
+        }
+      }
+    },
+    {
+      "name": "mobile-390-preview",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "action": "preview",
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1651.61,
+          "left": 0,
+          "top": 0,
+          "width": 390
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 146.5,
+          "left": 8,
+          "top": 8,
+          "width": 374
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1255.11,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 717.61,
+          "width": 374
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 545.11,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 519.11,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 519.11,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 473.11,
+          "left": 74.09,
+          "top": 175.5,
+          "width": 241.8
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "none",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 218,
+          "left": 8,
+          "top": 1425.61,
+          "width": 374
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 216,
+          "left": 9,
+          "top": 1426.61,
+          "width": 372
+        }
+      },
+      "diff": {
+        "changedPixels": 73688,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/mobile-390-preview.png",
+        "meanChannelDelta": 7.02,
+        "mismatchRatio": 0.22387
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1651.61,
+          "left": 0,
+          "top": 0,
+          "width": 390
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 146.5,
+          "left": 8,
+          "top": 8,
+          "width": 374
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 1255.11,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 700,
+          "left": 8,
+          "top": 717.61,
+          "width": 374
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 545.11,
+          "left": 8,
+          "top": 162.5,
+          "width": 374
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 519.11,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 519.11,
+          "left": 21,
+          "top": 175.5,
+          "width": 348
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 473.11,
+          "left": 74.09,
+          "top": 175.5,
+          "width": 241.8
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "none",
+          "height": 0,
+          "left": 0,
+          "top": 0,
+          "width": 0
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 218,
+          "left": 8,
+          "top": 1425.61,
+          "width": 374
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 216,
+          "left": 9,
+          "top": 1426.61,
+          "width": 372
+        }
+      }
+    },
+    {
+      "name": "desktop-1440-modal",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "action": "modal",
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 65,
+          "left": 12.95,
+          "top": 12.95,
+          "width": 1414.09
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 692.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 1414.09
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 692.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 446.39
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 692.28,
+          "left": 472.3,
+          "top": 90.91,
+          "width": 954.75
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 655.75,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 918.22
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(240, 240, 234, 0.78)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "34px",
+          "boxShadow": "rgba(52, 51, 50, 0.24) 0px 42px 120px 0px",
+          "display": "block",
+          "height": 640,
+          "left": 540,
+          "top": 130,
+          "width": 360
+        },
+        ".wb-slot": null,
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 90.91,
+          "left": 12.95,
+          "top": 796.14,
+          "width": 1414.09
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 88.91,
+          "left": 13.95,
+          "top": 797.14,
+          "width": 1412.09
+        }
+      },
+      "diff": {
+        "changedPixels": 184478,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/desktop-1440-modal.png",
+        "meanChannelDelta": 4.43,
+        "mismatchRatio": 0.14234
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 65,
+          "left": 12.95,
+          "top": 12.95,
+          "width": 1414.09
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 690.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 1414.09
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 690.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 446.39
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 690.28,
+          "left": 472.3,
+          "top": 90.91,
+          "width": 954.75
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 653.75,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 918.22
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 242.77
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 475.02,
+          "left": 490.56,
+          "top": 107.67,
+          "width": 242.77
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 754.92,
+          "top": 109.17,
+          "width": 653.86
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 92.91,
+          "left": 12.95,
+          "top": 794.14,
+          "width": 1414.09
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 90.91,
+          "left": 13.95,
+          "top": 795.14,
+          "width": 1412.09
+        }
+      }
+    },
+    {
+      "name": "desktop-1440-word-selected",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "action": "word",
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 65,
+          "left": 12.95,
+          "top": 12.95,
+          "width": 1414.09
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 692.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 1414.09
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 692.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 446.39
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 692.28,
+          "left": 472.3,
+          "top": 90.91,
+          "width": 954.75
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 655.75,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 918.22
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "16px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 242.77
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 475.02,
+          "left": 490.56,
+          "top": 107.67,
+          "width": 242.77
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "16px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 754.92,
+          "top": 109.17,
+          "width": 653.86
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 90.91,
+          "left": 12.95,
+          "top": 796.14,
+          "width": 1414.09
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 88.91,
+          "left": 13.95,
+          "top": 797.14,
+          "width": 1412.09
+        }
+      },
+      "diff": {
+        "changedPixels": 368484,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/desktop-1440-word-selected.png",
+        "meanChannelDelta": 11.76,
+        "mismatchRatio": 0.28432
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 65,
+          "left": 12.95,
+          "top": 12.95,
+          "width": 1414.09
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 690.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 1414.09
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 690.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 446.39
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 690.28,
+          "left": 472.3,
+          "top": 90.91,
+          "width": 954.75
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 653.75,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 918.22
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 242.77
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 475.02,
+          "left": 490.56,
+          "top": 107.67,
+          "width": 242.77
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 754.92,
+          "top": 109.17,
+          "width": 653.86
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 92.91,
+          "left": 12.95,
+          "top": 794.14,
+          "width": 1414.09
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 90.91,
+          "left": 13.95,
+          "top": 795.14,
+          "width": 1412.09
+        }
+      }
+    },
+    {
+      "name": "desktop-1440-play",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "action": "play",
+      "currentBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 65,
+          "left": 12.95,
+          "top": 12.95,
+          "width": 1414.09
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 692.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 1414.09
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 692.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 446.39
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 692.28,
+          "left": 472.3,
+          "top": 90.91,
+          "width": 954.75
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 655.75,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 918.22
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "16px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 242.77
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 475.02,
+          "left": 490.56,
+          "top": 107.67,
+          "width": 242.77
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "16px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 754.92,
+          "top": 109.17,
+          "width": 653.86
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 90.91,
+          "left": 12.95,
+          "top": 796.14,
+          "width": 1414.09
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(52, 51, 50)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 88.91,
+          "left": 13.95,
+          "top": 797.14,
+          "width": 1412.09
+        }
+      },
+      "diff": {
+        "changedPixels": 371979,
+        "diffPath": "/Users/adamaldridge/Desktop/Reel Creator Transcribe 2/Unifying the draft new appearance/Reel creator timing up GPT5.5 unif/.visual-parity/diff/desktop-1440-play.png",
+        "meanChannelDelta": 11.89,
+        "mismatchRatio": 0.28702
+      },
+      "referenceBoxes": {
+        ".app-responsive": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 900,
+          "left": 0,
+          "top": 0,
+          "width": 1440
+        },
+        ".top-frame": {
+          "backgroundColor": "rgb(253, 253, 252)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "19px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 65,
+          "left": 12.95,
+          "top": 12.95,
+          "width": 1414.09
+        },
+        ".work-area": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 690.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 1414.09
+        },
+        ".side-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 690.28,
+          "left": 12.95,
+          "top": 90.91,
+          "width": 446.39
+        },
+        ".workspace-panel": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "flex",
+          "height": 690.28,
+          "left": 472.3,
+          "top": 90.91,
+          "width": 954.75
+        },
+        ".workspace-grid": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "grid",
+          "height": 653.75,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 918.22
+        },
+        ".preview-col": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 490.56,
+          "top": 109.17,
+          "width": 242.77
+        },
+        ".preview-screen": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(168, 199, 170)",
+          "borderRadius": "12px",
+          "boxShadow": "rgba(44, 78, 46, 0.16) 0px 20px 44px 0px",
+          "display": "block",
+          "height": 475.02,
+          "left": 490.56,
+          "top": 107.67,
+          "width": 242.77
+        },
+        ".wb-slot": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 523.02,
+          "left": 754.92,
+          "top": 109.17,
+          "width": 653.86
+        },
+        ".transport": {
+          "backgroundColor": "rgb(229, 228, 220)",
+          "borderColor": "rgb(219, 219, 209)",
+          "borderRadius": "22px",
+          "boxShadow": "rgba(52, 51, 50, 0.07) 0px 10px 28px 0px",
+          "display": "block",
+          "height": 92.91,
+          "left": 12.95,
+          "top": 794.14,
+          "width": 1414.09
+        },
+        ".transport-inner": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(229, 231, 235)",
+          "borderRadius": "0px",
+          "boxShadow": "none",
+          "display": "flex",
+          "height": 90.91,
+          "left": 13.95,
+          "top": 795.14,
+          "width": 1412.09
+        }
+      }
+    }
+  ]
+}

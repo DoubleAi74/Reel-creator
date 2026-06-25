@@ -1,0 +1,23 @@
+{
+  "consoleErrors": [],
+  "exportError": null,
+  "exportPath": ".timing-runs/phase7-ui-aaj-se-teri-export.json",
+  "responsePath": ".timing-runs/phase7-ui-aaj-se-teri-response.json",
+  "httpStatus": 200,
+  "streamErrorCount": 0,
+  "responseLineCount": 50,
+  "responseTimedCount": 50,
+  "responseMatchedCount": 50,
+  "responseWhisperPassCount": 3,
+  "responseWordCount": 378,
+  "uiTextHasComplete": true,
+  "uiTextHasFailed": false,
+  "uiTextHas50Timed": true,
+  "exportLineCount": 50,
+  "exportTimedCount": 50,
+  "exportWordLineCount": 50,
+  "exportWordCount": 309,
+  "scoredTruthLabels": 10,
+  "medianError": 0.010000371932981977,
+  "maxError": 0.3800013732910088
+}

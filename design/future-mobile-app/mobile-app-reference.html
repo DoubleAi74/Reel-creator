@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reel Creator — mobile mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root { font-family: "Inter", system-ui, sans-serif; }
+      .deva { font-family: "Noto Sans Devanagari", "Inter", sans-serif; }
+      .eyebrow { letter-spacing: 0.28em; }
+      .sheet { transition: height 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+  </head>
+  <body class="min-h-screen text-white" style="background: radial-gradient(circle at 50% -10%, rgba(251,191,36,0.10), transparent 34%), linear-gradient(180deg,#0b1626 0%,#070f1c 50%,#04080f 100%);">
+    <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 px-5 py-10">
+      <div class="text-center">
+        <h1 class="text-xl font-semibold">Reel Creator — mobile</h1>
+        <p class="mt-2 max-w-xl text-sm text-white/55">
+          The phone screen <em>is</em> the 9:16 preview. Controls live in a bottom sheet that snaps
+          between <b>peek / half / full</b> — tap the grab handle to cycle. Transport stays docked in
+          the thumb zone. Tap the tab chips to switch panels.
+        </p>
+      </div>
+
+      <!-- ───────────────────────── phone frame ───────────────────────── -->
+      <div class="relative h-[812px] w-[375px] overflow-hidden rounded-[3rem] border-[10px] border-slate-800 bg-black shadow-[0_40px_120px_rgba(0,0,0,0.6)]">
+        <!-- notch -->
+        <div class="absolute left-1/2 top-0 z-30 h-6 w-36 -translate-x-1/2 rounded-b-2xl bg-slate-800"></div>
+
+        <!-- app, vertical stack -->
+        <div class="flex h-full flex-col" style="background:linear-gradient(180deg,#0b1626 0%,#04080f 100%);">
+
+          <!-- preview region (fills space above sheet; whole 9:16 frame fit by height) -->
+          <div class="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+            <!-- 9:16 canvas -->
+            <div class="relative h-full overflow-hidden" style="aspect-ratio:9/16; background:linear-gradient(180deg,#1a1a2e 0%,#13102a 52%,#0a0816 100%);">
+              <div class="absolute inset-x-0 px-6 text-center" style="top:42%;">
+                <div class="deva text-xl font-semibold leading-snug text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">आज से मेरा घर तेरा हो गया</div>
+                <div class="mt-1.5 text-sm text-white/85 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">From today, my home has become yours.</div>
+              </div>
+            </div>
+
+            <!-- floating top bar (overlay) -->
+            <div class="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-2 bg-gradient-to-b from-black/55 to-transparent px-4 pb-6 pt-9">
+              <div class="leading-tight">
+                <div class="text-[9px] uppercase eyebrow text-cyan-200/70">Lyric reel</div>
+                <div class="text-sm font-semibold">Aaj Se Teri</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white/80 backdrop-blur">JSON</button>
+                <button class="rounded-full bg-amber-300 px-3.5 py-1.5 text-[11px] font-semibold text-slate-950">Export ↓</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ───── bottom sheet (snaps: peek/half/full) ───── -->
+          <div id="sheet" class="sheet relative z-20 flex flex-none flex-col rounded-t-[1.75rem] border-t border-white/10 bg-slate-950/85 backdrop-blur" style="height:300px;">
+            <!-- grab handle -->
+            <button id="handle" class="flex flex-none flex-col items-center pb-1 pt-2.5">
+              <span class="h-1 w-10 rounded-full bg-white/30"></span>
+              <span id="handleLabel" class="mt-1.5 text-[9px] uppercase eyebrow text-white/35">Half · tap to expand</span>
+            </button>
+
+            <!-- tab chips -->
+            <div class="no-scrollbar flex flex-none items-center gap-1.5 overflow-x-auto px-4 pb-2.5">
+              <button data-tab="audio" class="tab whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-medium">Audio</button>
+              <button data-tab="lyrics" class="tab whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-medium">Lyrics</button>
+              <button data-tab="timing" class="tab whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-medium">Timing</button>
+              <button data-tab="style" class="tab whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-medium">Style</button>
+              <button data-tab="background" class="tab whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-medium">Background</button>
+            </div>
+
+            <!-- panel content (scrolls) -->
+            <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-3">
+              <!-- TIMING -->
+              <div data-panel="timing">
+                <div class="mb-2 flex items-center justify-between">
+                  <span class="text-[10px] uppercase eyebrow text-cyan-200/70">Tap workflow</span>
+                  <span class="flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/10 px-2.5 py-1 text-[10px] font-medium text-amber-100"><span class="h-1 w-1 rounded-full bg-amber-300"></span>Auto-follow</span>
+                </div>
+                <div class="space-y-1.5">
+                  <div class="flex items-center gap-2.5 rounded-lg border border-white/6 bg-white/[0.02] px-2.5 py-1.5">
+                    <span class="rounded bg-white/8 px-1.5 py-0.5 font-mono text-[10px] text-white/55">00:09.4</span>
+                    <div class="min-w-0 flex-1"><div class="deva truncate text-[13px] text-white/80">आज से तेरी सारी गलियां मेरी हो गई</div></div>
+                  </div>
+                  <div class="rounded-lg border border-amber-300/40 bg-amber-300/[0.07] px-2.5 py-2">
+                    <div class="flex items-center gap-2.5">
+                      <span class="rounded bg-amber-300/20 px-1.5 py-0.5 font-mono text-[10px] text-amber-100">00:12.3</span>
+                      <div class="min-w-0 flex-1">
+                        <div class="deva truncate text-sm font-medium text-white">आज से मेरा घर तेरा हो गया</div>
+                        <div class="truncate text-[11px] text-white/55">From today, my home has become yours.</div>
+                      </div>
+                    </div>
+                    <div class="mt-2 flex items-center gap-1.5">
+                      <button class="flex-1 rounded-md border border-white/10 py-1 font-mono text-[11px] text-white/70">−0.5</button>
+                      <button class="flex-1 rounded-md border border-white/10 py-1 font-mono text-[11px] text-white/70">−0.05</button>
+                      <button class="flex-1 rounded-md border border-white/10 py-1 font-mono text-[11px] text-white/70">+0.05</button>
+                      <button class="flex-1 rounded-md border border-white/10 py-1 font-mono text-[11px] text-white/70">+0.5</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2.5 rounded-lg border border-white/6 px-2.5 py-1.5 opacity-70">
+                    <span class="rounded bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-white/35">—:—</span>
+                    <div class="min-w-0 flex-1"><div class="deva truncate text-[13px] text-white/65">आज से मेरी सारी खुशियां तेरी हो गई</div></div>
+                  </div>
+                  <div class="flex items-center gap-2.5 rounded-lg border border-white/6 px-2.5 py-1.5 opacity-60">
+                    <span class="rounded bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-white/35">—:—</span>
+                    <div class="min-w-0 flex-1"><div class="deva truncate text-[13px] text-white/65">आज से तेरा घम मेरा हो गया</div></div>
+                  </div>
+                  <p class="pt-1 text-center text-[10px] text-white/35">+ 45 more · tap <b class="text-amber-200">Mark</b> below in rhythm</p>
+                </div>
+              </div>
+              <!-- AUDIO -->
+              <div data-panel="audio" class="hidden">
+                <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/15 px-4 py-6 text-center">
+                  <div class="text-xl">🎵</div>
+                  <p class="mt-1.5 text-[13px] text-white/70">Tap to choose an MP3</p>
+                  <p class="text-[10px] text-white/40">up to 30 MB</p>
+                </div>
+                <div class="mt-2.5 flex items-center justify-between rounded-lg border border-white/8 px-2.5 py-2 text-[13px]"><span class="text-white/80">Aaj-Se-Teri.mp3</span><span class="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] text-emerald-200">Ready · 3:14</span></div>
+              </div>
+              <!-- LYRICS -->
+              <div data-panel="lyrics" class="hidden">
+                <button class="w-full rounded-lg border border-white/10 bg-white/[0.03] py-2 text-[12px] font-medium text-white/70">⇪ Paste / import JSON</button>
+                <div class="mt-2.5 rounded-lg border border-white/8 p-2.5">
+                  <span class="text-[9px] uppercase eyebrow text-white/40">Line 1</span>
+                  <textarea rows="2" class="deva mt-1.5 w-full resize-none rounded-md border border-white/10 bg-slate-950/60 px-2.5 py-1.5 text-[13px] text-white/85 outline-none">आज से तेरी सारी गलियां मेरी हो गई</textarea>
+                  <textarea rows="1" class="mt-1.5 w-full resize-none rounded-md border border-white/10 bg-slate-950/60 px-2.5 py-1.5 text-[12px] text-white/70 outline-none">From today, all your streets have become mine.</textarea>
+                </div>
+              </div>
+              <!-- STYLE -->
+              <div data-panel="style" class="hidden">
+                <span class="text-[9px] uppercase eyebrow text-white/45">Presets</span>
+                <div class="mt-1.5 grid grid-cols-4 gap-1.5 text-[11px]">
+                  <button class="rounded-lg border border-amber-300/40 bg-amber-300/10 py-2 text-amber-100">Clean</button>
+                  <button class="rounded-lg border border-white/10 py-2 text-white/70">Bold</button>
+                  <button class="rounded-lg border border-white/10 py-2 text-white/70">Neon</button>
+                  <button class="rounded-lg border border-white/10 py-2 text-white/70">Sub</button>
+                </div>
+                <label class="mt-3 block"><span class="text-[9px] uppercase eyebrow text-white/45">Original size</span><input type="range" value="64" class="mt-2 w-full accent-amber-300" /></label>
+                <label class="mt-1 block"><span class="text-[9px] uppercase eyebrow text-white/45">Vertical position</span><input type="range" value="78" class="mt-2 w-full accent-amber-300" /></label>
+              </div>
+              <!-- BACKGROUND -->
+              <div data-panel="background" class="hidden">
+                <div class="grid grid-cols-4 gap-1.5 text-[11px]">
+                  <button class="rounded-lg border border-white/10 py-2 text-white/70">Solid</button>
+                  <button class="rounded-lg border border-amber-300/40 bg-amber-300/10 py-2 text-amber-100">Grad</button>
+                  <button class="rounded-lg border border-white/10 py-2 text-white/70">Image</button>
+                  <button class="rounded-lg border border-white/10 py-2 text-white/70">Video</button>
+                </div>
+                <label class="mt-3 block"><span class="text-[9px] uppercase eyebrow text-white/45">Angle</span><input type="range" value="160" class="mt-2 w-full accent-amber-300" /></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ───── transport dock (always visible, thumb zone) ───── -->
+          <div class="z-30 flex-none border-t border-white/10 bg-slate-950/95 px-4 pb-5 pt-2.5">
+            <!-- mini waveform scrubber -->
+            <div class="relative mb-2.5 h-8 w-full overflow-hidden rounded-lg bg-white/5">
+              <svg class="h-full w-full" preserveAspectRatio="none" viewBox="0 0 600 32"><g id="wave"></g></svg>
+              <div class="absolute top-0 h-full w-0.5 bg-amber-300 shadow-[0_0_6px_rgba(251,191,36,0.8)]" style="left:14%;"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[11px] text-white/55">12.3</span>
+              <button class="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-white/10 text-white/80">▶</button>
+              <!-- Mark = the big thumb target -->
+              <button class="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-amber-300 text-sm font-bold text-slate-950 shadow-[0_8px_24px_rgba(251,191,36,0.35)]">● MARK</button>
+              <button class="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-white/10 text-[11px] text-white/70">+2s</button>
+              <span class="font-mono text-[11px] text-white/35">3:14</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-center text-[11px] text-white/40">Same React components as desktop — re-flowed at the <code class="rounded bg-white/10 px-1 py-0.5">lg</code> breakpoint. Side-by-side becomes preview-canvas + sheet.</p>
+    </div>
+
+    <script>
+      const tabs = document.querySelectorAll(".tab");
+      const panels = document.querySelectorAll("[data-panel]");
+      function select(id) {
+        tabs.forEach((t) => {
+          const on = t.dataset.tab === id;
+          t.className = "tab whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-medium " +
+            (on ? "bg-white text-slate-950" : "text-white/60");
+        });
+        panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== id));
+      }
+      tabs.forEach((t) => t.addEventListener("click", () => select(t.dataset.tab)));
+      select("timing");
+
+      // sheet snap states
+      const sheet = document.getElementById("sheet");
+      const label = document.getElementById("handleLabel");
+      const states = [
+        { h: 132, t: "Peek · tap to expand" },
+        { h: 300, t: "Half · tap to expand" },
+        { h: 520, t: "Full · tap to collapse" },
+      ];
+      let i = 1;
+      document.getElementById("handle").addEventListener("click", () => {
+        i = (i + 1) % states.length;
+        sheet.style.height = states[i].h + "px";
+        label.textContent = states[i].t;
+      });
+
+      const g = document.getElementById("wave");
+      let bars = "";
+      for (let x = 0; x < 600; x += 5) {
+        const h = 4 + Math.abs(Math.sin(x * 0.06) * 11) + Math.abs(Math.cos(x * 0.2) * 5);
+        bars += `<rect x="${x}" y="${16 - h / 2}" width="2.5" height="${h}" rx="1" fill="rgba(125,180,220,${x < 84 ? 0.85 : 0.4})"/>`;
+      }
+      g.innerHTML = bars;
+    </script>
+  </body>
+</html>
