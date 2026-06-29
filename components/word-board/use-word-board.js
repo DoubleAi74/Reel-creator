@@ -9,12 +9,10 @@
 // no setState-in-effect). Board layout state stays local; only selection crosses
 // into the editor context.
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import {
-  buildPageLinesByHeight,
   buildScrollLines,
-  calculateLinesPerPage,
   clamp,
   COMPACT_DESKTOP_MEDIA_QUERY,
   DEFAULT_BOARD_SCALE,
@@ -31,6 +29,10 @@ import {
   TILE_SCALE_MIN,
   TILE_SCALE_STEP,
 } from "@/lib/word-board";
+import {
+  hasFollowAudioTiming,
+  resolveFollowAudioState,
+} from "@/lib/word-board-follow";
 
 function matchesQuery(query) {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -60,27 +62,26 @@ function createTextMeasurer() {
 
 export function useWordBoard(rawLines, options = {}) {
   const {
-    defaultMode = "page",
-    activeSourceLineId = null,
-    autoFollow = false,
-    isPlaying = false,
+    currentTime = 0,
+    followAudioResetKey = null,
   } = options;
 
   const hostRef = useRef(null);
   const stageRef = useRef(null);
   const resizeFrameRef = useRef(0);
   const scrollFrameRef = useRef(0);
+  const programmaticScrollTimeoutRef = useRef(0);
+  const programmaticScrollRef = useRef(false);
   const pendingScrollTopRef = useRef(0);
 
-  const [mode, setMode] = useState(defaultMode);
-  const [page, setPage] = useState(0);
   const [tileScale, setTileScale] = useState(1);
   const [showRoman, setShowRoman] = useState(false);
+  const [followAudioEnabled, setFollowAudioEnabled] = useState(false);
+  const [followScrollPaused, setFollowScrollPaused] = useState(false);
   const [hoveredLineId, setHoveredLineId] = useState(null);
   // Lazily create the canvas measurer once (client only; null under SSR).
   const [measureText] = useState(() => createTextMeasurer());
   const [stageWidth, setStageWidth] = useState(null);
-  const [stageContentHeight, setStageContentHeight] = useState(null);
   // Inline tile widths are only applied after mount so SSR and the first client
   // render agree (the canvas measurer would otherwise produce different widths
   // than SSR's heuristic → hydration mismatch).
@@ -92,12 +93,8 @@ export function useWordBoard(rawLines, options = {}) {
     isCompactDesktop: false,
     hostWidth: SKETCH_IDEAL_BOARD_WIDTH,
   }));
-  const [scrollRange, setScrollRange] = useState({ start: 1, end: 1 });
 
   const boardLines = useMemo(() => prepareBoardLines(rawLines), [rawLines]);
-
-  // Mobile forces scroll mode (enforceResponsiveMode).
-  const effectiveMode = metrics.isMobile ? "scroll" : mode;
 
   // ---- Measurement: recompute board box + stage width on resize / slot change ----
   const measure = useCallback(() => {
@@ -118,10 +115,7 @@ export function useWordBoard(rawLines, options = {}) {
       const style = window.getComputedStyle(stage);
       const padX =
         parseFloat(style.paddingLeft || "0") + parseFloat(style.paddingRight || "0");
-      const padY =
-        parseFloat(style.paddingTop || "0") + parseFloat(style.paddingBottom || "0");
       setStageWidth(Math.max(120, stage.clientWidth - padX));
-      setStageContentHeight(Math.max(80, stage.clientHeight - padY));
     }
   }, []);
 
@@ -167,132 +161,155 @@ export function useWordBoard(rawLines, options = {}) {
   }, [availableWidth, boardLines, measureText, metrics, tileScale]);
   const tileSizeRatio = tileScale / TILE_SCALE_MAX;
 
-  const linesPerPage = useMemo(
+  const visibleLines = useMemo(() => buildScrollLines(boardLines), [boardLines]);
+  const canFollowAudio = useMemo(
+    () => hasFollowAudioTiming(visibleLines),
+    [visibleLines],
+  );
+  const effectiveFollowAudioEnabled = followAudioEnabled && canFollowAudio;
+  const followAudioState = useMemo(
     () =>
-      calculateLinesPerPage({
-        availableHeight: stageContentHeight,
-        availableWidth,
-        lineCount: boardLines.length,
-        lines: boardLines,
-        measureText,
-        isMobile: metrics.isMobile,
-        isCompactDesktop: metrics.isCompactDesktop,
-        showRoman,
-        tileSizeRatio,
-        tileScale: fittedLayoutScale,
-        boardScale: metrics.boardScale,
-        boardWidth: metrics.boardWidth,
-      }),
-    [
-      availableWidth,
-      boardLines,
-      measureText,
-      metrics,
-      showRoman,
-      stageContentHeight,
-      fittedLayoutScale,
-      tileSizeRatio,
-    ],
+      effectiveFollowAudioEnabled
+        ? resolveFollowAudioState(visibleLines, currentTime)
+        : {
+            activeDisplayLineId: null,
+            activeSourceLineId: null,
+            available: canFollowAudio,
+            currentWordKeys: [],
+            passedWordKeys: [],
+          },
+    [canFollowAudio, currentTime, effectiveFollowAudioEnabled, visibleLines],
+  );
+  const currentWordKeySet = useMemo(
+    () => new Set(followAudioState.currentWordKeys),
+    [followAudioState.currentWordKeys],
+  );
+  const passedWordKeySet = useMemo(
+    () => new Set(followAudioState.passedWordKeys),
+    [followAudioState.passedWordKeys],
+  );
+  const activeDisplayLineId = followAudioState.activeDisplayLineId;
+
+  useEffect(() => {
+    // Legitimate external reset: a different project/audio identity should make
+    // the session-only F state start off again.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFollowAudioEnabled(false);
+    setFollowScrollPaused(false);
+  }, [followAudioResetKey]);
+
+  useEffect(() => {
+    if (canFollowAudio || !followAudioEnabled) {
+      return;
+    }
+    // If timing data is removed while F is on, return the local toggle to off.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFollowAudioEnabled(false);
+  }, [canFollowAudio, followAudioEnabled]);
+
+  useEffect(() => {
+    if (effectiveFollowAudioEnabled) {
+      return;
+    }
+    // F off/unavailable should also clear any paused-follow affordance.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFollowScrollPaused(false);
+  }, [effectiveFollowAudioEnabled]);
+
+  const clearProgrammaticScrollGuard = useCallback(() => {
+    if (programmaticScrollTimeoutRef.current) {
+      window.clearTimeout(programmaticScrollTimeoutRef.current);
+      programmaticScrollTimeoutRef.current = 0;
+    }
+    programmaticScrollRef.current = false;
+  }, []);
+
+  const armProgrammaticScrollGuard = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    programmaticScrollRef.current = true;
+    if (programmaticScrollTimeoutRef.current) {
+      window.clearTimeout(programmaticScrollTimeoutRef.current);
+    }
+    programmaticScrollTimeoutRef.current = window.setTimeout(() => {
+      programmaticScrollRef.current = false;
+      programmaticScrollTimeoutRef.current = 0;
+    }, 520);
+  }, []);
+
+  useEffect(
+    () => () => {
+      clearProgrammaticScrollGuard();
+    },
+    [clearProgrammaticScrollGuard],
   );
 
-  const { visibleLines, pageCount, safePage, pageStarts } = useMemo(() => {
-    if (effectiveMode === "scroll") {
-      return {
-        visibleLines: buildScrollLines(boardLines),
-        pageCount: Math.max(1, Math.ceil(boardLines.length / Math.max(1, linesPerPage))),
-        pageStarts: [0],
-        safePage: 0,
-      };
-    }
-    const built = buildPageLinesByHeight(boardLines, {
-      page,
-      availableHeight: stageContentHeight,
-      availableWidth,
-      boardScale: metrics.boardScale,
-      boardWidth: metrics.boardWidth,
-      isCompactDesktop: metrics.isCompactDesktop,
-      isMobile: metrics.isMobile,
-      measureText,
-      showRoman,
-      tileSizeRatio,
-      tileScale: fittedLayoutScale,
-    });
-    return {
-      visibleLines: built.lines,
-      pageCount: built.pageCount,
-      pageStarts: built.pageStarts,
-      safePage: built.page,
-    };
-  }, [
-    availableWidth,
-    boardLines,
-    fittedLayoutScale,
-    effectiveMode,
-    linesPerPage,
-    measureText,
-    metrics,
-    page,
-    showRoman,
-    stageContentHeight,
-    tileSizeRatio,
-  ]);
-
-  // Auto-follow (P5): during playback keep the active line visible + highlighted.
-  // Selection (gloss panel) is untouched — only page/scroll/highlight move.
-  const following = autoFollow && isPlaying && Boolean(activeSourceLineId);
-  const activeIndex = useMemo(
-    () =>
-      activeSourceLineId
-        ? boardLines.findIndex((line) => line.id === activeSourceLineId)
-        : -1,
-    [boardLines, activeSourceLineId],
-  );
-  const activeDisplayLineId = useMemo(() => {
-    if (!following || activeIndex < 0) {
-      return null;
-    }
-    const match = visibleLines.find(
-      (line) => line.sourceId === activeSourceLineId,
-    );
-    return match ? match.id : null;
-  }, [following, activeIndex, visibleLines, activeSourceLineId]);
-  const activePage = useMemo(() => {
-    if (activeIndex < 0) {
-      return -1;
-    }
-    let target = 0;
-    for (let index = 0; index < pageStarts.length; index += 1) {
-      if (pageStarts[index] <= activeIndex) {
-        target = index;
+  const centerActiveFollowLine = useCallback(
+    (behavior = "smooth") => {
+      if (!activeDisplayLineId) {
+        return false;
       }
-    }
-    return target;
-  }, [activeIndex, pageStarts]);
+      const stage = stageRef.current;
+      const row = stage?.querySelector(
+        `[data-line-id="${activeDisplayLineId}"]`,
+      );
 
-  // Page to the active line (page mode).
-  useLayoutEffect(() => {
-    if (!following || effectiveMode !== "page" || activeIndex < 0) {
-      return;
-    }
-    const targetPage = activePage;
-    if (targetPage !== page) {
-      // Legitimate external-driven sync (playback → page); not derivable in render.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPage(targetPage);
-    }
-  }, [following, effectiveMode, activeIndex, activePage, page]);
+      if (!row) {
+        return false;
+      }
 
-  // Scroll the active line into view (scroll mode).
-  useLayoutEffect(() => {
-    if (!following || effectiveMode !== "scroll" || !activeDisplayLineId) {
-      return;
+      armProgrammaticScrollGuard();
+      row.scrollIntoView({ behavior, block: "center" });
+      return true;
+    },
+    [activeDisplayLineId, armProgrammaticScrollGuard],
+  );
+
+  const isActiveFollowLineCentered = useCallback(() => {
+    if (!activeDisplayLineId) {
+      return true;
     }
     const stage = stageRef.current;
     const row = stage?.querySelector(
       `[data-line-id="${activeDisplayLineId}"]`,
     );
-    row?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [following, effectiveMode, activeDisplayLineId]);
+
+    if (!stage || !row) {
+      return true;
+    }
+
+    const stageRect = stage.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    const visible =
+      rowRect.bottom > stageRect.top + 2 && rowRect.top < stageRect.bottom - 2;
+
+    if (!visible) {
+      return false;
+    }
+
+    const stageCenter = stageRect.top + stageRect.height / 2;
+    const rowCenter = rowRect.top + rowRect.height / 2;
+    return Math.abs(rowCenter - stageCenter) <= stageRect.height * 0.3;
+  }, [activeDisplayLineId]);
+
+  // While F is on and follow scrolling is not paused, keep the active line centered.
+  useLayoutEffect(() => {
+    if (
+      !effectiveFollowAudioEnabled ||
+      followScrollPaused ||
+      !activeDisplayLineId
+    ) {
+      return;
+    }
+
+    centerActiveFollowLine("smooth");
+  }, [
+    activeDisplayLineId,
+    centerActiveFollowLine,
+    effectiveFollowAudioEnabled,
+    followScrollPaused,
+  ]);
 
   const layoutScale = fittedLayoutScale;
 
@@ -347,47 +364,35 @@ export function useWordBoard(rawLines, options = {}) {
     ],
   );
 
-  // ---- Apply CSS variables + roman class to the board root (effect) ----
-  useLayoutEffect(() => {
-    const host = hostRef.current;
-    if (!host) {
-      return;
-    }
-    const board = host.querySelector(".version-sketch") || host;
+  // ---- Board CSS variables (applied in render, not an effect) ----
+  // Computing these as an inline style (instead of writing them imperatively in a
+  // layout effect) keeps them perfectly in sync with the rendered tile widths:
+  // the scale used to lay out the tiles and the --tile-layout-scale that sizes
+  // their fonts land in the SAME commit, so the words never paint one frame at
+  // the wrong scale and then snap. The frame's own width/height are sized by CSS
+  // (container-query contain-fit), so --board-width/height here are advisory only.
+  const boardStyle = useMemo(() => {
     const boardHeight = metrics.boardWidth / (1094 / 922);
-    board.style.setProperty("--tile-scale", String(tileScale));
-    board.style.setProperty("--tile-layout-scale", String(layoutScale));
-    board.style.setProperty("--board-width", `${metrics.boardWidth}px`);
-    board.style.setProperty("--board-height", `${boardHeight}px`);
-    board.style.setProperty("--board-scale", String(metrics.boardScale));
-    board.classList.toggle("show-inline-roman", showRoman);
-  }, [metrics, tileScale, layoutScale, showRoman, effectiveMode, visibleLines]);
+    return {
+      "--tile-scale": String(tileScale),
+      // layoutScale derives from the canvas text-measurer, which only exists on
+      // the client — so emitting it during SSR / the first client render would
+      // mismatch and trip a hydration error. The fitted value only matters once
+      // the words are revealed (gated on `hydrated`), so use 1 until then.
+      "--tile-layout-scale": hydrated ? String(layoutScale) : "1",
+      "--board-width": `${metrics.boardWidth}px`,
+      "--board-height": `${boardHeight}px`,
+      "--board-scale": String(metrics.boardScale),
+    };
+  }, [hydrated, metrics, tileScale, layoutScale]);
 
-  // ---- Scroll-position preservation + range note (scroll mode) ----
+  // ---- Scroll-position preservation ----
   const updateScrollState = useCallback(() => {
     const stage = stageRef.current;
     if (!stage) {
       return;
     }
-    const stageRect = stage.getBoundingClientRect();
-    const rows = [...stage.querySelectorAll("[data-line-number]")];
-    const visibleRows = rows.filter((row) => {
-      const rect = row.getBoundingClientRect();
-      return rect.bottom > stageRect.top + 2 && rect.top < stageRect.bottom - 2;
-    });
-    const firstLine = Number(
-      visibleRows[0]?.dataset.lineNumber || rows[0]?.dataset.lineNumber || 1,
-    );
-    const lastLine = Number(
-      visibleRows.at(-1)?.dataset.lineNumber ||
-        visibleRows[0]?.dataset.lineNumber ||
-        firstLine,
-    );
-    setScrollRange((prev) =>
-      prev.start === firstLine && prev.end === lastLine
-        ? prev
-        : { start: firstLine, end: lastLine },
-    );
+    pendingScrollTopRef.current = stage.scrollTop;
   }, []);
 
   const handleStageScroll = useCallback(() => {
@@ -395,18 +400,34 @@ export function useWordBoard(rawLines, options = {}) {
     if (stage) {
       pendingScrollTopRef.current = stage.scrollTop;
     }
+    const shouldDetectManualScroll =
+      effectiveFollowAudioEnabled &&
+      !followScrollPaused &&
+      Boolean(activeDisplayLineId) &&
+      !programmaticScrollRef.current;
     if (typeof window === "undefined") {
       updateScrollState();
       return;
     }
     window.cancelAnimationFrame(scrollFrameRef.current);
-    scrollFrameRef.current = window.requestAnimationFrame(updateScrollState);
-  }, [updateScrollState]);
+    scrollFrameRef.current = window.requestAnimationFrame(() => {
+      updateScrollState();
+      if (shouldDetectManualScroll && !isActiveFollowLineCentered()) {
+        setFollowScrollPaused(true);
+      }
+    });
+  }, [
+    activeDisplayLineId,
+    effectiveFollowAudioEnabled,
+    followScrollPaused,
+    isActiveFollowLineCentered,
+    updateScrollState,
+  ]);
 
   // Restore scroll position after re-render in scroll mode; refresh range note.
   useLayoutEffect(() => {
     const stage = stageRef.current;
-    if (stage && effectiveMode === "scroll") {
+    if (stage && !effectiveFollowAudioEnabled) {
       const maxScrollTop = Math.max(0, stage.scrollHeight - stage.clientHeight);
       const previousBehavior = stage.style.scrollBehavior;
       stage.style.scrollBehavior = "auto";
@@ -414,7 +435,7 @@ export function useWordBoard(rawLines, options = {}) {
       stage.style.scrollBehavior = previousBehavior;
     }
     updateScrollState();
-  }, [effectiveMode, visibleLines, updateScrollState]);
+  }, [effectiveFollowAudioEnabled, visibleLines, updateScrollState]);
 
   // ---- Controls ----
   const stepTileScale = useCallback((deltaPercent) => {
@@ -430,13 +451,36 @@ export function useWordBoard(rawLines, options = {}) {
 
   const toggleRoman = useCallback(() => setShowRoman((value) => !value), []);
 
-  const toggleMode = useCallback(() => {
-    setMode((current) => (current === "scroll" ? "page" : "scroll"));
-  }, []);
+  const toggleFollowAudio = useCallback(() => {
+    if (!canFollowAudio) {
+      return;
+    }
+    setFollowAudioEnabled((enabled) => !enabled);
+    setFollowScrollPaused(false);
+  }, [canFollowAudio]);
 
-  const goToPage = useCallback(
-    (next) => setPage((current) => clamp(next, 0, Math.max(0, pageCount - 1))),
-    [pageCount],
+  const handleRefollow = useCallback(() => {
+    setFollowScrollPaused(false);
+    centerActiveFollowLine("smooth");
+  }, [centerActiveFollowLine]);
+
+  const getWordAudioState = useCallback(
+    (word) => {
+      if (!effectiveFollowAudioEnabled) {
+        return null;
+      }
+
+      if (currentWordKeySet.has(word.sourceWordKey)) {
+        return "current";
+      }
+
+      if (passedWordKeySet.has(word.sourceWordKey)) {
+        return "passed";
+      }
+
+      return null;
+    },
+    [currentWordKeySet, effectiveFollowAudioEnabled, passedWordKeySet],
   );
 
   const sizePercent = Math.round(tileScale * 100);
@@ -444,28 +488,33 @@ export function useWordBoard(rawLines, options = {}) {
   return {
     hostRef,
     stageRef,
+    // The board is only laid out correctly once the client measurement pass has
+    // run (tile widths / wrapping / page height all depend on it). Until then the
+    // server-rendered tiles have no width and collapse, so callers hide them to
+    // avoid a flash of broken layout on load/refresh. Matches SSR (false → false).
+    ready: hydrated,
+    boardStyle,
     getTileWidth,
     getWordRows,
     getLineMinHeight,
-    mode: effectiveMode,
-    isMobile: metrics.isMobile,
     visibleLines,
-    page: safePage,
-    pageCount,
     hoveredLineId,
     setHoveredLineId,
     activeDisplayLineId,
+    canFollowAudio,
+    followAudioEnabled: effectiveFollowAudioEnabled,
+    followScrollPaused,
+    getWordAudioState,
+    showRefollowButton: effectiveFollowAudioEnabled && followScrollPaused,
     showRoman,
     sizePercent,
     canDecreaseSize: sizePercent > TILE_SCALE_MIN * 100,
     canIncreaseSize: sizePercent < TILE_SCALE_MAX * 100,
-    scrollRange,
-    lineCount: boardLines.length,
     tileStep: TILE_SCALE_STEP * 100,
     stepTileScale,
     toggleRoman,
-    toggleMode,
-    goToPage,
+    toggleFollowAudio,
+    handleRefollow,
     handleStageScroll,
   };
 }

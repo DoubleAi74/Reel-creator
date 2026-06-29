@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import WaveSurfer from "wavesurfer.js";
 
 import {
@@ -10,6 +16,11 @@ import {
   getSectionBounds,
   getTimedLines,
 } from "@/lib/timing";
+import {
+  rememberEmittedTime,
+  shouldPublishPlaybackFrame,
+  shouldSeekEngineToCurrentTime,
+} from "@/lib/waveform-sync";
 import { VIDEO_FPS } from "@/remotion/constants";
 
 function formatTime(totalSeconds) {
@@ -127,10 +138,20 @@ export function WaveformTimeline({
   const containerRef = useRef(null);
   const waveSurferRef = useRef(null);
   const lastClockFrameRef = useRef(null);
+  // Mirror of the `currentTime` prop, kept current (via the effect below) so the
+  // rAF playback clock — an effect with a stale closure — can see how far the
+  // parent has actually rendered.
+  const currentTimeRef = useRef(currentTime);
+  // Recent time values this component reported UP to the parent from the engine.
+  // The controlled-sync effect can run with a STALE `currentTime` (renders lag
+  // behind the engine clock during playback), so we match against a short history
+  // — not just the latest emit — to tell an engine echo from an external seek.
+  const emittedTimesRef = useRef(new Set());
   const [errorMessage, setErrorMessage] = useState("");
   const [status, setStatus] = useState(audioSrc ? "loading" : "empty");
 
   const emitTimeChange = useEffectEvent((timeInSeconds) => {
+    rememberEmittedTime(emittedTimesRef.current, timeInSeconds);
     onTimeChange?.(timeInSeconds);
   });
   const emitPlayingChange = useEffectEvent((playing) => {
@@ -143,6 +164,26 @@ export function WaveformTimeline({
   const getClockFrame = useEffectEvent((timeInSeconds) =>
     getSectionFrameFromTime(timeInSeconds, audio, VIDEO_FPS),
   );
+  // Single frame-bounded clock publisher. WaveSurfer reports time through several
+  // redundant channels — the playback `timeupdate` timer, plus `seeking`/
+  // `interaction` during a scrub — and the component also runs its own rAF clock.
+  // Forwarding every one floods `currentAudioTime` with sub-frame updates that the
+  // editor (preview + 300+ word tiles) cannot re-render fast enough; the per-frame
+  // preview seek then trips React's update-depth limit. Coalescing every source to
+  // at most one update per VIDEO frame (the only granularity the preview/board
+  // need) keeps the editor able to keep up. Programmatic seeks (Mark/jump/section)
+  // bypass this — they call onTimeChange directly. The live engine clock for Mark
+  // is read straight from WaveSurfer, so timing precision is unaffected.
+  const emitTimeAtFrame = useEffectEvent((timeInSeconds) => {
+    const nextFrame = getClockFrame(timeInSeconds);
+
+    if (lastClockFrameRef.current === nextFrame) {
+      return;
+    }
+
+    lastClockFrameRef.current = nextFrame;
+    emitTimeChange(timeInSeconds);
+  });
   const clampToSection = useEffectEvent((timeInSeconds, durationInSeconds) =>
     clampTimeToSection(timeInSeconds, {
       ...audio,
@@ -151,6 +192,14 @@ export function WaveformTimeline({
         : {}),
     }),
   );
+
+  // Keep the rAF clock's view of the rendered `currentTime` up to date. A layout
+  // effect flushes synchronously at the end of every commit — before the browser
+  // paints and before the next rAF tick reads it — so the backpressure gate always
+  // sees the frame the parent has actually rendered, with no lag.
+  useLayoutEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
 
   useEffect(() => installTimingDebugHook(waveSurferRef), []);
 
@@ -196,16 +245,28 @@ export function WaveformTimeline({
       waveSurfer.setTime(nextTime);
     });
 
+    // While playing, the rAF tick below is the SOLE clock publisher: it is
+    // paint-aligned, so it self-limits to the rate the editor can actually
+    // re-render. WaveSurfer's `timeupdate`/`seeking` fire on an independent timer
+    // (~60/s) that does NOT slow down under load, so publishing them during
+    // playback floods `currentAudioTime` faster than the preview + word board can
+    // render — the backlog never drains and React reports "Maximum update depth
+    // exceeded". They publish only when paused (e.g. seek-while-paused). A direct
+    // user scrub still publishes immediately via `interaction` for responsiveness.
     waveSurfer.on("timeupdate", (nextTime) => {
-      emitTimeChange(nextTime);
+      if (!waveSurfer.isPlaying()) {
+        emitTimeAtFrame(nextTime);
+      }
     });
 
     waveSurfer.on("interaction", (nextTime) => {
-      emitTimeChange(nextTime);
+      emitTimeAtFrame(nextTime);
     });
 
     waveSurfer.on("seeking", (nextTime) => {
-      emitTimeChange(nextTime);
+      if (!waveSurfer.isPlaying()) {
+        emitTimeAtFrame(nextTime);
+      }
     });
 
     waveSurfer.on("play", () => {
@@ -259,7 +320,17 @@ export function WaveformTimeline({
 
     const nextTime = clampTimeToSection(currentTime, audio);
 
-    if (Math.abs(waveSurfer.getCurrentTime() - nextTime) > 0.05) {
+    // Only push EXTERNAL/programmatic `currentTime` changes into the engine; an
+    // engine time echoed back through the parent is left alone so it can't fight
+    // live playback. See lib/waveform-sync for the full rationale.
+    if (
+      shouldSeekEngineToCurrentTime({
+        currentTime,
+        engineTime: waveSurfer.getCurrentTime(),
+        audio,
+        emittedTimes: emittedTimesRef.current,
+      })
+    ) {
       waveSurfer.setTime(nextTime);
     }
 
@@ -280,13 +351,22 @@ export function WaveformTimeline({
         return;
       }
 
-      const nextTime = clampTimeToSection(waveSurfer.getCurrentTime(), audio);
-      const nextFrame = getClockFrame(nextTime);
-
-      if (lastClockFrameRef.current !== nextFrame) {
-        lastClockFrameRef.current = nextFrame;
-        emitTimeChange(nextTime);
+      // Backpressure: do not publish the next playback frame until the parent has
+      // re-rendered the LAST one we sent. rAF fires every animation frame whether
+      // or not React has caught up; on a heavy editor (preview + word board) that
+      // lets the clock outrun rendering, so commits never reach idle and React
+      // reports "Maximum update depth exceeded". Gating on the reflected frame
+      // couples the clock to the achievable render rate — it self-throttles under
+      // load and runs at full frame rate when rendering is cheap.
+      const reflectedFrame = getClockFrame(currentTimeRef.current);
+      if (!shouldPublishPlaybackFrame(lastClockFrameRef.current, reflectedFrame)) {
+        frameHandle = window.requestAnimationFrame(tick);
+        return;
       }
+
+      const nextTime = clampTimeToSection(waveSurfer.getCurrentTime(), audio);
+
+      emitTimeAtFrame(nextTime);
 
       frameHandle = window.requestAnimationFrame(tick);
     };

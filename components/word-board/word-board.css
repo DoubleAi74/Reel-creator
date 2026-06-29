@@ -27,6 +27,16 @@
         --tile-shadow-roman-y: calc(1px * var(--tile-size-ratio));
         --tile-shadow-active-x: calc(1px * var(--tile-size-ratio));
         --tile-shadow-active-y: calc(2px * var(--tile-size-ratio));
+        --control-button-bg: #fffaf1;
+        --control-button-bg-hover: #f3ecdf;
+        --control-button-bg-active: #ece2d3;
+        --control-button-stroke: #c8c1b6;
+        --control-button-stroke-hover: #b3aa9d;
+        --control-button-text: #2c2924;
+        --follow-line-bg: rgba(255, 252, 242, 0.58);
+        --follow-current-bg: #dcecff;
+        --follow-passed-bg: #cfe1f2;
+        --follow-tile-text: #27313f;
       }
 .version-sketch.show-inline-roman {
         --word-row-step: calc(72px * var(--tile-layout-scale));
@@ -35,13 +45,19 @@
         box-sizing: border-box;
       }
 .board-control-panel {
-        grid-column: 1;
+        grid-column: 2;
         grid-row: 1;
-        align-self: start;
-        justify-self: stretch;
+        align-self: center;
+        justify-self: end;
         display: grid;
-        gap: 8px;
         min-width: 0;
+      }
+.board-control-grid {
+        display: grid;
+        grid-template-columns: repeat(2, max-content);
+        gap: 8px 10px;
+        align-items: center;
+        justify-content: center;
       }
 .board-size-control {
         width: 100%;
@@ -65,17 +81,19 @@
 .mobile-size-button {
         width: 38px;
         height: 34px;
-        border: 1px solid rgba(20, 20, 20, 0.18);
+        border: 2px solid var(--control-button-stroke);
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.62);
-        color: #2b2925;
+        background: var(--control-button-bg);
+        color: var(--control-button-text);
         cursor: pointer;
         display: grid;
         place-items: center;
-        font-size: 18px;
-        font-weight: 820;
+        font-size: 21px;
+        font-weight: 860;
         line-height: 1;
         transition:
+          transform 120ms ease,
+          border-color 150ms ease,
           background 150ms ease,
           color 150ms ease,
           opacity 150ms ease,
@@ -85,13 +103,13 @@
         cursor: not-allowed;
         opacity: 0.36;
       }
-.mode-toggle, .roman-toggle {
+.roman-toggle, .follow-toggle {
         width: 38px;
         height: 38px;
-        border: 1px solid rgba(20, 20, 20, 0.18);
+        border: 2px solid var(--control-button-stroke);
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.62);
-        color: #2b2925;
+        background: var(--control-button-bg);
+        color: var(--control-button-text);
         cursor: pointer;
         display: grid;
         place-items: center;
@@ -99,11 +117,25 @@
         font-weight: 820;
         line-height: 1;
         transition:
+          transform 120ms ease,
+          border-color 150ms ease,
           background 150ms ease,
           color 150ms ease,
           box-shadow 150ms ease;
       }
-.mode-toggle[aria-pressed="true"], .roman-toggle[aria-pressed="true"] {
+.roman-toggle:not(:disabled):hover,
+.follow-toggle:not(:disabled):hover,
+.mobile-size-button:not(:disabled):hover {
+        border-color: var(--control-button-stroke-hover);
+        background: var(--control-button-bg-hover);
+      }
+.roman-toggle:not(:disabled):active,
+.follow-toggle:not(:disabled):active,
+.mobile-size-button:not(:disabled):active {
+        transform: translateY(1px);
+        background: var(--control-button-bg-active);
+      }
+.roman-toggle[aria-pressed="true"], .follow-toggle[aria-pressed="true"] {
         background: #171717;
         color: #fffaf0;
         box-shadow: 0 6px 18px rgba(23, 23, 23, 0.16);
@@ -180,9 +212,14 @@
           color 150ms ease,
           border-color 150ms ease;
       }
-.word-button:focus-visible, .pager-button:focus-visible, .mode-toggle:focus-visible, .roman-toggle:focus-visible, .mobile-size-button:focus-visible {
+.word-button:focus-visible, .pager-button:focus-visible, .roman-toggle:focus-visible, .follow-toggle:focus-visible, .mobile-size-button:focus-visible {
         outline: 3px solid rgba(34, 113, 255, 0.42);
         outline-offset: 2px;
+      }
+.roman-toggle:focus-visible,
+.follow-toggle:focus-visible,
+.mobile-size-button:focus-visible {
+        outline-color: rgba(178, 168, 154, 0.48);
       }
 .word-button .word-hindi, .word-button .word-english {
         grid-area: 1 / 1;
@@ -228,9 +265,11 @@
       }
 .pager-strip {
         display: grid;
-        grid-template-columns: 92px minmax(0, 1fr) max-content;
+        grid-template-columns: minmax(0, 1fr) max-content;
+        width: min(760px, 100%);
         gap: 12px;
-        align-items: start;
+        align-items: center;
+        justify-self: center;
       }
 .pager-button {
         width: 46px;
@@ -286,12 +325,12 @@
         margin-top: 5px;
       }
 .selection-stack {
-        grid-column: 2;
+        grid-column: 1;
         grid-row: 1;
         min-width: 0;
-        width: min(570px, 100%);
+        width: min(640px, 100%);
         display: grid;
-        justify-self: center;
+        justify-self: end;
       }
 .selection-panel {
         min-width: 0;
@@ -444,10 +483,23 @@
         left: 0;
         right: 0;
         top: 0;
-        z-index: 0;
+        z-index: 2;
         height: 1px;
         background: var(--page-rule-color, rgba(38, 34, 28, 0.08));
         pointer-events: none;
+      }
+.version-sketch .line-row::after {
+        content: "";
+        position: absolute;
+        inset: 1px 0 0;
+        z-index: 0;
+        background: var(--follow-line-bg);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 130ms ease;
+      }
+.version-sketch .line-row.is-follow-line::after {
+        opacity: 1;
       }
 .version-sketch .line-word-group {
         position: relative;
@@ -680,59 +732,56 @@
           font-size: calc(10px * var(--tile-layout-scale));
         }
   .version-sketch .pager-strip {
-          grid-template-columns: 42px minmax(0, 1fr);
+          width: 100%;
+          grid-template-columns: minmax(0, 1fr) 72px;
           gap: 8px;
-          align-items: start;
+          align-items: center;
           height: auto;
-          padding: 0 3px 0 0;
+          padding: 0;
         }
   .version-sketch .board-control-panel {
-          grid-column: 1;
+          grid-column: 2;
           grid-row: 1;
-          width: 42px;
-          height: 92px;
-          justify-self: start;
-          align-self: start;
-          gap: 4px;
+          width: 72px;
+          height: 72px;
+          justify-self: end;
+          align-self: center;
           padding-top: 0;
-          align-content: start;
+          align-content: center;
         }
-  .version-sketch .board-size-control, .version-sketch .mode-toggle {
+  .version-sketch .board-size-control {
           display: none !important;
         }
-  .version-sketch .board-toggle-row {
+  .version-sketch .board-control-grid {
           display: grid;
-          gap: 0;
+          grid-template-columns: repeat(2, 34px);
+          gap: 4px;
         }
-  .version-sketch .roman-toggle {
-          width: 36px;
-          height: 32px;
+  .version-sketch .roman-toggle,
+  .version-sketch .follow-toggle,
+  .version-sketch .mobile-size-button {
+          width: 34px;
+          height: 34px;
+          border: 2px solid var(--control-button-stroke);
           border-radius: 8px;
-          background: #fffaf1;
+          background: var(--control-button-bg);
+          color: var(--control-button-text);
+          font-size: 13px;
+          justify-self: center;
         }
   .version-sketch .roman-toggle[aria-pressed="true"] {
           background: #171717;
           color: #fffaf0;
         }
-  .version-sketch .mobile-size-stepper {
-          display: grid;
-          gap: 4px;
-        }
   .version-sketch .mobile-size-button {
-          width: 36px;
-          height: 26px;
-          border: 1px solid rgba(35, 32, 28, 0.34);
-          border-radius: 8px;
-          background: #fffaf1;
-          color: #24211d;
-          font-size: 16px;
+          font-size: 20px;
           box-shadow: 0 2px 0 rgba(43, 40, 35, 0.13);
         }
   .version-sketch .pager-arrow-cluster {
           display: none !important;
         }
   .version-sketch .selection-stack {
-          grid-column: 2;
+          grid-column: 1;
           grid-row: 1;
           width: 100%;
           max-width: 100%;
@@ -814,11 +863,47 @@
           overflow-x: hidden;
           overflow-y: auto;
         }
+  .version-sketch .pager-strip {
+          width: min(760px, 100%);
+          grid-template-columns: minmax(0, 1fr) 86px;
+          gap: 10px;
+          align-items: center;
+          justify-self: center;
+        }
+  .version-sketch .board-control-panel {
+          grid-column: 2;
+          width: 86px;
+          height: 86px;
+          justify-self: end;
+          align-self: center;
+          padding-top: 0;
+        }
+  .version-sketch .board-control-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 40px);
+          gap: 6px;
+        }
+  .version-sketch .roman-toggle,
+  .version-sketch .follow-toggle,
+  .version-sketch .mobile-size-button {
+          width: 40px;
+          height: 40px;
+          border: 2px solid var(--control-button-stroke);
+          border-radius: 8px;
+          background: var(--control-button-bg);
+          color: var(--control-button-text);
+          font-size: 14px;
+          justify-self: center;
+        }
+  .version-sketch .mobile-size-button {
+          font-size: 21px;
+        }
   .version-sketch .selection-stack {
-          width: max(320px, calc(518px * var(--board-scale)));
+          grid-column: 1;
+          width: max(360px, calc(640px * var(--board-scale)));
           max-width: 100%;
           min-width: 0;
-          justify-self: center;
+          justify-self: end;
         }
   .version-sketch .selection-panel {
           width: 100%;
@@ -897,22 +982,52 @@
   .version-sketch.show-inline-roman {
           --word-row-step: calc(72px * var(--tile-layout-scale));
         }
-  .mode-toggle, .roman-toggle {
-          width: 38px;
-          height: 38px;
-          border: 1px solid rgba(20, 20, 20, 0.18);
-          border-radius: 8px;
-          background: rgba(255, 255, 255, 0.62);
-          color: #2b2925;
-          font-size: 14px;
+  .roman-toggle, .follow-toggle, .mobile-size-button {
+          width: clamp(40px, calc(68px * var(--board-scale)), 64px);
+          height: clamp(40px, calc(68px * var(--board-scale)), 64px);
+          border: 2px solid var(--control-button-stroke);
+          border-radius: clamp(8px, calc(12px * var(--board-scale)), 12px);
+          background: var(--control-button-bg);
+          color: var(--control-button-text);
+          font-size: clamp(13px, calc(24px * var(--board-scale)), 24px);
           font-weight: 820;
+        }
+  .version-sketch .mobile-size-button {
+          font-size: clamp(21px, calc(31px * var(--board-scale)), 31px);
         }
   .prototype-shell.version-sketch {
           display: block;
+          /* Fallback (older browsers without container-query units or CSS length
+             division): JS sizes the board via --board-width/--board-height and
+             --board-scale. Works everywhere; the outline may briefly flash at the
+             default size before the first measurement. The @supports block below
+             upgrades supporting browsers to a JS-free, flash-free sizing. */
           width: var(--board-width);
           height: var(--board-height);
           min-height: 0;
         }
+  /* Progressive enhancement — only when BOTH features are available:
+     · container-query units (cqw/cqh) to contain-fit the 1094:922 board, and
+     · CSS length division via tan(atan2(a,b)) == a / b to derive the scale.
+     Then the outline + every inner box are correct on the very first paint with
+     no JS measurement, so nothing resizes on load. */
+  @supports (container-type: size) and (aspect-ratio: tan(atan2(1px, 1px))) {
+    .wb {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            container-type: size;
+          }
+    .prototype-shell.version-sketch {
+            --board-w: min(100cqw, calc(100cqh * 1094 / 922));
+            --board-scale: tan(atan2(var(--board-w), 1094px)) !important;
+            width: var(--board-w);
+            height: auto;
+            aspect-ratio: 1094 / 922;
+          }
+  }
   .version-sketch .board-frame {
           width: 100%;
           height: 100%;
@@ -1057,24 +1172,27 @@
           opacity: 0.72;
         }
   .version-sketch .pager-strip {
-          width: 100%;
+          width: min(760px, 100%);
           height: max(96px, calc(142px * var(--board-scale)));
           display: grid;
-          grid-template-columns:
-            max(112px, calc(148px * var(--board-scale)))
-            minmax(0, 1fr)
-            max(112px, calc(148px * var(--board-scale)));
-          column-gap: max(8px, calc(10px * var(--board-scale)));
+          grid-template-columns: minmax(0, 1fr) max-content;
+          column-gap: clamp(10px, calc(42px * var(--board-scale)), 42px);
           row-gap: 0;
-          align-items: start;
-          justify-self: start;
+          align-items: center;
+          justify-content: center;
+          justify-self: center;
         }
   .version-sketch .board-control-panel {
-          gap: max(6px, calc(9px * var(--board-scale)));
-          padding-top: max(4px, calc(8px * var(--board-scale)));
+          grid-column: 2;
+          grid-row: 1;
+          align-self: center;
+          justify-self: end;
+          width: max-content;
+          padding-top: 0;
         }
-  .version-sketch .board-toggle-row {
-          gap: max(6px, calc(9px * var(--board-scale)));
+  .version-sketch .board-control-grid {
+          grid-template-columns: repeat(2, max-content);
+          gap: clamp(6px, calc(12px * var(--board-scale)), 12px);
         }
   .version-sketch .pager-button {
           width: max(48px, calc(68px * var(--board-scale)));
@@ -1121,10 +1239,11 @@
           opacity: 0.27;
         }
   .version-sketch .selection-stack {
+          grid-column: 1;
           width: 100%;
-          max-width: max(320px, calc(518px * var(--board-scale)));
+          max-width: 100%;
           min-width: 0;
-          justify-self: center;
+          justify-self: end;
         }
   .version-sketch .selection-panel {
           width: 100%;
@@ -1225,54 +1344,53 @@
         }
   .version-sketch .pager-strip {
           height: 78px;
-          grid-template-columns: 42px minmax(0, 1fr);
+          width: min(760px, 100%);
+          grid-template-columns: minmax(0, 1fr) 72px;
           gap: 8px;
-          align-items: start;
+          align-items: center;
+          justify-self: center;
         }
   .version-sketch .pager-arrow-cluster {
           display: none !important;
         }
   .version-sketch .board-control-panel {
-          width: 42px;
-          height: 76px;
-          gap: 4px;
+          grid-column: 2;
+          width: 72px;
+          height: 72px;
           padding-top: 0;
-          align-self: start;
-          align-content: stretch;
+          align-self: center;
+          align-content: center;
         }
-  .version-sketch .board-size-control, .version-sketch .mode-toggle {
+  .version-sketch .board-size-control {
           display: none !important;
         }
-  .version-sketch .board-toggle-row {
+  .version-sketch .board-control-grid {
           display: grid;
-          gap: 0;
-        }
-  .version-sketch .roman-toggle {
-          width: 34px;
-          height: 22px;
-          border-radius: 6px;
-          background: #fffaf1;
-          font-size: 12px;
-          justify-self: center;
-        }
-  .version-sketch .mobile-size-stepper {
-          display: grid;
-          grid-template-rows: repeat(2, 22px);
+          grid-template-columns: repeat(2, 34px);
           justify-items: center;
           gap: 4px;
         }
+  .version-sketch .roman-toggle,
+  .version-sketch .follow-toggle,
   .version-sketch .mobile-size-button {
           width: 34px;
-          height: 22px;
+          height: 34px;
+          border: 2px solid var(--control-button-stroke);
           border-radius: 6px;
-          font-size: 14px;
+          background: var(--control-button-bg);
+          color: var(--control-button-text);
+          font-size: 12px;
+          justify-self: center;
+        }
+  .version-sketch .mobile-size-button {
+          font-size: 20px;
           box-shadow: 0 1px 0 rgba(43, 40, 35, 0.13);
         }
   .version-sketch .selection-stack {
-          grid-column: 2;
+          grid-column: 1;
           width: 100%;
           max-width: 100%;
-          justify-self: stretch;
+          justify-self: end;
         }
   .version-sketch .selection-panel,
   .version-sketch .selection-panel.is-empty {
@@ -1312,6 +1430,87 @@
           display: none;
         }
 }
+
+.version-sketch .roman-toggle[aria-pressed="true"],
+.version-sketch .follow-toggle[aria-pressed="true"] {
+        border-color: #2b2823;
+        background: #24211d;
+        color: #fffaf0;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 250, 241, 0.08),
+          0 2px 0 rgba(43, 40, 35, 0.18);
+      }
+.version-sketch .roman-toggle[aria-pressed="true"]:hover,
+.version-sketch .follow-toggle[aria-pressed="true"]:hover {
+        border-color: #2b2823;
+        background: #1f1c18;
+        color: #fffaf0;
+      }
+.version-sketch .roman-toggle[aria-pressed="true"]:active,
+.version-sketch .follow-toggle[aria-pressed="true"]:active {
+        background: #191713;
+      }
+.version-sketch .follow-toggle:disabled {
+        border-color: #d7d0c4;
+        background: #eee7db;
+        color: #8d867a;
+        cursor: not-allowed;
+        opacity: 0.58;
+        box-shadow: none;
+      }
+.version-sketch .refollow-button {
+        position: absolute;
+        right: calc(var(--stage-pad-x, 12px) + 8px);
+        top: calc(var(--stage-pad-y, 12px) + 8px);
+        z-index: 5;
+        border: 1px solid rgba(39, 35, 29, 0.24);
+        border-radius: 999px;
+        background: rgba(255, 250, 241, 0.94);
+        color: #302d28;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 760;
+        line-height: 1;
+        padding: 7px 10px;
+        box-shadow: 0 5px 14px rgba(43, 40, 35, 0.12);
+        transition:
+          background 130ms ease,
+          border-color 130ms ease,
+          color 130ms ease,
+          transform 120ms ease;
+      }
+.version-sketch .refollow-button:hover {
+        border-color: rgba(39, 35, 29, 0.38);
+        background: #fffaf1;
+        transform: translateY(-1px);
+      }
+.version-sketch .refollow-button:focus-visible {
+        outline: 3px solid rgba(178, 168, 154, 0.48);
+        outline-offset: 2px;
+      }
+.version-sketch .word-button.is-follow-passed:not(.is-selected):not(:hover),
+.version-sketch .line-row:hover .word-button.is-follow-passed:not(.is-selected):not(:hover),
+.version-sketch .line-row.is-hover-line .word-button.is-follow-passed:not(.is-selected):not(:hover),
+.version-sketch .line-row:focus-within .word-button.is-follow-passed:not(.is-selected):not(:hover),
+.version-sketch .line-row.is-selection-line .word-button.is-follow-passed:not(.is-selected):not(:hover) {
+        border-color: rgba(45, 68, 91, 0.48);
+        background: var(--follow-passed-bg);
+        color: var(--follow-tile-text);
+      }
+.version-sketch .word-button.is-follow-current:not(.is-selected):not(:hover),
+.version-sketch .line-row:hover .word-button.is-follow-current:not(.is-selected):not(:hover),
+.version-sketch .line-row.is-hover-line .word-button.is-follow-current:not(.is-selected):not(:hover),
+.version-sketch .line-row:focus-within .word-button.is-follow-current:not(.is-selected):not(:hover),
+.version-sketch .line-row.is-selection-line .word-button.is-follow-current:not(.is-selected):not(:hover) {
+        border-color: rgba(47, 88, 128, 0.46);
+        background: var(--follow-current-bg);
+        color: var(--follow-tile-text);
+      }
+.version-sketch .word-unit.is-follow-current .word-roman-inline,
+.version-sketch .word-unit.is-follow-passed .word-roman-inline {
+        color: #4f5e72;
+        opacity: 0.84;
+      }
 
     /* ===== index_new board deviation: dark-red roman in selection box (was blue #6670ff) ===== */
     .wb .version-sketch .selection-roman { color: hsl(348 23% 38%); }

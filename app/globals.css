@@ -253,8 +253,34 @@ textarea:focus-visible {
   color: var(--on-accent) !important;
 }
 
+/* Shown at every width now: two independent on/off toggles for the preview and
+   the word board (was a narrow-only binary switch). */
 .mobile-view-toggle {
-  display: none;
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  align-self: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.mobile-view-toggle button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.mobile-view-toggle button.is-active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
 }
 
 .work-area {
@@ -289,7 +315,9 @@ textarea:focus-visible {
   grid-row: 1;
   min-height: 0;
   border-radius: 22px !important;
-  padding: clamp(12px, 1.2vw, 20px) !important;
+  /* No horizontal padding: the workspace-grid's space-evenly gutters supply the
+     side margins so they equal the gap between the two panes (see below). */
+  padding: clamp(12px, 1.2vw, 20px) 0 !important;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -299,12 +327,13 @@ textarea:focus-visible {
   flex: 1 1 auto;
   height: 100%;
   min-height: 0;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  gap: clamp(12px, 1.5vw, 28px);
-  align-items: start;
-  justify-items: stretch;
+  /* space-evenly gives equal space before / between / after the panes: with both
+     visible the side margins equal the inter-pane gap; with one visible it is
+     centered. */
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 0;
 }
 
 .preview-col {
@@ -312,6 +341,7 @@ textarea:focus-visible {
   max-height: 100%;
   min-height: 0 !important;
   min-width: 0;
+  flex: 0 0 auto;
   display: flex !important;
   flex-direction: column;
   align-items: center;
@@ -321,6 +351,16 @@ textarea:focus-visible {
   background: transparent !important;
   padding: 0 !important;
   overflow: visible !important;
+}
+
+/* Toggle visibility (works at every breakpoint). With the flex/space-evenly
+   workspace, hiding one pane leaves the other centered automatically. */
+.workspace-grid.hide-preview .preview-col {
+  display: none !important;
+}
+
+.workspace-grid.hide-board .wb-slot {
+  display: none !important;
 }
 
 .preview-screen {
@@ -367,8 +407,13 @@ textarea:focus-visible {
   min-width: 0;
   min-height: 0;
   height: var(--stage-h);
+  /* Explicit width = the board's fitted size (height × the 1094:922 ratio) so the
+     slot is content-sized for the space-evenly layout while still giving the board
+     a definite box to measure against. */
+  width: calc(var(--stage-h) * 1094 / 922);
   max-height: 100%;
-  align-self: start;
+  flex: 0 0 auto;
+  align-self: center;
   display: flex !important;
   padding: 0 !important;
   overflow: visible !important;
@@ -727,21 +772,13 @@ textarea:focus-visible {
   }
 
   .workspace-grid {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
-    height: auto;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: stretch;
+    height: auto;
     max-width: 940px;
     margin: 0 auto;
     width: 100%;
-  }
-
-  .workspace-grid.show-board .preview-col {
-    display: none !important;
-  }
-
-  .workspace-grid.show-preview .wb-slot {
-    display: none !important;
   }
 
   .preview-col {
@@ -762,6 +799,8 @@ textarea:focus-visible {
   }
 
   .wb-slot {
+    /* Reset the desktop fitted width: narrow uses the full single column. */
+    width: 100%;
     min-height: min(82vh, 860px, calc(100vh - 170px));
     max-height: none;
     height: min(82vh, 860px, calc(100vh - 170px));

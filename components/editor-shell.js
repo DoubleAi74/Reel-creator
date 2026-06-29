@@ -14,7 +14,17 @@ import {
   getRenderPollDelayMs,
   getRenderProgressPercent,
 } from "@/lib/export-flow";
-import { createLine, exportProjectJson, importProjectJson } from "@/lib/project";
+import {
+  createDefaultProject,
+  createLine,
+  exportProjectJson,
+  importProjectJson,
+} from "@/lib/project";
+import {
+  AUTOSAVE_STORAGE_KEY,
+  decodeAutosave,
+  encodeAutosave,
+} from "@/lib/autosave";
 import { mergeMeaningWordsWithTiming } from "@/lib/word-meanings";
 import {
   DEFAULT_TEXT_LAYER_MODE,
@@ -30,7 +40,6 @@ import {
   clampTimeToSection,
   DEFAULT_LYRIC_LEAD_IN_MS,
   findActiveLine,
-  getFrameDriftMilliseconds,
   getSectionBounds,
   getSectionDurationInFrames,
   getSectionFrameFromTime,
@@ -220,6 +229,60 @@ function buildSessionAssetUrl(assetId) {
   return assetId ? `/api/assets/${assetId}` : null;
 }
 
+// localStorage is a best-effort recovery cache, not the source of truth, so all
+// access is wrapped: a disabled/full store simply degrades to no autosave.
+function readAutosaveRaw() {
+  try {
+    return window.localStorage.getItem(AUTOSAVE_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeAutosaveRaw(value) {
+  try {
+    window.localStorage.setItem(AUTOSAVE_STORAGE_KEY, value);
+  } catch {
+    // Ignore quota / private-mode errors — autosave is non-essential.
+  }
+}
+
+function clearAutosaveRaw() {
+  try {
+    window.localStorage.removeItem(AUTOSAVE_STORAGE_KEY);
+  } catch {
+    // Ignore — nothing to recover is an acceptable outcome.
+  }
+}
+
+// Lightweight existence check for a restored asset. The asset route only
+// implements GET (no HEAD), so we issue a GET but abort as soon as the response
+// headers arrive, avoiding a full re-download of the audio just to verify it.
+async function verifyAssetExists(assetId) {
+  const url = buildSessionAssetUrl(assetId);
+
+  if (!url) {
+    return false;
+  }
+
+  const controller = new AbortController();
+
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      credentials: "same-origin",
+      signal: controller.signal,
+    });
+    const exists = response.ok;
+
+    controller.abort();
+
+    return exists;
+  } catch {
+    return false;
+  }
+}
+
 function isBackgroundMediaType(backgroundType) {
   return backgroundType === "image" || backgroundType === "video";
 }
@@ -342,103 +405,6 @@ async function downloadRenderFile(fileUrl, fallbackName) {
   }, 1000);
 
   return fileName;
-}
-
-async function readAutoLyricsEventStream(response, onEvent) {
-  if (!response.body) {
-    throw new Error("The auto-lyrics stream returned no body.");
-  }
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-
-    if (done) {
-      break;
-    }
-
-    buffer += decoder.decode(value, { stream: true });
-    buffer = await consumeCompleteAutoLyricsEvents(buffer, onEvent);
-  }
-
-  buffer += decoder.decode();
-
-  if (buffer.trim()) {
-    await onEvent(parseAutoLyricsEvent(buffer));
-  }
-}
-
-async function consumeCompleteAutoLyricsEvents(buffer, onEvent) {
-  let currentBuffer = buffer;
-
-  while (true) {
-    const boundary = findAutoLyricsEventBoundary(currentBuffer);
-
-    if (!boundary) {
-      return currentBuffer;
-    }
-
-    const eventText = currentBuffer.slice(0, boundary.index);
-    currentBuffer = currentBuffer.slice(boundary.index + boundary.length);
-
-    if (eventText.trim()) {
-      await onEvent(parseAutoLyricsEvent(eventText));
-    }
-  }
-}
-
-function findAutoLyricsEventBoundary(buffer) {
-  const newlineIndex = buffer.indexOf("\n\n");
-  const crlfIndex = buffer.indexOf("\r\n\r\n");
-
-  if (newlineIndex === -1 && crlfIndex === -1) {
-    return null;
-  }
-
-  if (newlineIndex === -1 || (crlfIndex !== -1 && crlfIndex < newlineIndex)) {
-    return {
-      index: crlfIndex,
-      length: 4,
-    };
-  }
-
-  return {
-    index: newlineIndex,
-    length: 2,
-  };
-}
-
-function parseAutoLyricsEvent(eventText) {
-  let event = "message";
-  const dataLines = [];
-
-  for (const rawLine of eventText.replace(/\r\n/g, "\n").split("\n")) {
-    if (rawLine.startsWith("event:")) {
-      event = rawLine.slice("event:".length).trim() || "message";
-      continue;
-    }
-
-    if (rawLine.startsWith("data:")) {
-      dataLines.push(rawLine.slice("data:".length).trimStart());
-    }
-  }
-
-  const rawData = dataLines.join("\n");
-
-  try {
-    return {
-      data: rawData ? JSON.parse(rawData) : null,
-      event,
-    };
-  } catch {
-    return {
-      data: rawData,
-      event,
-    };
-  }
 }
 
 function createIdleExportState() {
@@ -934,7 +900,6 @@ export function EditorShell({ debugProbe = null, project }) {
     getInitialTransportTime(project),
   );
   const [isTransportPlaying, setIsTransportPlaying] = useState(false);
-  const [previewReportedFrame, setPreviewReportedFrame] = useState(null);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState("");
   const [jsonImportError, setJsonImportError] = useState("");
@@ -970,6 +935,11 @@ export function EditorShell({ debugProbe = null, project }) {
   const [autoTimingState, setAutoTimingState] = useState(
     createIdleAutoTimingState,
   );
+  // Pointer to the background transcription/timing job that the poll effect
+  // drives: { jobId, mode: "lyrics" | "timing", status: "running" | "done"
+  // | "error", appliedJobId }. Survives sleep/reload via autosave so a job can
+  // be resumed (or its finished result recovered) after the editor remounts.
+  const [transcription, setTranscription] = useState(null);
   const [wordTimingState, setWordTimingState] = useState(
     createIdleWordTimingState,
   );
@@ -984,7 +954,13 @@ export function EditorShell({ debugProbe = null, project }) {
     status: "idle",
   });
   const [timingControlsOpen, setTimingControlsOpen] = useState(false);
-  const [mobileWorkspaceView, setMobileWorkspaceView] = useState("board");
+  // Independent visibility for the two workspace panes. On wide desktop both can
+  // be on at once (preview, board, both, or neither). When the viewport is narrow
+  // enough that only one fits, the toggle handlers + an effect keep them mutually
+  // exclusive (turning one on turns the other off).
+  const [showPreview, setShowPreview] = useState(true);
+  const [showWordBoard, setShowWordBoard] = useState(true);
+  const [isNarrowWorkspace, setIsNarrowWorkspace] = useState(false);
   const [projectState, setProjectState] = useState(() => cloneProject(project));
   const [selectedTimingLineId, setSelectedTimingLineId] = useState(() =>
     getDefaultTimingLineId(project.lines),
@@ -998,6 +974,12 @@ export function EditorShell({ debugProbe = null, project }) {
   const suppressManualScrollRef = useRef(false);
   const timingRowRefs = useRef(new Map());
   const autoDownloadedJobIdRef = useRef(null);
+  // Guards against importing a completed transcription result more than once
+  // across repeated polls or remounts (mirrors the persisted appliedJobId).
+  const appliedTranscribeJobIdRef = useRef(null);
+  // Stays false until autosave recovery has run, so the initial blank project
+  // cannot overwrite saved state before it is restored on mount.
+  const autosaveHydratedRef = useRef(false);
 
   // Shared cross-cutting editor state for the Word Board + workspace components
   // (additive — the shell keeps its own state and publishes the board-relevant
@@ -1039,20 +1021,17 @@ export function EditorShell({ debugProbe = null, project }) {
         previewDurationInFrames,
       )
     : initialPreviewFrame;
-  const previewDriftMs =
-    audioObjectUrl && Number.isFinite(previewReportedFrame)
-      ? getFrameDriftMilliseconds(
-          previewCurrentFrame,
-          previewReportedFrame,
-          VIDEO_FPS,
-        )
-      : 0;
-  const previewSyncHealthy = previewDriftMs <= 50;
   const previewTime = Math.max(
     0,
     clampTimeToSection(currentAudioTime, projectState.audio) -
       sectionBounds.startOffset,
   );
+  const wordBoardFollowAudioResetKey = [
+    projectState.audio.name ?? "",
+    audioUpload.asset?.assetId ?? "",
+    projectState.meta.title ?? "",
+    projectState.meta.artist ?? "",
+  ].join("|");
   const stylePresetEntries = Object.entries(STYLE_PRESETS);
   const heardLine = findActiveLine(
     projectState.lines,
@@ -1136,6 +1115,44 @@ export function EditorShell({ debugProbe = null, project }) {
   useEffect(() => {
     editorActions.setPreviewFullscreen(isPreviewFullscreen);
   }, [editorActions, isPreviewFullscreen]);
+
+  // Track whether the workspace is narrow enough to fit only one pane. Matches
+  // the CSS breakpoint that collapses the workspace to a single column.
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) {
+      return undefined;
+    }
+    const query = window.matchMedia("(max-width: 999.98px)");
+    const update = () => setIsNarrowWorkspace(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  // When the viewport becomes narrow with both panes on, drop to one (keep the
+  // word board, the primary view) so the single-column layout shows exactly one.
+  useEffect(() => {
+    if (isNarrowWorkspace && showPreview && showWordBoard) {
+      setShowPreview(false);
+    }
+  }, [isNarrowWorkspace, showPreview, showWordBoard]);
+
+  // Each pane toggles independently on wide desktop; on narrow, turning one on
+  // turns the other off (and turning the only-on one off shows neither).
+  const handleTogglePreview = () => {
+    const next = !showPreview;
+    setShowPreview(next);
+    if (next && isNarrowWorkspace) {
+      setShowWordBoard(false);
+    }
+  };
+  const handleToggleWordBoard = () => {
+    const next = !showWordBoard;
+    setShowWordBoard(next);
+    if (next && isNarrowWorkspace) {
+      setShowPreview(false);
+    }
+  };
 
   const exportReadiness = getExportReadiness({
     audioAssetId: audioUpload.asset?.assetId ?? "",
@@ -2069,7 +2086,6 @@ export function EditorShell({ debugProbe = null, project }) {
       });
       setBackgroundUpload(createBackgroundUploadState(importedProject.background));
       setCurrentAudioTime(getInitialTransportTime(importedProject));
-      setPreviewReportedFrame(null);
       setIsTransportPlaying(false);
       setSelectedTimingLineId(getDefaultTimingLineId(importedProject.lines));
       setAudioOffsetDrafts(buildAudioOffsetDrafts(importedProject.audio));
@@ -2102,6 +2118,44 @@ export function EditorShell({ debugProbe = null, project }) {
         error instanceof Error ? error.message : "Project JSON could not be imported.",
       );
     }
+  };
+
+  // Clear the autosave and reset to a blank slate. The explicit path for
+  // starting fresh so a recovered project can be deliberately discarded.
+  const handleStartNewProject = () => {
+    clearAutosaveRaw();
+    appliedTranscribeJobIdRef.current = null;
+
+    const blankProject = createDefaultProject();
+
+    setProjectState(cloneProject(blankProject));
+    setAudioObjectUrl(null);
+    setAudioUpload({
+      asset: null,
+      message: "Upload an MP3 to start a new project.",
+      status: "idle",
+    });
+    setBackgroundUpload(createBackgroundUploadState(blankProject.background));
+    setCurrentAudioTime(getInitialTransportTime(blankProject));
+    setIsTransportPlaying(false);
+    setSelectedTimingLineId(getDefaultTimingLineId(blankProject.lines));
+    setAudioOffsetDrafts(buildAudioOffsetDrafts(blankProject.audio));
+    setTimingDrafts({});
+    setTranscription(null);
+    setAutoFollowEnabled(true);
+    setTimingNotice({ message: "", status: "idle" });
+    setAudioSectionNotice({ message: "", status: "idle" });
+    setAutoLyricsState(createIdleAutoLyricsState());
+    setAutoTimingState(createIdleAutoTimingState());
+    setWordTimingState(createIdleWordTimingState());
+    setJsonImportError("");
+    setJsonDraft("");
+    setJsonNotice({
+      message: "Started a new blank project.",
+      status: "success",
+    });
+    setActiveSubTab("track-upload");
+    setIsJsonModalOpen(false);
   };
 
   const handleProjectExport = () => {
@@ -2258,6 +2312,106 @@ export function EditorShell({ debugProbe = null, project }) {
     await handleBackgroundAssetFile("video", file);
   };
 
+  // POST to start (or, on 409, adopt the already-running job for this session +
+  // asset) a background transcription job and return its jobId. The poll effect
+  // drives progress + completion, decoupled from this request, so a dropped
+  // connection (sleep / reload / navigation) no longer cancels the work.
+  const startTranscriptionJob = async (body) => {
+    const response = await fetch("/api/ai/transcribe", {
+      body: JSON.stringify(body),
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (response.status === 409 && typeof payload.jobId === "string") {
+      return payload.jobId;
+    }
+
+    if (!response.ok || typeof payload.jobId !== "string" || !payload.jobId) {
+      throw new Error(payload.error ?? "Transcription could not be started.");
+    }
+
+    return payload.jobId;
+  };
+
+  const beginTranscriptionTracking = (jobId, mode) => {
+    // Fresh job: clear the idempotency guard so its result applies exactly once.
+    appliedTranscribeJobIdRef.current = null;
+    setTranscription({ appliedJobId: null, jobId, mode, status: "running" });
+  };
+
+  // Apply a completed auto-lyrics result by replacing all lines with the
+  // transcription output. An effect event so the poll loop and mount recovery
+  // can both invoke it against the latest editor state.
+  const applyAutoLyricsResult = useEffectEvent((finalPayload) => {
+    if (!Array.isArray(finalPayload?.lines) || finalPayload.lines.length === 0) {
+      setAutoLyricsState({
+        detail: "",
+        lineCount: 0,
+        message: "Auto-lyrics finished without any lyric lines.",
+        status: "error",
+        title: "Auto-lyrics failed",
+      });
+      return;
+    }
+
+    const generatedWordState = buildWordTimingState(finalPayload);
+
+    if (generatedWordState) {
+      setWordTimingState(generatedWordState);
+    }
+
+    const nextLines = finalPayload.lines.map((line) =>
+      createLine({
+        confidence: String(line?.confidence ?? ""),
+        end: Number.isFinite(line?.end) ? line.end : null,
+        matchRatio: Number.isFinite(line?.matchRatio) ? line.matchRatio : 0,
+        original: String(line?.original ?? "").trim(),
+        quality: line?.quality,
+        romanization: String(line?.romanization ?? "").trim(),
+        start: Number.isFinite(line?.start) ? line.start : null,
+        timingSource: String(line?.timingSource ?? ""),
+        translation: String(line?.translation ?? "").trim(),
+        // Pass raw words so createLine's normalizer preserves gloss/roman and
+        // untimed display words — keeps the Word Board fed (T06.4).
+        words: line?.words,
+      }),
+    );
+    const timingSummary = buildPipelineTimingSummary(
+      finalPayload,
+      nextLines.length,
+    );
+
+    setProjectState((currentProject) => ({
+      ...currentProject,
+      lines: nextLines,
+    }));
+    setSelectedTimingLineId(getDefaultTimingLineId(nextLines));
+    setTimingDrafts({});
+    setTimingNotice({
+      message: timingSummary.timedCount > 0 ? timingSummary.message : "",
+      status: timingSummary.timedCount > 0 ? "success" : "idle",
+    });
+    setAutoFollowEnabled(true);
+    setAutoTimingState(createIdleAutoTimingState());
+    setAutoLyricsState({
+      detail:
+        timingSummary.timedCount > 0
+          ? "Open Timing to review starts and nudge anything that feels late or early."
+          : "Open Lyrics to edit text, or Timing to mark starts when ready.",
+      lineCount: nextLines.length,
+      message: `${nextLines.length} lyric line${
+        nextLines.length === 1 ? "" : "s"
+      } loaded. ${timingSummary.message}`,
+      status: "success",
+      title: "Lyrics ready",
+    });
+  });
+
   const handleGenerateAutoLyrics = async () => {
     if (!audioUpload.asset?.assetId || autoLyricsBusy || autoTimingBusy) {
       return;
@@ -2287,114 +2441,15 @@ export function EditorShell({ debugProbe = null, project }) {
       // script, where a romanization would just duplicate the original.
       const includeRomanization =
         sourceLanguage !== "es" && sourceLanguage !== "fr";
-      const response = await fetch("/api/ai/transcribe", {
-        body: JSON.stringify({
-          audio: projectState.audio,
-          audioAssetId: audioUpload.asset.assetId,
-          includeRomanization,
-          otherLanguage: otherSourceLanguage.trim(),
-          sourceLanguage,
-        }),
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const jobId = await startTranscriptionJob({
+        audio: projectState.audio,
+        audioAssetId: audioUpload.asset.assetId,
+        includeRomanization,
+        otherLanguage: otherSourceLanguage.trim(),
+        sourceLanguage,
       });
 
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error ?? "Auto-lyrics generation could not start.");
-      }
-
-      let finalPayload = null;
-
-      await readAutoLyricsEventStream(response, async ({ data, event }) => {
-        if (event === "progress") {
-          setAutoLyricsState((currentState) => ({
-            ...currentState,
-            detail:
-              typeof data?.detail === "string"
-                ? data.detail
-                : currentState.detail,
-            message: "",
-            status: "running",
-            title:
-              typeof data?.title === "string" ? data.title : currentState.title,
-          }));
-          return;
-        }
-
-        if (event === "complete") {
-          finalPayload = data;
-          return;
-        }
-
-        if (event === "error") {
-          throw new Error(
-            typeof data?.message === "string"
-              ? data.message
-              : "Auto-lyrics generation failed.",
-          );
-        }
-      });
-
-      if (!Array.isArray(finalPayload?.lines) || finalPayload.lines.length === 0) {
-        throw new Error("Auto-lyrics finished without any lyric lines.");
-      }
-
-      const generatedWordState = buildWordTimingState(finalPayload);
-
-      if (generatedWordState) {
-        setWordTimingState(generatedWordState);
-      }
-
-      const nextLines = finalPayload.lines.map((line) =>
-        createLine({
-          confidence: String(line?.confidence ?? ""),
-          end: Number.isFinite(line?.end) ? line.end : null,
-          matchRatio: Number.isFinite(line?.matchRatio) ? line.matchRatio : 0,
-          original: String(line?.original ?? "").trim(),
-          quality: line?.quality,
-          romanization: String(line?.romanization ?? "").trim(),
-          start: Number.isFinite(line?.start) ? line.start : null,
-          timingSource: String(line?.timingSource ?? ""),
-          translation: String(line?.translation ?? "").trim(),
-          // Pass raw words so createLine's normalizer preserves gloss/roman and
-          // untimed display words (the local normalizeLineWords above is
-          // timing-only and would drop them) — keeps the Word Board fed (T06.4).
-          words: line?.words,
-        }),
-      );
-      const timingSummary = buildPipelineTimingSummary(
-        finalPayload,
-        nextLines.length,
-      );
-
-      setProjectState((currentProject) => ({
-        ...currentProject,
-        lines: nextLines,
-      }));
-      setSelectedTimingLineId(getDefaultTimingLineId(nextLines));
-      setTimingDrafts({});
-      setTimingNotice({
-        message: timingSummary.timedCount > 0 ? timingSummary.message : "",
-        status: timingSummary.timedCount > 0 ? "success" : "idle",
-      });
-      setAutoFollowEnabled(true);
-      setAutoTimingState(createIdleAutoTimingState());
-      setAutoLyricsState({
-        detail:
-          timingSummary.timedCount > 0
-            ? "Open Timing to review starts and nudge anything that feels late or early."
-            : "Open Lyrics to edit text, or Timing to mark starts when ready.",
-        lineCount: nextLines.length,
-        message: `${nextLines.length} lyric line${
-          nextLines.length === 1 ? "" : "s"
-        } loaded. ${timingSummary.message}`,
-        status: "success",
-        title: "Lyrics ready",
-      });
+      beginTranscriptionTracking(jobId, "lyrics");
     } catch (error) {
       setAutoLyricsState({
         detail: "",
@@ -2408,6 +2463,108 @@ export function EditorShell({ debugProbe = null, project }) {
       });
     }
   };
+
+  // Apply a completed auto-time result by merging returned timing into the
+  // existing lines (matched by id), preserving gloss/roman. An effect event so
+  // the poll loop and mount recovery can both invoke it with the latest lines.
+  const applyAutoTimingResult = useEffectEvent((payload) => {
+    if (!Array.isArray(payload?.lines) || payload.lines.length === 0) {
+      setAutoTimingState({
+        detail: "",
+        lineCount,
+        message: "Auto-timing finished without lyric timing results.",
+        status: "error",
+        title: "Auto-time failed",
+      });
+      setTimingNotice({
+        message: "Auto-timing finished without lyric timing results.",
+        status: "danger",
+      });
+      return;
+    }
+
+    const autoTimeWordState = buildWordTimingState(payload);
+
+    if (autoTimeWordState) {
+      setWordTimingState(autoTimeWordState);
+    }
+
+    const returnedLinesById = new Map(
+      payload.lines
+        .filter((line) => typeof line?.id === "string" && line.id)
+        .map((line) => [line.id, line]),
+    );
+
+    setProjectState((currentProject) => ({
+      ...currentProject,
+      lines: currentProject.lines.map((line) => {
+        const timedLine = returnedLinesById.get(line.id);
+
+        if (!timedLine) {
+          return line;
+        }
+
+        return {
+          ...line,
+          confidence: String(timedLine?.confidence ?? ""),
+          end: Number.isFinite(timedLine?.end) ? timedLine.end : null,
+          matchRatio: Number.isFinite(timedLine?.matchRatio)
+            ? timedLine.matchRatio
+            : 0,
+          quality: timedLine?.quality ?? null,
+          start: Number.isFinite(timedLine?.start)
+            ? clampTimeToSection(timedLine.start, currentProject.audio)
+            : line.start,
+          timingSource: String(timedLine?.timingSource ?? ""),
+          // Apply new timing without clobbering existing gloss/roman (P3): keep
+          // the line's display words and attach start/end best-effort. When the
+          // line had no gloss words yet, this falls back to the timing words.
+          words: line.words?.length
+            ? mergeMeaningWordsWithTiming(timedLine?.words, line.words)
+            : normalizeLineWords(timedLine?.words),
+        };
+      }),
+    }));
+    setTimingDrafts((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+
+      for (const lineId of returnedLinesById.keys()) {
+        delete nextDrafts[lineId];
+      }
+
+      return nextDrafts;
+    });
+
+    const timingSummary = buildPipelineTimingSummary(payload, lineCount);
+    const firstUntimedLine = projectState.lines.find((line) => {
+      const timedLine = returnedLinesById.get(line.id);
+
+      return !Number.isFinite(timedLine?.start);
+    });
+
+    setSelectedTimingLineId(firstUntimedLine?.id ?? projectState.lines[0]?.id ?? null);
+    setAutoFollowEnabled(true);
+    setAutoTimingState({
+      detail:
+        timingSummary.estimatedCount > 0
+          ? `${timingSummary.estimatedCount} ${
+              timingSummary.estimatedCount === 1 ? "line is" : "lines are"
+            } estimated; review those starts closely.`
+          : "Review the starts below and nudge anything that feels late or early.",
+      lineCount: timingSummary.totalCount,
+      message: timingSummary.message,
+      status: timingSummary.timedCount > 0 ? "success" : "error",
+      title:
+        timingSummary.timedCount > 0 ? "Auto-time complete" : "No timing results",
+    });
+    setTimingNotice({
+      message:
+        timingSummary.timedCount > 0
+          ? timingSummary.message
+          : "No timestamp results were found. Use tap timing below.",
+      status: timingSummary.timedCount > 0 ? "success" : "danger",
+    });
+  });
 
   const handleAutoTimeCurrentLines = async () => {
     if (!canAutoTimeLyrics) {
@@ -2438,151 +2595,21 @@ export function EditorShell({ debugProbe = null, project }) {
     });
 
     try {
-      const response = await fetch("/api/ai/transcribe", {
-        body: JSON.stringify({
-          audio: projectState.audio,
-          audioAssetId: audioUpload.asset.assetId,
-          includeRomanization: false,
-          lines: projectState.lines.map((line) => ({
-            id: line.id,
-            original: line.original,
-            romanization: line.romanization,
-            translation: line.translation,
-          })),
-          otherLanguage: otherSourceLanguage.trim(),
-          sourceLanguage,
-        }),
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const jobId = await startTranscriptionJob({
+        audio: projectState.audio,
+        audioAssetId: audioUpload.asset.assetId,
+        includeRomanization: false,
+        lines: projectState.lines.map((line) => ({
+          id: line.id,
+          original: line.original,
+          romanization: line.romanization,
+          translation: line.translation,
+        })),
+        otherLanguage: otherSourceLanguage.trim(),
+        sourceLanguage,
       });
 
-      if (!response.ok) {
-        const errorPayload = await response.json().catch(() => ({}));
-        throw new Error(errorPayload.error ?? "Auto-timing failed.");
-      }
-
-      let payload = null;
-
-      await readAutoLyricsEventStream(response, async ({ data, event }) => {
-        if (event === "progress") {
-          setAutoTimingState((currentState) => ({
-            ...currentState,
-            detail:
-              typeof data?.detail === "string"
-                ? data.detail
-                : currentState.detail,
-            message: "",
-            status: "running",
-            title:
-              typeof data?.title === "string" ? data.title : currentState.title,
-          }));
-          return;
-        }
-
-        if (event === "complete") {
-          payload = data;
-          return;
-        }
-
-        if (event === "error") {
-          throw new Error(
-            typeof data?.message === "string"
-              ? data.message
-              : "Auto-timing failed.",
-          );
-        }
-      });
-
-      if (!Array.isArray(payload?.lines) || payload.lines.length === 0) {
-        throw new Error("Auto-timing finished without lyric timing results.");
-      }
-
-      const autoTimeWordState = buildWordTimingState(payload);
-
-      if (autoTimeWordState) {
-        setWordTimingState(autoTimeWordState);
-      }
-
-      const returnedLinesById = new Map(
-        payload.lines
-          .filter((line) => typeof line?.id === "string" && line.id)
-          .map((line) => [line.id, line]),
-      );
-
-      setProjectState((currentProject) => ({
-        ...currentProject,
-        lines: currentProject.lines.map((line) => {
-          const timedLine = returnedLinesById.get(line.id);
-
-          if (!timedLine) {
-            return line;
-          }
-
-          return {
-            ...line,
-            confidence: String(timedLine?.confidence ?? ""),
-            end: Number.isFinite(timedLine?.end) ? timedLine.end : null,
-            matchRatio: Number.isFinite(timedLine?.matchRatio)
-              ? timedLine.matchRatio
-              : 0,
-            quality: timedLine?.quality ?? null,
-            start: Number.isFinite(timedLine?.start)
-              ? clampTimeToSection(timedLine.start, currentProject.audio)
-              : line.start,
-            timingSource: String(timedLine?.timingSource ?? ""),
-            // Apply new timing without clobbering existing gloss/roman (P3): keep
-            // the line's display words and attach start/end best-effort. When the
-            // line had no gloss words yet, this falls back to the timing words.
-            words: line.words?.length
-              ? mergeMeaningWordsWithTiming(timedLine?.words, line.words)
-              : normalizeLineWords(timedLine?.words),
-          };
-        }),
-      }));
-      setTimingDrafts((currentDrafts) => {
-        const nextDrafts = { ...currentDrafts };
-
-        for (const lineId of returnedLinesById.keys()) {
-          delete nextDrafts[lineId];
-        }
-
-        return nextDrafts;
-      });
-
-      const timingSummary = buildPipelineTimingSummary(payload, lineCount);
-      const firstUntimedLine = projectState.lines.find((line) => {
-        const timedLine = returnedLinesById.get(line.id);
-
-        return !Number.isFinite(timedLine?.start);
-      });
-
-      setSelectedTimingLineId(firstUntimedLine?.id ?? projectState.lines[0]?.id ?? null);
-      setAutoFollowEnabled(true);
-      setAutoTimingState({
-        detail:
-          timingSummary.estimatedCount > 0
-            ? `${timingSummary.estimatedCount} ${
-                timingSummary.estimatedCount === 1 ? "line is" : "lines are"
-              } estimated; review those starts closely.`
-            : "Review the starts below and nudge anything that feels late or early.",
-        lineCount: timingSummary.totalCount,
-        message: timingSummary.message,
-        status: timingSummary.timedCount > 0 ? "success" : "error",
-        title:
-          timingSummary.timedCount > 0
-            ? "Auto-time complete"
-            : "No timing results",
-      });
-      setTimingNotice({
-        message:
-          timingSummary.timedCount > 0
-            ? timingSummary.message
-            : "No timestamp results were found. Use tap timing below.",
-        status: timingSummary.timedCount > 0 ? "success" : "danger",
-      });
+      beginTranscriptionTracking(jobId, "timing");
     } catch (error) {
       setAutoTimingState({
         detail: "",
@@ -3043,7 +3070,6 @@ export function EditorShell({ debugProbe = null, project }) {
       setAudioObjectUrl(nextObjectUrl);
       setIsTransportPlaying(false);
       setCurrentAudioTime(0);
-      setPreviewReportedFrame(null);
       setAutoFollowEnabled(true);
     } catch (error) {
       setAudioUpload({
@@ -3056,7 +3082,10 @@ export function EditorShell({ debugProbe = null, project }) {
   };
 
   useEffect(() => {
-    if (!audioObjectUrl) {
+    // Only object URLs created from an uploaded File need revoking. Restored
+    // sessions point audio playback at the server asset URL (/api/assets/...),
+    // which must not be revoked.
+    if (!audioObjectUrl || !audioObjectUrl.startsWith("blob:")) {
       return undefined;
     }
 
@@ -3064,6 +3093,285 @@ export function EditorShell({ debugProbe = null, project }) {
       URL.revokeObjectURL(audioObjectUrl);
     };
   }, [audioObjectUrl]);
+
+  const setTranscriptionProgress = useEffectEvent((mode, payload) => {
+    const setState = mode === "timing" ? setAutoTimingState : setAutoLyricsState;
+
+    setState((currentState) => ({
+      ...currentState,
+      detail:
+        typeof payload?.detail === "string"
+          ? payload.detail
+          : currentState.detail,
+      message: "",
+      status: "running",
+      title:
+        typeof payload?.title === "string" ? payload.title : currentState.title,
+    }));
+  });
+
+  const failTranscription = useEffectEvent((mode, message) => {
+    const resolved = message || "Transcription failed unexpectedly.";
+
+    if (mode === "timing") {
+      setAutoTimingState((currentState) => ({
+        ...currentState,
+        detail: "",
+        message: resolved,
+        status: "error",
+        title: "Auto-time failed",
+      }));
+      setTimingNotice({ message: resolved, status: "danger" });
+      return;
+    }
+
+    setAutoLyricsState((currentState) => ({
+      ...currentState,
+      detail: "",
+      message: resolved,
+      status: "error",
+      title: "Auto-lyrics failed",
+    }));
+  });
+
+  // Drive a background transcription/timing job to completion by polling — the
+  // same resilient pattern as the render flow. It tolerates brief network drops
+  // and, because `transcription` is restored from autosave on mount, resumes
+  // automatically after the editor remounts (sleep / reload / navigation).
+  useEffect(() => {
+    if (
+      !transcription ||
+      transcription.status !== "running" ||
+      !transcription.jobId
+    ) {
+      return undefined;
+    }
+
+    let ignore = false;
+    let timeoutId = 0;
+    let consecutiveFailures = 0;
+    const { jobId, mode } = transcription;
+
+    const schedulePoll = (delayMs) => {
+      timeoutId = window.setTimeout(runPoll, delayMs);
+    };
+
+    const settle = (patch) => {
+      setTranscription((currentState) =>
+        currentState && currentState.jobId === jobId
+          ? { ...currentState, ...patch }
+          : currentState,
+      );
+    };
+
+    const runPoll = async () => {
+      try {
+        const response = await fetch(`/api/ai/transcribe/${jobId}`, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (ignore) {
+          return;
+        }
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            failTranscription(
+              mode,
+              payload.error ??
+                "That transcription is no longer available. Start it again.",
+            );
+            settle({ status: "error" });
+            return;
+          }
+
+          throw new Error(
+            payload.error ?? "Transcription status could not be refreshed.",
+          );
+        }
+
+        if (payload.status === "done") {
+          // Idempotent apply: the in-memory ref blocks repeated polls within a
+          // session; the persisted appliedJobId blocks re-apply across remounts;
+          // and the apply itself (replace lines / merge by id) is outcome-stable.
+          if (appliedTranscribeJobIdRef.current !== jobId) {
+            appliedTranscribeJobIdRef.current = jobId;
+
+            if (mode === "timing") {
+              applyAutoTimingResult(payload.result);
+            } else {
+              applyAutoLyricsResult(payload.result);
+            }
+          }
+
+          settle({ appliedJobId: jobId, status: "done" });
+          return;
+        }
+
+        if (payload.status === "error") {
+          failTranscription(mode, payload.error);
+          settle({ status: "error" });
+          return;
+        }
+
+        consecutiveFailures = 0;
+        setTranscriptionProgress(mode, payload);
+        schedulePoll(getRenderPollDelayMs(0));
+      } catch (error) {
+        if (ignore) {
+          return;
+        }
+
+        consecutiveFailures += 1;
+
+        // The server-side job keeps running, so tolerate a run of failures (e.g.
+        // a just-woken laptop's first requests) with backoff before giving up.
+        if (consecutiveFailures > 6) {
+          failTranscription(
+            mode,
+            error instanceof Error
+              ? error.message
+              : "Transcription status could not be refreshed.",
+          );
+          settle({ status: "error" });
+          return;
+        }
+
+        schedulePoll(getRenderPollDelayMs(consecutiveFailures));
+      }
+    };
+
+    void runPoll();
+
+    return () => {
+      ignore = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [transcription]);
+
+  // One-time autosave recovery. Restores the saved project, audio asset, and
+  // transcription pointer BEFORE the autosave write effect is allowed to run, so
+  // the blank initial project cannot overwrite saved work. Skipped on the debug
+  // probe page (which drives its own project).
+  useEffect(() => {
+    if (debugProbe) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const restore = async () => {
+      const restored = decodeAutosave(readAutosaveRaw());
+
+      if (!restored) {
+        clearAutosaveRaw();
+        autosaveHydratedRef.current = true;
+        return;
+      }
+
+      const restoredProject = cloneProject(restored.project);
+
+      setProjectState(restoredProject);
+      setSelectedTimingLineId(getDefaultTimingLineId(restoredProject.lines));
+      setAudioOffsetDrafts(buildAudioOffsetDrafts(restoredProject.audio));
+      setCurrentAudioTime(getInitialTransportTime(restoredProject));
+
+      if (restored.audioAsset?.assetId) {
+        const assetExists = await verifyAssetExists(restored.audioAsset.assetId);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (assetExists) {
+          setAudioUpload({
+            asset: { ...restored.audioAsset, kind: "audio" },
+            message: `${
+              restored.audioAsset.name || "Audio"
+            } restored from your last session.`,
+            status: "success",
+          });
+          // Restored sessions play from the server asset URL (the original File
+          // blob URL is gone after a reload).
+          setAudioObjectUrl(buildSessionAssetUrl(restored.audioAsset.assetId));
+        } else {
+          setAudioUpload({
+            asset: null,
+            message:
+              "Your previously uploaded MP3 has expired. Upload it again to preview, time, or export.",
+            status: "idle",
+          });
+        }
+      }
+
+      if (restored.transcription?.jobId) {
+        const { appliedJobId, jobId, mode } = restored.transcription;
+
+        appliedTranscribeJobIdRef.current = appliedJobId ?? null;
+
+        if (appliedJobId && appliedJobId === jobId) {
+          // Already applied before the remount — keep it settled, no re-poll.
+          setTranscription({ appliedJobId, jobId, mode, status: "done" });
+        } else {
+          // Re-confirm with the server: the poll effect resumes, recovers a
+          // completed result, or surfaces that the job failed/expired.
+          const resumeState = {
+            detail: "Reconnecting to the job that was still running.",
+            lineCount: 0,
+            message: "",
+            status: "running",
+            title: mode === "timing" ? "Auto-timing lyrics" : "Starting auto-lyrics",
+          };
+
+          if (mode === "timing") {
+            setAutoTimingState(resumeState);
+          } else {
+            setAutoLyricsState(resumeState);
+          }
+
+          setTranscription({
+            appliedJobId: appliedJobId ?? null,
+            jobId,
+            mode,
+            status: "running",
+          });
+        }
+      }
+
+      autosaveHydratedRef.current = true;
+    };
+
+    void restore();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debugProbe]);
+
+  // Debounced full-project autosave: serialized project + audio descriptor +
+  // active transcription pointer. Gated on hydration so it never overwrites
+  // saved state with the blank initial project during mount.
+  useEffect(() => {
+    if (debugProbe || !autosaveHydratedRef.current) {
+      return undefined;
+    }
+
+    const handle = window.setTimeout(() => {
+      writeAutosaveRaw(
+        encodeAutosave({
+          audioAsset: audioUpload.asset,
+          project: projectState,
+          transcription,
+        }),
+      );
+    }, 700);
+
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [audioUpload.asset, debugProbe, projectState, transcription]);
 
   useEffect(() => {
     if (exportState.phase !== "polling" || !exportState.jobId) {
@@ -3282,7 +3590,6 @@ export function EditorShell({ debugProbe = null, project }) {
     setAudioObjectUrl(debugProbe.audioUrl);
     setBackgroundUpload(createBackgroundUploadState(debugProbe.project.background));
     setCurrentAudioTime(getInitialTransportTime(debugProbe.project));
-    setPreviewReportedFrame(null);
     setIsTransportPlaying(false);
     setSelectedTimingLineId(getDefaultTimingLineId(debugProbe.project.lines));
     setDebugMarkEvents([]);
@@ -3348,7 +3655,6 @@ export function EditorShell({ debugProbe = null, project }) {
       setAudioObjectUrl(audioUrl);
       setBackgroundUpload(createBackgroundUploadState(importedProject.background));
       setCurrentAudioTime(getInitialTransportTime(importedProject));
-      setPreviewReportedFrame(null);
       setIsTransportPlaying(false);
       setSelectedTimingLineId(getDefaultTimingLineId(importedProject.lines));
       setActiveSubTab("timings");
@@ -5012,28 +5318,26 @@ export function EditorShell({ debugProbe = null, project }) {
 
           <div
             className="mobile-view-toggle"
-            role="tablist"
-            aria-label="Switch between word board and preview"
+            role="group"
+            aria-label="Show or hide the preview and word board"
           >
             <button
-              className={mobileWorkspaceView === "board" ? "is-active" : ""}
-              type="button"
-              data-wsview="board"
-              role="tab"
-              aria-selected={mobileWorkspaceView === "board"}
-              onClick={() => setMobileWorkspaceView("board")}
-            >
-              Word board
-            </button>
-            <button
-              className={mobileWorkspaceView === "preview" ? "is-active" : ""}
+              className={showPreview ? "is-active" : ""}
               type="button"
               data-wsview="preview"
-              role="tab"
-              aria-selected={mobileWorkspaceView === "preview"}
-              onClick={() => setMobileWorkspaceView("preview")}
+              aria-pressed={showPreview}
+              onClick={handleTogglePreview}
             >
               Preview
+            </button>
+            <button
+              className={showWordBoard ? "is-active" : ""}
+              type="button"
+              data-wsview="board"
+              aria-pressed={showWordBoard}
+              onClick={handleToggleWordBoard}
+            >
+              Word board
             </button>
           </div>
 
@@ -5071,8 +5375,8 @@ export function EditorShell({ debugProbe = null, project }) {
         >
           <section className="workspace-panel">
             <div
-              className={`workspace-grid ${
-                mobileWorkspaceView === "board" ? "show-board" : "show-preview"
+              className={`workspace-grid${!showPreview ? " hide-preview" : ""}${
+                !showWordBoard ? " hide-board" : ""
               }`}
             >
           <section
@@ -5109,7 +5413,6 @@ export function EditorShell({ debugProbe = null, project }) {
                   <PreviewPlayer
                     backgroundDurationSec={activeBackgroundAsset?.durationSec ?? null}
                     backgroundUrl={backgroundPreviewUrl}
-                    onFrameChange={setPreviewReportedFrame}
                     playerRef={previewPlayerRef}
                     project={projectState}
                     targetFrame={previewCurrentFrame}
@@ -5125,9 +5428,8 @@ export function EditorShell({ debugProbe = null, project }) {
                     lines={projectState.lines}
                     selectedWordId={editor.state.selection.selectedWord?.id ?? null}
                     onSelectWord={(word) => editor.actions.setSelectedWord(word)}
-                    activeSourceLineId={editor.state.playback.activeLineId}
-                    autoFollow={autoFollowEnabled}
-                    isPlaying={isTransportPlaying}
+                    currentTime={currentAudioTime}
+                    followAudioResetKey={wordBoardFollowAudioResetKey}
                   />
                 </div>
               ) : null}
@@ -5162,9 +5464,8 @@ export function EditorShell({ debugProbe = null, project }) {
                 lines={projectState.lines}
                 selectedWordId={editor.state.selection.selectedWord?.id ?? null}
                 onSelectWord={(word) => editor.actions.setSelectedWord(word)}
-                activeSourceLineId={editor.state.playback.activeLineId}
-                autoFollow={autoFollowEnabled}
-                isPlaying={isTransportPlaying}
+                currentTime={currentAudioTime}
+                followAudioResetKey={wordBoardFollowAudioResetKey}
               />
             </section>
           ) : null}
@@ -5357,6 +5658,7 @@ export function EditorShell({ debugProbe = null, project }) {
         onClose={closeJsonImport}
         onFileSelected={handleJsonFile}
         onImport={handleProjectImport}
+        onStartNew={handleStartNewProject}
       />
 
       {exportModalOpen ? (

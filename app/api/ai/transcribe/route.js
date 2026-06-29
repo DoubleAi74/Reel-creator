@@ -1,37 +1,24 @@
-import { readFile } from "node:fs/promises";
-
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import {
   findSessionIdForAsset,
-  getAssetFilePath,
   readAssetMetadata,
   SESSION_COOKIE_NAME,
   touchSessionAndSweep,
 } from "@/lib/files";
+import { normalizeSourceLanguage } from "@/lib/ai/openai-lyrics";
+import { runTranscribeJob } from "@/lib/ai/transcribe-job";
 import {
-  normalizeSourceLanguage,
-  runLyricTimingPipeline,
-} from "@/lib/ai/openai-lyrics";
+  createTranscribeJob,
+  enqueueTranscribeJob,
+  findInFlightTranscribeForSession,
+} from "@/lib/ai/transcribe-store";
 import { removeRenderJobsForSessions } from "@/lib/render/store";
 
 export const runtime = "nodejs";
 
-const encoder = new TextEncoder();
 const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;
-
-function createStreamEvent(type, payload) {
-  return encoder.encode(`event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`);
-}
-
-function enqueueEvent(controller, type, payload) {
-  controller.enqueue(createStreamEvent(type, payload));
-}
-
-function getFallbackMimeType(metadata) {
-  return metadata.mimeType || "audio/mpeg";
-}
 
 function getPublicErrorMessage(error) {
   if (error instanceof Error && error.message) {
@@ -81,6 +68,8 @@ async function resolveSessionIdForAudioAsset(sessionIdFromCookie, audioAssetId) 
     } catch {}
   }
 
+  // Narrowly scoped recovery: only used to re-associate a known assetId with its
+  // owning session when the cookie was lost. Not a general cross-session lookup.
   const recoveredSessionId = await findSessionIdForAsset(audioAssetId);
 
   return {
@@ -148,87 +137,40 @@ export async function POST(request) {
     );
   }
 
-  const stream = new ReadableStream({
-    start(controller) {
-      void (async () => {
-        try {
-          enqueueEvent(controller, "progress", {
-            detail: "Loading the uploaded MP3 from this editing session.",
-            stage: "loading-audio",
-            title: "Loading audio",
-          });
+  const sweptSessionIds = await touchSessionAndSweep(sessionId);
+  removeRenderJobsForSessions(sweptSessionIds);
 
-          const sweptSessionIds = await touchSessionAndSweep(sessionId);
-          removeRenderJobsForSessions(sweptSessionIds);
+  // Reconnect to an already-running job for this exact session + asset instead
+  // of starting a duplicate (the client adopts the returned jobId).
+  const inFlightJob = findInFlightTranscribeForSession(sessionId, audioAssetId);
 
-          const metadata = await readAssetMetadata(sessionId, audioAssetId);
+  const respond = (body, status = 200) => {
+    const response = NextResponse.json(body, { status });
 
-          if (metadata.kind !== "audio") {
-            throw new Error("Choose an uploaded MP3 before generating lyrics.");
-          }
+    if (recovered) {
+      appendSessionCookie(response, sessionId);
+    }
 
-          const filePath = await getAssetFilePath(sessionId, audioAssetId);
-          const fileBuffer = await readFile(filePath);
-          let lastTranscriptProgressAt = 0;
-          let lastTranscriptProgressLength = 0;
+    return response;
+  };
 
-          const result = await runLyricTimingPipeline({
-            audio: normalizeAudio(payload?.audio),
-            contentType: getFallbackMimeType(metadata),
-            fileBuffer,
-            fileName: metadata.name,
-            includeRomanization,
-            includeWordMeanings: true,
-            lines: normalizeLines(payload?.lines),
-            onProgress: (progress) => {
-              enqueueEvent(controller, "progress", progress);
-            },
-            onTranscriptDelta: (_delta, transcriptText) => {
-              const now = Date.now();
-
-              if (
-                now - lastTranscriptProgressAt < 750 &&
-                transcriptText.length - lastTranscriptProgressLength < 400
-              ) {
-                return;
-              }
-
-              lastTranscriptProgressAt = now;
-              lastTranscriptProgressLength = transcriptText.length;
-              enqueueEvent(controller, "progress", {
-                detail: `${transcriptText.length.toLocaleString()} transcript character${
-                  transcriptText.length === 1 ? "" : "s"
-                } received so far.`,
-                stage: "transcribing",
-                title: "Transcribing audio",
-              });
-            },
-            sourceLanguage,
-          });
-
-          enqueueEvent(controller, "complete", result);
-        } catch (error) {
-          enqueueEvent(controller, "error", {
-            message: getPublicErrorMessage(error),
-          });
-        } finally {
-          controller.close();
-        }
-      })();
-    },
-  });
-
-  const response = new Response(stream, {
-    headers: {
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "Content-Type": "text/event-stream; charset=utf-8",
-    },
-  });
-
-  if (recovered) {
-    appendSessionCookie(response, sessionId);
+  if (inFlightJob) {
+    return respond({ jobId: inFlightJob.jobId }, 409);
   }
 
-  return response;
+  const job = createTranscribeJob({ assetId: audioAssetId, sessionId });
+
+  enqueueTranscribeJob(job.jobId, () =>
+    runTranscribeJob({
+      audio: normalizeAudio(payload?.audio),
+      audioAssetId,
+      includeRomanization,
+      jobId: job.jobId,
+      lines: normalizeLines(payload?.lines),
+      sessionId,
+      sourceLanguage,
+    }),
+  );
+
+  return respond({ jobId: job.jobId });
 }

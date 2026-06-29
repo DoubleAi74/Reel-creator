@@ -10,6 +10,7 @@ export function ProjectJsonModal({
   onClose,
   onFileSelected,
   onImport,
+  onStartNew,
 }) {
   const fileInputRef = useRef(null);
 
@@ -85,7 +86,16 @@ export function ProjectJsonModal({
           <p className="mt-4 text-sm leading-6 text-[var(--danger)]">{errorMessage}</p>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap justify-end gap-3">
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+          {onStartNew ? (
+            <button
+              className="mr-auto rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)]"
+              onClick={onStartNew}
+              type="button"
+            >
+              Start new project
+            </button>
+          ) : null}
           <button
             className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
             onClick={onClose}

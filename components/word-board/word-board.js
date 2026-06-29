@@ -11,13 +11,24 @@ import { useMemo, useState } from "react";
 import "./word-board.css";
 import { useWordBoard } from "./use-word-board";
 
-function WordTile({ word, selected, width, onSelect }) {
+function WordTile({ audioState, word, selected, width, onSelect }) {
+  const followClass =
+    audioState === "current"
+      ? " is-follow-current"
+      : audioState === "passed"
+        ? " is-follow-passed"
+        : "";
+
   return (
-    <span className="word-unit" data-word-id={word.id}>
+    <span
+      className={`word-unit${audioState ? ` is-follow-${audioState}` : ""}`}
+      data-word-id={word.id}
+    >
       <button
-        className={`word-button${selected ? " is-selected" : ""}`}
+        className={`word-button${selected ? " is-selected" : ""}${followClass}`}
         type="button"
         data-word-id={word.id}
+        data-follow-state={audioState ?? undefined}
         style={width ? { width: `${width}px` } : undefined}
         aria-label={`${word.original}, ${word.english}`}
         onClick={() => onSelect(word)}
@@ -35,10 +46,11 @@ function LineRow({
   selectedWordId,
   selectedLineId,
   hovered,
-  active,
+  followActive,
   getTileWidth,
   getWordRows,
   getLineMinHeight,
+  getWordAudioState,
   onSelect,
   onHover,
 }) {
@@ -47,8 +59,10 @@ function LineRow({
   return (
     <div
       className={`line-row${line.id === selectedLineId ? " is-selection-line" : ""}${
-        hovered || active ? " is-hover-line" : ""
-      }${wordRows.length > 1 ? " is-wrapped-line" : ""}`}
+        hovered ? " is-hover-line" : ""
+      }${followActive ? " is-follow-line" : ""}${
+        wordRows.length > 1 ? " is-wrapped-line" : ""
+      }`}
       style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
       data-line-id={line.id}
       data-line-number={line.number}
@@ -64,6 +78,7 @@ function LineRow({
           {row.map((word) => (
             <WordTile
               key={word.id}
+              audioState={getWordAudioState(word)}
               word={word}
               selected={word.id === selectedWordId}
               width={getTileWidth(word)}
@@ -112,10 +127,26 @@ function SelectionPanel({ word }) {
   );
 }
 
-function BoardControls({ showRoman, mode, isMobile, canDecreaseSize, canIncreaseSize, tileStep, onToggleRoman, onToggleMode, onStepSize }) {
+function BoardControls({
+  showRoman,
+  followAudioEnabled,
+  canFollowAudio,
+  canDecreaseSize,
+  canIncreaseSize,
+  tileStep,
+  onToggleRoman,
+  onToggleFollowAudio,
+  onStepSize,
+}) {
+  const followTitle = !canFollowAudio
+    ? "Follow audio unavailable until word timings exist"
+    : followAudioEnabled
+      ? "Stop following audio"
+      : "Follow audio";
+
   return (
     <div className="board-control-panel">
-      <div className="board-toggle-row">
+      <div className="board-control-grid">
         <button
           className="roman-toggle"
           type="button"
@@ -124,23 +155,19 @@ function BoardControls({ showRoman, mode, isMobile, canDecreaseSize, canIncrease
           title={showRoman ? "Hide romanization labels" : "Show romanization labels"}
           onClick={onToggleRoman}
         >
-          R
+          Rm
         </button>
         <button
-          className="mode-toggle"
+          className="follow-toggle"
           type="button"
-          aria-label={
-            mode === "scroll" ? "Switch to page-arrow mode" : "Switch to scroll mode"
-          }
-          aria-pressed={String(mode === "scroll")}
-          title={mode === "scroll" ? "Scroll mode" : "Page-arrow mode"}
-          disabled={isMobile}
-          onClick={onToggleMode}
+          aria-label="Toggle follow audio"
+          aria-pressed={followAudioEnabled}
+          disabled={!canFollowAudio}
+          title={followTitle}
+          onClick={onToggleFollowAudio}
         >
-          {mode === "scroll" ? "↕" : "↔"}
+          F
         </button>
-      </div>
-      <div className="mobile-size-stepper" aria-label="Tile size controls">
         <button
           className="mobile-size-button"
           type="button"
@@ -166,82 +193,42 @@ function BoardControls({ showRoman, mode, isMobile, canDecreaseSize, canIncrease
   );
 }
 
-function Pager({ mode, page, pageCount, onGoToPage }) {
-  const isPageMode = mode === "page";
-  return (
-    <div
-      className={`pager-arrow-cluster${isPageMode ? "" : " is-hidden"}`}
-      aria-hidden={isPageMode ? undefined : "true"}
-    >
-      {isPageMode ? (
-        <>
-          <button
-            className="pager-button"
-            type="button"
-            data-page-action="prev"
-            aria-label="Previous page"
-            title="Previous page"
-            disabled={page === 0}
-            onClick={() => onGoToPage(page - 1)}
-          >
-            ‹
-          </button>
-          <button
-            className="pager-button"
-            type="button"
-            data-page-action="next"
-            aria-label="Next page"
-            title="Next page"
-            disabled={page >= pageCount - 1}
-            onClick={() => onGoToPage(page + 1)}
-          >
-            ›
-          </button>
-        </>
-      ) : null}
-    </div>
-  );
-}
-
 export function WordBoard({
   lines,
   selectedWordId,
   onSelectWord,
-  defaultMode = "page",
-  activeSourceLineId = null,
-  autoFollow = false,
-  isPlaying = false,
+  currentTime = 0,
+  followAudioResetKey = null,
 }) {
   const board = useWordBoard(lines, {
-    defaultMode,
-    activeSourceLineId,
-    autoFollow,
-    isPlaying,
+    currentTime,
+    followAudioResetKey,
   });
   const {
     hostRef,
     stageRef,
+    ready,
+    boardStyle,
     getTileWidth,
     getWordRows,
     getLineMinHeight,
-    mode,
-    isMobile,
     visibleLines,
-    page,
-    pageCount,
     hoveredLineId,
     setHoveredLineId,
     activeDisplayLineId,
+    canFollowAudio,
+    followAudioEnabled,
+    followScrollPaused,
+    getWordAudioState,
+    showRefollowButton,
     showRoman,
     canDecreaseSize,
     canIncreaseSize,
-    scrollRange,
-    lineCount,
     tileStep,
     stepTileScale,
     toggleRoman,
-    toggleMode,
-    goToPage,
+    toggleFollowAudio,
+    handleRefollow,
     handleStageScroll,
   } = board;
 
@@ -260,24 +247,12 @@ export function WordBoard({
     return map;
   }, [visibleLines]);
 
-  // Resolve the active selection. Uncontrolled boards fall back to the first
-  // visible word (matching the prototype's always-populated panel) — derived in
-  // render so no effect/setState is needed.
-  const firstWordId = visibleLines[0]?.words[0]?.id ?? null;
-  const defaultWordId =
-    visibleLines
-      .flatMap((line) => line.words)
-      .find(
-        (word) =>
-          word.original === "गलियां" ||
-          word.original === "गलियाँ" ||
-          word.english?.toLowerCase() === "streets",
-      )?.id ?? firstWordId;
+  // Resolve the active selection. Null is a real state: no word selected.
   const requestedId = controlled ? selectedWordId : internalSelectedId;
   const activeSelectedId =
     requestedId && wordsById.has(requestedId)
       ? requestedId
-      : defaultWordId;
+      : null;
 
   const selectedWord = activeSelectedId ? wordsById.get(activeSelectedId) ?? null : null;
   const selectedLineId = selectedWord?.lineId ?? null;
@@ -292,21 +267,42 @@ export function WordBoard({
     }
   };
 
-  const rangeNote =
-    mode === "page"
-      ? `Page ${page + 1} / ${pageCount}`
-      : `Lines ${scrollRange.start}-${scrollRange.end} / ${lineCount || 0}`;
-
   return (
     <div className="wb" ref={hostRef}>
+      {/* The frame (outline + nested boxes) is sized by CSS (container-query
+          contain-fit), so it paints at the correct size from the very first
+          frame — no JS needed, no size snap. Only the scale-dependent INTERIOR
+          (tile widths / fonts) needs the client measurement pass, so we hide
+          just the words + selection panel until `ready` and reveal them already
+          at their final scale. boardStyle carries the measured CSS variables and
+          is applied in render so the reveal is atomic (no one-frame larger text). */}
       <section
-        className={`prototype-shell version-sketch ${
-          mode === "scroll" ? "is-scroll-mode" : "is-page-mode"
+        className={`prototype-shell version-sketch is-scroll-mode${
+          showRoman ? " show-inline-roman" : ""
         }`}
+        style={boardStyle}
       >
         <div className="board-frame">
-          <div className="stage" data-stage ref={stageRef} onScroll={handleStageScroll}>
-            <div className="line-stack">
+          <div
+            className={`stage${followScrollPaused ? " is-follow-paused" : ""}`}
+            data-stage
+            ref={stageRef}
+            onScroll={handleStageScroll}
+          >
+            {showRefollowButton ? (
+              <button
+                className="refollow-button"
+                type="button"
+                aria-label="Re-follow current audio line"
+                onClick={handleRefollow}
+              >
+                re-follow
+              </button>
+            ) : null}
+            <div
+              className="line-stack"
+              style={ready ? undefined : { visibility: "hidden" }}
+            >
               {visibleLines.map((line) => (
                 <LineRow
                   key={line.id}
@@ -314,10 +310,11 @@ export function WordBoard({
                   selectedWordId={activeSelectedId}
                   selectedLineId={selectedLineId}
                   hovered={hoveredLineId === line.id}
-                  active={activeDisplayLineId === line.id}
+                  followActive={activeDisplayLineId === line.id}
                   getTileWidth={getTileWidth}
                   getWordRows={getWordRows}
                   getLineMinHeight={getLineMinHeight}
+                  getWordAudioState={getWordAudioState}
                   onSelect={handleSelect}
                   onHover={setHoveredLineId}
                 />
@@ -325,22 +322,20 @@ export function WordBoard({
             </div>
           </div>
           <div className="pager-strip">
+            {/* Empty (outline-only) until measured so the translation box shows
+                in the initial skeleton; populates once the words are revealed. */}
+            <SelectionPanel word={ready ? selectedWord : null} />
             <BoardControls
               showRoman={showRoman}
-              mode={mode}
-              isMobile={isMobile}
+              followAudioEnabled={followAudioEnabled}
+              canFollowAudio={canFollowAudio}
               canDecreaseSize={canDecreaseSize}
               canIncreaseSize={canIncreaseSize}
               tileStep={tileStep}
               onToggleRoman={toggleRoman}
-              onToggleMode={toggleMode}
+              onToggleFollowAudio={toggleFollowAudio}
               onStepSize={stepTileScale}
             />
-            <SelectionPanel word={selectedWord} />
-            <Pager mode={mode} page={page} pageCount={pageCount} onGoToPage={goToPage} />
-          </div>
-          <div className="page-note board-page-note" data-line-range>
-            {rangeNote}
           </div>
         </div>
       </section>

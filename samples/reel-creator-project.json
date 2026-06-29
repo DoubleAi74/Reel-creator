@@ -1,0 +1,3828 @@
+{
+  "audio": {
+    "duration": 320.38891666666666,
+    "endOffset": null,
+    "name": "Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3",
+    "startOffset": 0
+  },
+  "background": {
+    "assetName": null,
+    "color": "#101018",
+    "gradient": {
+      "angle": 160,
+      "from": "#1a1a2e",
+      "to": "#0f0c29"
+    },
+    "scrim": {
+      "color": "#000000",
+      "enabled": true,
+      "opacity": 0.4
+    },
+    "type": "gradient"
+  },
+  "lines": [
+    {
+      "id": "99aa041f-5c56-4cdc-8cb3-7ca275c1ad7f",
+      "original": "आज से तेरी सारी गलियां मेरी हो गई",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 6.0800018310546875,
+          "gapAfterSec": 6.0800018310546875,
+          "gapBeforeSec": 0,
+          "matchedWordCount": 8,
+          "matchRatio": 1,
+          "tokenCount": 8
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se terī sārī galiyā̃ merī ho gaī",
+      "start": 41.439998626708984,
+      "translation": "From today, all your streets are mine",
+      "words": [
+        {
+          "end": 42.84000015258789,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 41.439998626708984,
+          "text": "आज"
+        },
+        {
+          "end": 43.29999923706055,
+          "gloss": "from",
+          "roman": "se",
+          "start": 42.84000015258789,
+          "text": "से"
+        },
+        {
+          "end": 44.31999969482422,
+          "gloss": "your",
+          "roman": "terī",
+          "start": 43.29999923706055,
+          "text": "तेरी"
+        },
+        {
+          "end": 45.15999984741211,
+          "gloss": "all",
+          "roman": "sārī",
+          "start": 44.260000228881836,
+          "text": "सारी"
+        },
+        {
+          "end": 45.84000015258789,
+          "gloss": "streets",
+          "roman": "galiyā̃",
+          "start": 45.15999984741211,
+          "text": "गलियां"
+        },
+        {
+          "end": 46.61999988555908,
+          "gloss": "mine",
+          "roman": "merī",
+          "start": 45.84000015258789,
+          "text": "मेरी"
+        },
+        {
+          "end": 47.27999973297119,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 46.61999988555908,
+          "text": "हो"
+        },
+        {
+          "end": 47.52000045776367,
+          "gloss": "became",
+          "roman": "gaī",
+          "start": 47.27999973297119,
+          "text": "गई"
+        }
+      ]
+    },
+    {
+      "id": "a9fa1716-58da-4d32-b357-d82ebf1faa19",
+      "original": "आज से मेरा घर तेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 6.239999771118164,
+          "gapAfterSec": 12.059999465942383,
+          "gapBeforeSec": 6.0800018310546875,
+          "matchedWordCount": 7,
+          "matchRatio": 1,
+          "tokenCount": 7
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se merā ghar terā ho gayā",
+      "start": 47.52000045776367,
+      "translation": "From today, my home is yours",
+      "words": [
+        {
+          "end": 48.760000228881836,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 47.52000045776367,
+          "text": "आज"
+        },
+        {
+          "end": 49.260000228881836,
+          "gloss": "from",
+          "roman": "se",
+          "start": 48.760000228881836,
+          "text": "से"
+        },
+        {
+          "end": 50.579999923706055,
+          "gloss": "my",
+          "roman": "merā",
+          "start": 49.260000228881836,
+          "text": "मेरा"
+        },
+        {
+          "end": 51.19999980926514,
+          "gloss": "home",
+          "roman": "ghar",
+          "start": 50.579999923706055,
+          "text": "घर"
+        },
+        {
+          "end": 52.03999996185303,
+          "gloss": "your",
+          "roman": "terā",
+          "start": 51.19999980926514,
+          "text": "तेरा"
+        },
+        {
+          "end": 52.53999996185303,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 52.03999996185303,
+          "text": "हो"
+        },
+        {
+          "end": 53.760000228881836,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 52.53999996185303,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "73e12bea-a94b-4d72-8e34-52be7438e72b",
+      "original": "आज से तेरी सारी गलियां मेरी हो गई",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 5.719999313354492,
+          "gapAfterSec": 6.239999771118164,
+          "gapBeforeSec": 12.059999465942383,
+          "matchedWordCount": 6,
+          "matchRatio": 0.75,
+          "tokenCount": 8
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Āj se terī sārī galiyā̃ merī ho gaī",
+      "start": 59.579999923706055,
+      "translation": "From today, all your streets are mine",
+      "words": [
+        {
+          "end": 60.97999954223633,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 59.579999923706055,
+          "text": "आज"
+        },
+        {
+          "end": 61.34000015258789,
+          "gloss": "from",
+          "roman": "se",
+          "start": 60.97999954223633,
+          "text": "से"
+        },
+        {
+          "end": 62.44000053405762,
+          "gloss": "your",
+          "roman": "terī",
+          "start": 61.34000015258789,
+          "text": "तेरी"
+        },
+        {
+          "end": 63.15999984741211,
+          "gloss": "all",
+          "roman": "sārī",
+          "start": 62.44000053405762,
+          "text": "सारी"
+        },
+        {
+          "end": null,
+          "gloss": "streets",
+          "roman": "galiyā̃",
+          "start": null,
+          "text": "गलियां"
+        },
+        {
+          "end": 64.6200008392334,
+          "gloss": "mine",
+          "roman": "merī",
+          "start": 63.920000076293945,
+          "text": "मेरी"
+        },
+        {
+          "end": 65.29999923706055,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 64.6200008392334,
+          "text": "हो"
+        },
+        {
+          "end": null,
+          "gloss": "became",
+          "roman": "gaī",
+          "start": null,
+          "text": "गई"
+        }
+      ]
+    },
+    {
+      "id": "8ef66fd4-d9bc-42a7-9674-981db48b956b",
+      "original": "आज से मेरा घर तेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 5.6399993896484375,
+          "gapAfterSec": 6.0800018310546875,
+          "gapBeforeSec": 6.239999771118164,
+          "matchedWordCount": 7,
+          "matchRatio": 1,
+          "tokenCount": 7
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se merā ghar terā ho gayā",
+      "start": 65.81999969482422,
+      "translation": "From today, my home is yours",
+      "words": [
+        {
+          "end": 66.81999969482422,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 65.81999969482422,
+          "text": "आज"
+        },
+        {
+          "end": 67.34000015258789,
+          "gloss": "from",
+          "roman": "se",
+          "start": 66.81999969482422,
+          "text": "से"
+        },
+        {
+          "end": 68.79999923706055,
+          "gloss": "my",
+          "roman": "merā",
+          "start": 67.34000015258789,
+          "text": "मेरा"
+        },
+        {
+          "end": 69.15999984741211,
+          "gloss": "home",
+          "roman": "ghar",
+          "start": 68.79999923706055,
+          "text": "घर"
+        },
+        {
+          "end": 70.05999946594238,
+          "gloss": "your",
+          "roman": "terā",
+          "start": 69.15999984741211,
+          "text": "तेरा"
+        },
+        {
+          "end": 70.54000091552734,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 70.05999946594238,
+          "text": "हो"
+        },
+        {
+          "end": 71.45999908447266,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 70.54000091552734,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "d83aaec3-5420-452c-9f01-b16c308f1db8",
+      "original": "आज से मेरी सारी खुशियां तेरी हो गई",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 5.680000305175781,
+          "gapAfterSec": 5.9199981689453125,
+          "gapBeforeSec": 6.0800018310546875,
+          "matchedWordCount": 8,
+          "matchRatio": 1,
+          "tokenCount": 8
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se merī sārī khushiyā̃ terī ho gaī",
+      "start": 71.9000015258789,
+      "translation": "From today, all my happiness is yours",
+      "words": [
+        {
+          "end": 72.93999862670898,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 71.9000015258789,
+          "text": "आज"
+        },
+        {
+          "end": 73.34000015258789,
+          "gloss": "from",
+          "roman": "se",
+          "start": 72.93999862670898,
+          "text": "से"
+        },
+        {
+          "end": 74.61999893188477,
+          "gloss": "my",
+          "roman": "merī",
+          "start": 73.34000015258789,
+          "text": "मेरी"
+        },
+        {
+          "end": 75.13999938964844,
+          "gloss": "all",
+          "roman": "sārī",
+          "start": 74.61999893188477,
+          "text": "सारी"
+        },
+        {
+          "end": 76.15999984741211,
+          "gloss": "happiness",
+          "roman": "khushiyā̃",
+          "start": 75.13999938964844,
+          "text": "खुशियां"
+        },
+        {
+          "end": 76.63999938964844,
+          "gloss": "your",
+          "roman": "terī",
+          "start": 76.15999984741211,
+          "text": "तेरी"
+        },
+        {
+          "end": 77.27999877929688,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 76.63999938964844,
+          "text": "हो"
+        },
+        {
+          "end": 77.58000183105469,
+          "gloss": "became",
+          "roman": "gaī",
+          "start": 77.27999877929688,
+          "text": "गई"
+        }
+      ]
+    },
+    {
+      "id": "594b3080-6f43-4288-a34b-1e9d56bdbc7d",
+      "original": "आज से तेरा ग़म मेरा हो गया",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 4.700000762939453,
+          "gapAfterSec": 4.680000305175781,
+          "gapBeforeSec": 5.9199981689453125,
+          "matchedWordCount": 6,
+          "matchRatio": 0.8571428571428571,
+          "tokenCount": 7
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Āj se terā ġam merā ho gayā",
+      "start": 77.81999969482422,
+      "translation": "From today, your sorrow is mine",
+      "words": [
+        {
+          "end": 78.86000061035156,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 77.81999969482422,
+          "text": "आज"
+        },
+        {
+          "end": 79.36000061035156,
+          "gloss": "from",
+          "roman": "se",
+          "start": 78.86000061035156,
+          "text": "से"
+        },
+        {
+          "end": 80.79999923706055,
+          "gloss": "your",
+          "roman": "terā",
+          "start": 79.36000061035156,
+          "text": "तेरा"
+        },
+        {
+          "end": 81.66000008583069,
+          "gloss": "sorrow",
+          "roman": "ġam",
+          "start": 80.29999995231628,
+          "text": "ग़म"
+        },
+        {
+          "end": 82.0999984741211,
+          "gloss": "my",
+          "roman": "merā",
+          "start": 81.0999984741211,
+          "text": "मेरा"
+        },
+        {
+          "end": 82.52000045776367,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 82.0999984741211,
+          "text": "हो"
+        },
+        {
+          "end": null,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": null,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "78082b6d-b2a6-48ce-88a8-646869b8eb35",
+      "original": "ओ तेरे कांधे का जो तिल है",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.6999998092651367,
+          "gapAfterSec": 3.059999942779541,
+          "gapBeforeSec": 4.680000305175781,
+          "matchedWordCount": 7,
+          "matchRatio": 1,
+          "tokenCount": 7
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō tere kā̃dhe kā jo til hai",
+      "start": 82.5,
+      "translation": "Oh, the mole on your shoulder",
+      "words": [
+        {
+          "end": 83.33999997377396,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": 82.5,
+          "text": "ओ"
+        },
+        {
+          "end": 83.73999977111816,
+          "gloss": "your",
+          "roman": "tere",
+          "start": 82.94000005722046,
+          "text": "तेरे"
+        },
+        {
+          "end": 84.53999996185303,
+          "gloss": "shoulder",
+          "roman": "kā̃dhe",
+          "start": 83.73999977111816,
+          "text": "कांधे"
+        },
+        {
+          "end": 84.71999979019165,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 84.53999996185303,
+          "text": "का"
+        },
+        {
+          "end": 84.96000003814697,
+          "gloss": "which",
+          "roman": "jo",
+          "start": 84.75999999046326,
+          "text": "जो"
+        },
+        {
+          "end": 85.29999995231628,
+          "gloss": "mole",
+          "roman": "til",
+          "start": 84.96000003814697,
+          "text": "तिल"
+        },
+        {
+          "end": 86.19999980926514,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 85.28000020980835,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "160255b5-c004-4bf5-9a90-4d7699149a19",
+      "original": "ओ तेरे सीने में जो दिल है",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.4000000953674316,
+          "gapAfterSec": 3.4000000953674316,
+          "gapBeforeSec": 3.059999942779541,
+          "matchedWordCount": 7,
+          "matchRatio": 1,
+          "tokenCount": 7
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Ō tere sīne mẽ jo dil hai",
+      "start": 85.55999994277954,
+      "translation": "Oh, the heart in your chest",
+      "words": [
+        {
+          "end": 86.5,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": 85.55999994277954,
+          "text": "ओ"
+        },
+        {
+          "end": 86.77999973297119,
+          "gloss": "your",
+          "roman": "tere",
+          "start": 86.19999980926514,
+          "text": "तेरे"
+        },
+        {
+          "end": 87.60000038146973,
+          "gloss": "chest",
+          "roman": "sīne",
+          "start": 86.77999973297119,
+          "text": "सीने"
+        },
+        {
+          "end": 87.73999977111816,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": 87.59999990463257,
+          "text": "में"
+        },
+        {
+          "end": 87.92000007629395,
+          "gloss": "which",
+          "roman": "jo",
+          "start": 87.73999977111816,
+          "text": "जो"
+        },
+        {
+          "end": 88.30000019073486,
+          "gloss": "heart",
+          "roman": "dil",
+          "start": 87.92000007629395,
+          "text": "दिल"
+        },
+        {
+          "end": 88.96000003814697,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 88.30000019073486,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "8b22d5bb-0c77-4ada-a5c3-440b68a0fd08",
+      "original": "ओ तेरी बिजली का जो बिल है",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.979999542236328,
+          "gapAfterSec": 2.979999542236328,
+          "gapBeforeSec": 3.4000000953674316,
+          "matchedWordCount": 6,
+          "matchRatio": 0.8571428571428571,
+          "tokenCount": 7
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō terī bijlī kā jo bil hai",
+      "start": 88.96000003814697,
+      "translation": "Oh, the electricity bill in your name",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 89.80000019073486,
+          "gloss": "your",
+          "roman": "terī",
+          "start": 88.96000003814697,
+          "text": "तेरी"
+        },
+        {
+          "end": 90.53999996185303,
+          "gloss": "electricity",
+          "roman": "bijlī",
+          "start": 89.80000019073486,
+          "text": "बिजली"
+        },
+        {
+          "end": 90.65999984741211,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 90.53999996185303,
+          "text": "का"
+        },
+        {
+          "end": 90.92000007629395,
+          "gloss": "which",
+          "roman": "jo",
+          "start": 90.65999984741211,
+          "text": "जो"
+        },
+        {
+          "end": 91.22000026702881,
+          "gloss": "bill",
+          "roman": "bil",
+          "start": 90.92000007629395,
+          "text": "बिल"
+        },
+        {
+          "end": 91.9399995803833,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 91.22000026702881,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "89a23233-d08d-429c-841c-74a9052bfe38",
+      "original": "आज से मेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.080000877380371,
+          "gapAfterSec": 3.080000877380371,
+          "gapBeforeSec": 2.979999542236328,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se merā ho gayā",
+      "start": 91.9399995803833,
+      "translation": "From today, it's mine",
+      "words": [
+        {
+          "end": 92.68000030517578,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 91.9399995803833,
+          "text": "आज"
+        },
+        {
+          "end": 93.14000034332275,
+          "gloss": "from",
+          "roman": "se",
+          "start": 92.68000030517578,
+          "text": "से"
+        },
+        {
+          "end": 94,
+          "gloss": "mine",
+          "roman": "merā",
+          "start": 93.14000034332275,
+          "text": "मेरा"
+        },
+        {
+          "end": 94.55999946594238,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 94,
+          "text": "हो"
+        },
+        {
+          "end": 95.02000045776367,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 94.55999946594238,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "83e8710c-91f5-44d6-9b83-f2be1bc2162e",
+      "original": "ओ मेरे ख्वाबों का अंबर",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.719999313354492,
+          "gapAfterSec": 2.719999313354492,
+          "gapBeforeSec": 3.080000877380371,
+          "matchedWordCount": 4,
+          "matchRatio": 0.8,
+          "tokenCount": 5
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō mere khvābõ kā ambar",
+      "start": 95.02000045776367,
+      "translation": "Oh, the sky of my dreams",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 95.79999923706055,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 95.02000045776367,
+          "text": "मेरे"
+        },
+        {
+          "end": 96.45999908447266,
+          "gloss": "dreams",
+          "roman": "khvābõ",
+          "start": 95.79999923706055,
+          "text": "ख्वाबों"
+        },
+        {
+          "end": 96.8799991607666,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 96.45999908447266,
+          "text": "का"
+        },
+        {
+          "end": 97.73999977111816,
+          "gloss": "sky",
+          "roman": "ambar",
+          "start": 96.8799991607666,
+          "text": "अंबर"
+        }
+      ]
+    },
+    {
+      "id": "9d4ae421-e84b-48c9-9c93-b7b33b3adc8f",
+      "original": "ओ मेरी खुशियों का समंदर",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 3.059999465942383,
+          "gapAfterSec": 3.059999465942383,
+          "gapBeforeSec": 2.719999313354492,
+          "matchedWordCount": 4,
+          "matchRatio": 0.8,
+          "tokenCount": 5
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō merī khushiyõ kā samandar",
+      "start": 97.73999977111816,
+      "translation": "Oh, the sea of my joys",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 98.76000022888184,
+          "gloss": "my",
+          "roman": "merī",
+          "start": 97.73999977111816,
+          "text": "मेरी"
+        },
+        {
+          "end": 99.42000007629395,
+          "gloss": "joys",
+          "roman": "khushiyõ",
+          "start": 98.76000022888184,
+          "text": "खुशियों"
+        },
+        {
+          "end": 99.73999977111816,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 99.42000007629395,
+          "text": "का"
+        },
+        {
+          "end": 100.79999923706055,
+          "gloss": "sea",
+          "roman": "samandar",
+          "start": 99.73999977111816,
+          "text": "समंदर"
+        }
+      ]
+    },
+    {
+      "id": "ccc85727-42ed-4b50-b3d5-9c0673fd6eaa",
+      "original": "ओ मेरे पिन कोड का नंबर",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 3.240001678466797,
+          "gapAfterSec": 3.240001678466797,
+          "gapBeforeSec": 3.059999465942383,
+          "matchedWordCount": 5,
+          "matchRatio": 0.8333333333333334,
+          "tokenCount": 6
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō mere pin koḍ kā number",
+      "start": 100.79999923706055,
+      "translation": "Oh, my pin code number",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 101.78000068664551,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 100.79999923706055,
+          "text": "मेरे"
+        },
+        {
+          "end": 102.21999931335449,
+          "gloss": "pin",
+          "roman": "pin",
+          "start": 101.78000068664551,
+          "text": "पिन"
+        },
+        {
+          "end": 102.63999938964844,
+          "gloss": "code",
+          "roman": "koḍ",
+          "start": 102.21999931335449,
+          "text": "कोड"
+        },
+        {
+          "end": 102.95999908447266,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 102.63999938964844,
+          "text": "का"
+        },
+        {
+          "end": 104.04000091552734,
+          "gloss": "number",
+          "roman": "number",
+          "start": 102.95999908447266,
+          "text": "नंबर"
+        }
+      ]
+    },
+    {
+      "id": "be62ce53-0f7d-42ce-9536-2e074f3f9aa8",
+      "original": "आज से तेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 2.839998245239258,
+          "gapAfterSec": 12.857142630077547,
+          "gapBeforeSec": 3.240001678466797,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se terā ho gayā",
+      "start": 104.04000091552734,
+      "translation": "From today, it's yours",
+      "words": [
+        {
+          "end": 104.81999969482422,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 104.04000091552734,
+          "text": "आज"
+        },
+        {
+          "end": 105.20000076293945,
+          "gloss": "from",
+          "roman": "se",
+          "start": 104.81999969482422,
+          "text": "से"
+        },
+        {
+          "end": 106,
+          "gloss": "yours",
+          "roman": "terā",
+          "start": 105.20000076293945,
+          "text": "तेरा"
+        },
+        {
+          "end": 106.55999946594238,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 106,
+          "text": "हो"
+        },
+        {
+          "end": 106.8799991607666,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 106.55999946594238,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "adccdd2e-a93b-4473-a039-0960a5832fd8",
+      "original": "तेरे माथे के कुमकुम को मैं तिलक लगा के घूमूंगा",
+      "quality": {
+        "flags": [
+          {
+            "code": "unsupported_text",
+            "message": "No direct matched words support this lyric line.",
+            "severity": "high"
+          },
+          {
+            "code": "weak_text_evidence",
+            "message": "Matched words cover less than the expected share of this lyric line.",
+            "severity": "high"
+          },
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "timing_estimated",
+            "message": "Line timing was estimated between neighboring anchors.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_unsupported_text",
+            "message": "A secondary text audit marked this lyric as unsupported.",
+            "severity": "high"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.8207990694046003,
+          "gapAfterSec": 15.428571156093042,
+          "gapBeforeSec": 12.857142630077547,
+          "matchedWordCount": 0,
+          "matchRatio": 0,
+          "tokenCount": 10
+        },
+        "riskLevel": "high",
+        "textEvidenceConfidence": "none",
+        "timingConfidence": "low"
+      },
+      "romanization": "Tere māthe ke kumkum ko maĩ tilak lagā ke ghoomū̃gā",
+      "start": 116.89714354560489,
+      "translation": "I'll wear the kumkum from your forehead as a tilak and roam around",
+      "words": [
+        {
+          "end": null,
+          "gloss": "your",
+          "roman": "tere",
+          "start": null,
+          "text": "तेरे"
+        },
+        {
+          "end": null,
+          "gloss": "forehead",
+          "roman": "māthe",
+          "start": null,
+          "text": "माथे"
+        },
+        {
+          "end": null,
+          "gloss": "of",
+          "roman": "ke",
+          "start": null,
+          "text": "के"
+        },
+        {
+          "end": null,
+          "gloss": "kumkum",
+          "roman": "kumkum",
+          "start": null,
+          "text": "कुमकुम"
+        },
+        {
+          "end": null,
+          "gloss": "to",
+          "roman": "ko",
+          "start": null,
+          "text": "को"
+        },
+        {
+          "end": null,
+          "gloss": "I",
+          "roman": "maĩ",
+          "start": null,
+          "text": "मैं"
+        },
+        {
+          "end": null,
+          "gloss": "tilak",
+          "roman": "tilak",
+          "start": null,
+          "text": "तिलक"
+        },
+        {
+          "end": null,
+          "gloss": "apply",
+          "roman": "lagā",
+          "start": null,
+          "text": "लगा"
+        },
+        {
+          "end": null,
+          "gloss": "and",
+          "roman": "ke",
+          "start": null,
+          "text": "के"
+        },
+        {
+          "end": null,
+          "gloss": "will roam",
+          "roman": "ghoomū̃gā",
+          "start": null,
+          "text": "घूमूंगा"
+        }
+      ]
+    },
+    {
+      "id": "5b8da31d-2545-43eb-9fdf-8253d9053953",
+      "original": "तेरी बाली की छुन छुन को मैं दिल से लगा के झूमूंगा",
+      "quality": {
+        "flags": [
+          {
+            "code": "unsupported_text",
+            "message": "No direct matched words support this lyric line.",
+            "severity": "high"
+          },
+          {
+            "code": "weak_text_evidence",
+            "message": "Matched words cover less than the expected share of this lyric line.",
+            "severity": "high"
+          },
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "timing_estimated",
+            "message": "Line timing was estimated between neighboring anchors.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_unsupported_text",
+            "message": "A secondary text audit marked this lyric as unsupported.",
+            "severity": "high"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.8207990694046146,
+          "gapAfterSec": 12.857142630077561,
+          "gapBeforeSec": 15.428571156093042,
+          "matchedWordCount": 0,
+          "matchRatio": 0,
+          "tokenCount": 12
+        },
+        "riskLevel": "high",
+        "textEvidenceConfidence": "none",
+        "timingConfidence": "low"
+      },
+      "romanization": "Terī bālī kī chhun chhun ko maĩ dil se lagā ke jhūmū̃gā",
+      "start": 132.32571470169793,
+      "translation": "I'll hold the jingle of your earrings to my heart and sway",
+      "words": [
+        {
+          "end": null,
+          "gloss": "your",
+          "roman": "terī",
+          "start": null,
+          "text": "तेरी"
+        },
+        {
+          "end": null,
+          "gloss": "earring",
+          "roman": "bālī",
+          "start": null,
+          "text": "बाली"
+        },
+        {
+          "end": null,
+          "gloss": "of",
+          "roman": "kī",
+          "start": null,
+          "text": "की"
+        },
+        {
+          "end": null,
+          "gloss": "jingle",
+          "roman": "chhun",
+          "start": null,
+          "text": "छुन"
+        },
+        {
+          "end": null,
+          "gloss": "jingle",
+          "roman": "chhun",
+          "start": null,
+          "text": "छुन"
+        },
+        {
+          "end": null,
+          "gloss": "to",
+          "roman": "ko",
+          "start": null,
+          "text": "को"
+        },
+        {
+          "end": null,
+          "gloss": "I",
+          "roman": "maĩ",
+          "start": null,
+          "text": "मैं"
+        },
+        {
+          "end": null,
+          "gloss": "heart",
+          "roman": "dil",
+          "start": null,
+          "text": "दिल"
+        },
+        {
+          "end": null,
+          "gloss": "from",
+          "roman": "se",
+          "start": null,
+          "text": "से"
+        },
+        {
+          "end": null,
+          "gloss": "attach",
+          "roman": "lagā",
+          "start": null,
+          "text": "लगा"
+        },
+        {
+          "end": null,
+          "gloss": "and",
+          "roman": "ke",
+          "start": null,
+          "text": "के"
+        },
+        {
+          "end": null,
+          "gloss": "will sway",
+          "roman": "jhūmū̃gā",
+          "start": null,
+          "text": "झूमूंगा"
+        }
+      ]
+    },
+    {
+      "id": "3864e12a-6f88-4a39-96ff-41efe31f55f0",
+      "original": "मेरी छोटी सी भूलों को तू नदिया में बहा देना",
+      "quality": {
+        "flags": [
+          {
+            "code": "unsupported_text",
+            "message": "No direct matched words support this lyric line.",
+            "severity": "high"
+          },
+          {
+            "code": "weak_text_evidence",
+            "message": "Matched words cover less than the expected share of this lyric line.",
+            "severity": "high"
+          },
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "timing_estimated",
+            "message": "Line timing was estimated between neighboring anchors.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_unsupported_text",
+            "message": "A secondary text audit marked this lyric as unsupported.",
+            "severity": "high"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.8207990694046146,
+          "gapAfterSec": 12.857142630077533,
+          "gapBeforeSec": 12.857142630077561,
+          "matchedWordCount": 0,
+          "matchRatio": 0,
+          "tokenCount": 10
+        },
+        "riskLevel": "high",
+        "textEvidenceConfidence": "none",
+        "timingConfidence": "low"
+      },
+      "romanization": "Merī chhoṭī sī bhūlõ ko tū nadiyā mẽ bahā denā",
+      "start": 145.1828573317755,
+      "translation": "Let my little mistakes flow away in the river",
+      "words": [
+        {
+          "end": null,
+          "gloss": "my",
+          "roman": "merī",
+          "start": null,
+          "text": "मेरी"
+        },
+        {
+          "end": null,
+          "gloss": "little",
+          "roman": "chhoṭī",
+          "start": null,
+          "text": "छोटी"
+        },
+        {
+          "end": null,
+          "gloss": "little",
+          "roman": "sī",
+          "start": null,
+          "text": "सी"
+        },
+        {
+          "end": null,
+          "gloss": "mistakes",
+          "roman": "bhūlõ",
+          "start": null,
+          "text": "भूलों"
+        },
+        {
+          "end": null,
+          "gloss": "to",
+          "roman": "ko",
+          "start": null,
+          "text": "को"
+        },
+        {
+          "end": null,
+          "gloss": "you",
+          "roman": "tū",
+          "start": null,
+          "text": "तू"
+        },
+        {
+          "end": null,
+          "gloss": "river",
+          "roman": "nadiyā",
+          "start": null,
+          "text": "नदिया"
+        },
+        {
+          "end": null,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": null,
+          "text": "में"
+        },
+        {
+          "end": null,
+          "gloss": "flow away",
+          "roman": "bahā",
+          "start": null,
+          "text": "बहा"
+        },
+        {
+          "end": null,
+          "gloss": "let",
+          "roman": "denā",
+          "start": null,
+          "text": "देना"
+        }
+      ]
+    },
+    {
+      "id": "0920cf10-0e49-4900-9c53-15b88c8e5f6d",
+      "original": "तेरे जूड़े के फूलों को मैं अपनी शर्ट में पहनूंगा",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 6.439999580383301,
+          "gapAfterSec": 6.439999580383301,
+          "gapBeforeSec": 12.857142630077533,
+          "matchedWordCount": 10,
+          "matchRatio": 1,
+          "tokenCount": 10
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Tere jūṛe ke phūlõ ko maĩ apnī shirt mẽ pahnū̃gā",
+      "start": 158.03999996185303,
+      "translation": "I'll wear the flowers from your bun on my shirt",
+      "words": [
+        {
+          "end": 158.8199999332428,
+          "gloss": "your",
+          "roman": "tere",
+          "start": 158.03999996185303,
+          "text": "तेरे"
+        },
+        {
+          "end": 159.72000002861023,
+          "gloss": "bun",
+          "roman": "jūṛe",
+          "start": 158.8199999332428,
+          "text": "जूड़े"
+        },
+        {
+          "end": 159.94000005722046,
+          "gloss": "of",
+          "roman": "ke",
+          "start": 159.72000002861023,
+          "text": "के"
+        },
+        {
+          "end": 160.67999982833862,
+          "gloss": "flowers",
+          "roman": "phūlõ",
+          "start": 159.94000005722046,
+          "text": "फूलों"
+        },
+        {
+          "end": 160.92000007629395,
+          "gloss": "to",
+          "roman": "ko",
+          "start": 160.67999982833862,
+          "text": "को"
+        },
+        {
+          "end": 161.5,
+          "gloss": "I",
+          "roman": "maĩ",
+          "start": 160.92000007629395,
+          "text": "मैं"
+        },
+        {
+          "end": 162.07999992370605,
+          "gloss": "my",
+          "roman": "apnī",
+          "start": 161.5,
+          "text": "अपनी"
+        },
+        {
+          "end": 162.6399998664856,
+          "gloss": "shirt",
+          "roman": "shirt",
+          "start": 162.07999992370605,
+          "text": "शर्ट"
+        },
+        {
+          "end": 162.88000011444092,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": 162.6399998664856,
+          "text": "में"
+        },
+        {
+          "end": 164.47999954223633,
+          "gloss": "will wear",
+          "roman": "pahnū̃gā",
+          "start": 162.88000011444092,
+          "text": "पहनूंगा"
+        }
+      ]
+    },
+    {
+      "id": "2b3ee97b-497f-42b4-ad03-3af64829c8a1",
+      "original": "बस मेरे लिए तू मालपूए कभी कभी बना देना",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 6.020000457763672,
+          "gapAfterSec": 6.020000457763672,
+          "gapBeforeSec": 6.439999580383301,
+          "matchedWordCount": 8,
+          "matchRatio": 0.8888888888888888,
+          "tokenCount": 9
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Bas mere liye tū mālpue kabhī kabhī banā denā",
+      "start": 164.47999954223633,
+      "translation": "Just make malpua for me sometimes",
+      "words": [
+        {
+          "end": 165.18000030517578,
+          "gloss": "just",
+          "roman": "Bas",
+          "start": 164.47999954223633,
+          "text": "बस"
+        },
+        {
+          "end": 165.7200002670288,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 165.18000030517578,
+          "text": "मेरे"
+        },
+        {
+          "end": 166.10000038146973,
+          "gloss": "for",
+          "roman": "liye",
+          "start": 165.7200002670288,
+          "text": "लिए"
+        },
+        {
+          "end": 166.6599998474121,
+          "gloss": "you",
+          "roman": "tū",
+          "start": 166.10000038146973,
+          "text": "तू"
+        },
+        {
+          "end": 167.85999965667725,
+          "gloss": "malpua",
+          "roman": "mālpue",
+          "start": 166.6599998474121,
+          "text": "मालपूए"
+        },
+        {
+          "end": 168.11999988555908,
+          "gloss": "sometimes",
+          "roman": "kabhī",
+          "start": 167.85999965667725,
+          "text": "कभी"
+        },
+        {
+          "end": 168.11999988555908,
+          "gloss": "sometimes",
+          "roman": "kabhī",
+          "start": 167.85999965667725,
+          "text": "कभी"
+        },
+        {
+          "end": 169.31999969482422,
+          "gloss": "make",
+          "roman": "banā",
+          "start": 168.64000034332275,
+          "text": "बना"
+        },
+        {
+          "end": 170.5,
+          "gloss": "do",
+          "roman": "denā",
+          "start": 169.31999969482422,
+          "text": "देना"
+        }
+      ]
+    },
+    {
+      "id": "4b69bfe4-9e58-4904-8a9e-18d368df4ec5",
+      "original": "आज से मेरी सारी रतिया तेरी हो गई",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 5.739999771118164,
+          "gapAfterSec": 6.180000305175781,
+          "gapBeforeSec": 6.020000457763672,
+          "matchedWordCount": 7,
+          "matchRatio": 0.875,
+          "tokenCount": 8
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Āj se merī sārī ratiyā̃ terī ho gaī",
+      "start": 170.5,
+      "translation": "From today, all my nights are yours",
+      "words": [
+        {
+          "end": 171.80000019073486,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 170.5,
+          "text": "आज"
+        },
+        {
+          "end": 172.26000022888184,
+          "gloss": "from",
+          "roman": "se",
+          "start": 171.80000019073486,
+          "text": "से"
+        },
+        {
+          "end": 173.3799991607666,
+          "gloss": "my",
+          "roman": "merī",
+          "start": 172.26000022888184,
+          "text": "मेरी"
+        },
+        {
+          "end": 174.13999938964844,
+          "gloss": "all",
+          "roman": "sārī",
+          "start": 173.3799991607666,
+          "text": "सारी"
+        },
+        {
+          "end": 174.81999969482422,
+          "gloss": "nights",
+          "roman": "ratiyā̃",
+          "start": 174.13999938964844,
+          "text": "रतिया"
+        },
+        {
+          "end": 175.6200008392334,
+          "gloss": "yours",
+          "roman": "terī",
+          "start": 174.81999969482422,
+          "text": "तेरी"
+        },
+        {
+          "end": 176.23999977111816,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 175.6200008392334,
+          "text": "हो"
+        },
+        {
+          "end": null,
+          "gloss": "became",
+          "roman": "gaī",
+          "start": null,
+          "text": "गई"
+        }
+      ]
+    },
+    {
+      "id": "56eecbba-9571-418d-af73-ecf15dba3eeb",
+      "original": "आज से तेरा दिन मेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 5.260000228881836,
+          "gapAfterSec": 5.260000228881836,
+          "gapBeforeSec": 6.180000305175781,
+          "matchedWordCount": 7,
+          "matchRatio": 1,
+          "tokenCount": 7
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se terā din merā ho gayā",
+      "start": 176.68000030517578,
+      "translation": "From today, your day is mine",
+      "words": [
+        {
+          "end": 177.94000053405762,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 176.68000030517578,
+          "text": "आज"
+        },
+        {
+          "end": 178.2199993133545,
+          "gloss": "from",
+          "roman": "se",
+          "start": 177.94000053405762,
+          "text": "से"
+        },
+        {
+          "end": 179.5,
+          "gloss": "your",
+          "roman": "terā",
+          "start": 178.2199993133545,
+          "text": "तेरा"
+        },
+        {
+          "end": 180.13999938964844,
+          "gloss": "day",
+          "roman": "din",
+          "start": 179.5,
+          "text": "दिन"
+        },
+        {
+          "end": 181.1200008392334,
+          "gloss": "mine",
+          "roman": "merā",
+          "start": 180.13999938964844,
+          "text": "मेरा"
+        },
+        {
+          "end": 181.54000091552734,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 181.1200008392334,
+          "text": "हो"
+        },
+        {
+          "end": 181.94000053405762,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 181.54000091552734,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "7cad37ef-88bd-4865-af1f-181c14768354",
+      "original": "ओ तेरे कांधे का जो तिल है",
+      "quality": {
+        "flags": [
+          {
+            "code": "weak_text_evidence",
+            "message": "Matched words cover less than the expected share of this lyric line.",
+            "severity": "review"
+          },
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.6999988555908203,
+          "gapAfterSec": 3.4399988651275635,
+          "gapBeforeSec": 5.260000228881836,
+          "matchedWordCount": 5,
+          "matchRatio": 0.7142857142857143,
+          "tokenCount": 7
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "low",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō tere kā̃dhe kā jo til hai",
+      "start": 181.94000053405762,
+      "translation": "Oh, the mole on your shoulder",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 182.73999977111816,
+          "gloss": "your",
+          "roman": "tere",
+          "start": 181.94000053405762,
+          "text": "तेरे"
+        },
+        {
+          "end": 183.63999938964844,
+          "gloss": "shoulder",
+          "roman": "kā̃dhe",
+          "start": 182.73999977111816,
+          "text": "कांधे"
+        },
+        {
+          "end": 183.7199993133545,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 183.63999938964844,
+          "text": "का"
+        },
+        {
+          "end": null,
+          "gloss": "which",
+          "roman": "jo",
+          "start": null,
+          "text": "जो"
+        },
+        {
+          "end": 184.2199993133545,
+          "gloss": "mole",
+          "roman": "til",
+          "start": 183.7199993133545,
+          "text": "तिल"
+        },
+        {
+          "end": 184.63999938964844,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 184.2199993133545,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "0806fdf1-8d85-4711-a00c-0a016980e410",
+      "original": "ओ तेरे सीने में जो दिल है",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.8400018215179443,
+          "gapAfterSec": 2.8400018215179443,
+          "gapBeforeSec": 3.4399988651275635,
+          "matchedWordCount": 6,
+          "matchRatio": 0.8571428571428571,
+          "tokenCount": 7
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō tere sīne mẽ jo dil hai",
+      "start": 185.37999939918518,
+      "translation": "Oh, the heart in your chest",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 185.97999942302704,
+          "gloss": "your",
+          "roman": "tere",
+          "start": 185.37999939918518,
+          "text": "तेरे"
+        },
+        {
+          "end": 186.5799994468689,
+          "gloss": "chest",
+          "roman": "sīne",
+          "start": 185.97999942302704,
+          "text": "सीने"
+        },
+        {
+          "end": 186.7199993133545,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": 186.55999946594238,
+          "text": "में"
+        },
+        {
+          "end": 186.97999930381775,
+          "gloss": "which",
+          "roman": "jo",
+          "start": 186.739999294281,
+          "text": "जो"
+        },
+        {
+          "end": 187.29999947547913,
+          "gloss": "heart",
+          "roman": "dil",
+          "start": 186.97999930381775,
+          "text": "दिल"
+        },
+        {
+          "end": 188.22000122070312,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 187.04000091552734,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "2c3197d2-922f-4148-921c-1199ee87f9e7",
+      "original": "ओ तेरी बिजली का जो बिल है",
+      "quality": {
+        "flags": [
+          {
+            "code": "weak_text_evidence",
+            "message": "Matched words cover less than the expected share of this lyric line.",
+            "severity": "review"
+          },
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.6599998474121094,
+          "gapAfterSec": 2.6599998474121094,
+          "gapBeforeSec": 2.8400018215179443,
+          "matchedWordCount": 5,
+          "matchRatio": 0.7142857142857143,
+          "tokenCount": 7
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "low",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō terī bijlī kā jo bil hai",
+      "start": 188.22000122070312,
+      "translation": "Oh, the electricity bill in your name",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 188.7599983215332,
+          "gloss": "your",
+          "roman": "terī",
+          "start": 188.22000122070312,
+          "text": "तेरी"
+        },
+        {
+          "end": 189.56000137329102,
+          "gloss": "electricity",
+          "roman": "bijlī",
+          "start": 188.7599983215332,
+          "text": "बिजली"
+        },
+        {
+          "end": 189.7400016784668,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 189.56000137329102,
+          "text": "का"
+        },
+        {
+          "end": null,
+          "gloss": "which",
+          "roman": "jo",
+          "start": null,
+          "text": "जो"
+        },
+        {
+          "end": 190.2400016784668,
+          "gloss": "bill",
+          "roman": "bil",
+          "start": 189.7400016784668,
+          "text": "बिल"
+        },
+        {
+          "end": 190.88000106811523,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 190.2400016784668,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "7bac7544-dd3e-4cd0-8b1e-925e306effa5",
+      "original": "आज से मेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.039997100830078,
+          "gapAfterSec": 3.499997079372406,
+          "gapBeforeSec": 2.6599998474121094,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se merā ho gayā",
+      "start": 190.88000106811523,
+      "translation": "From today, it's mine",
+      "words": [
+        {
+          "end": 191.8400001525879,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 190.88000106811523,
+          "text": "आज"
+        },
+        {
+          "end": 192.22000122070312,
+          "gloss": "from",
+          "roman": "se",
+          "start": 191.8400001525879,
+          "text": "से"
+        },
+        {
+          "end": 192.97999954223633,
+          "gloss": "mine",
+          "roman": "merā",
+          "start": 192.22000122070312,
+          "text": "मेरा"
+        },
+        {
+          "end": 193.54000091552734,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 192.97999954223633,
+          "text": "हो"
+        },
+        {
+          "end": 193.9199981689453,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 193.54000091552734,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "f49794cf-d46f-4be9-a83b-d3a04ae838f9",
+      "original": "ओ मेरे ख्वाबों का अंबर",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.4400001168251038,
+          "gapAfterSec": 3.080000936985016,
+          "gapBeforeSec": 3.499997079372406,
+          "matchedWordCount": 4,
+          "matchRatio": 0.8,
+          "tokenCount": 5
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō mere khvābõ kā ambar",
+      "start": 194.37999814748764,
+      "translation": "Oh, the sky of my dreams",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 194.77999818325043,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 194.37999814748764,
+          "text": "मेरे"
+        },
+        {
+          "end": 195.43999814987183,
+          "gloss": "dreams",
+          "roman": "khvābõ",
+          "start": 194.77999818325043,
+          "text": "ख्वाबों"
+        },
+        {
+          "end": 195.9199981689453,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 195.43999814987183,
+          "text": "का"
+        },
+        {
+          "end": 196.81999826431274,
+          "gloss": "sky",
+          "roman": "ambar",
+          "start": 195.9199981689453,
+          "text": "अंबर"
+        }
+      ]
+    },
+    {
+      "id": "f7b1d1cd-bec8-4dde-83c3-23822abb2619",
+      "original": "ओ मेरी खुशियों का समंदर",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.3600006103515625,
+          "gapAfterSec": 3,
+          "gapBeforeSec": 3.080000936985016,
+          "matchedWordCount": 4,
+          "matchRatio": 0.8,
+          "tokenCount": 5
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō merī khushiyā̃ kā samandar",
+      "start": 197.45999908447266,
+      "translation": "Oh, the sea of my joy",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 197.8400001525879,
+          "gloss": "my",
+          "roman": "merī",
+          "start": 197.45999908447266,
+          "text": "मेरी"
+        },
+        {
+          "end": 198.5800018310547,
+          "gloss": "joys",
+          "roman": "khushiyā̃",
+          "start": 197.8400001525879,
+          "text": "खुशियों"
+        },
+        {
+          "end": 198.77999877929688,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 198.5800018310547,
+          "text": "का"
+        },
+        {
+          "end": 199.81999969482422,
+          "gloss": "sea",
+          "roman": "samandar",
+          "start": 198.77999877929688,
+          "text": "समंदर"
+        }
+      ]
+    },
+    {
+      "id": "16ed45d4-050b-49f0-8c47-75f916b03dd0",
+      "original": "ओ मेरे पिन कोड का नंबर",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.7400007247924805,
+          "gapAfterSec": 2.7400007247924805,
+          "gapBeforeSec": 3,
+          "matchedWordCount": 5,
+          "matchRatio": 0.8333333333333334,
+          "tokenCount": 6
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō mere pin koḍ kā nambar",
+      "start": 200.45999908447266,
+      "translation": "Oh, my pin code number",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 200.77999877929688,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 200.45999908447266,
+          "text": "मेरे"
+        },
+        {
+          "end": 201.19999980926514,
+          "gloss": "pin",
+          "roman": "pin",
+          "start": 200.76000022888184,
+          "text": "पिन"
+        },
+        {
+          "end": 201.6599998474121,
+          "gloss": "code",
+          "roman": "koḍ",
+          "start": 201.19999980926514,
+          "text": "कोड"
+        },
+        {
+          "end": 201.88000011444092,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 201.6599998474121,
+          "text": "का"
+        },
+        {
+          "end": 203.19999980926514,
+          "gloss": "number",
+          "roman": "nambar",
+          "start": 201.88000011444092,
+          "text": "नंबर"
+        }
+      ]
+    },
+    {
+      "id": "82d7022c-8d9e-42c0-9de7-1a1a7855fd72",
+      "original": "आज से तेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 2.6999998092651367,
+          "gapAfterSec": 26.219998359680176,
+          "gapBeforeSec": 2.7400007247924805,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se terā ho gayā",
+      "start": 203.19999980926514,
+      "translation": "From today, it's yours",
+      "words": [
+        {
+          "end": 203.7200002670288,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 203.19999980926514,
+          "text": "आज"
+        },
+        {
+          "end": 204.10000038146973,
+          "gloss": "from",
+          "roman": "se",
+          "start": 203.7200002670288,
+          "text": "से"
+        },
+        {
+          "end": 204.96000003814697,
+          "gloss": "yours",
+          "roman": "terā",
+          "start": 204.10000038146973,
+          "text": "तेरा"
+        },
+        {
+          "end": 205.52000045776367,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 204.96000003814697,
+          "text": "हो"
+        },
+        {
+          "end": 205.89999961853027,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 205.52000045776367,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "c23a54dd-a6cf-4ed6-bafd-d67ac86c85ab",
+      "original": "तु मांगे सरदी में अमिया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.6800003051757812,
+          "gapAfterSec": 3.6800003051757812,
+          "gapBeforeSec": 26.219998359680176,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Tu mā̃ge sardī mẽ amiyā",
+      "start": 229.4199981689453,
+      "translation": "If you ask for mangoes in winter",
+      "words": [
+        {
+          "end": 230.45999908447266,
+          "gloss": "you",
+          "roman": "Tu",
+          "start": 229.4199981689453,
+          "text": "तु"
+        },
+        {
+          "end": 231.11999893188477,
+          "gloss": "ask",
+          "roman": "mā̃ge",
+          "start": 230.45999908447266,
+          "text": "मांगे"
+        },
+        {
+          "end": 231.93999862670898,
+          "gloss": "winter",
+          "roman": "sardī",
+          "start": 231.11999893188477,
+          "text": "सरदी"
+        },
+        {
+          "end": 232.18000030517578,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": 231.93999862670898,
+          "text": "में"
+        },
+        {
+          "end": 233.0999984741211,
+          "gloss": "mangoes",
+          "roman": "amiyā",
+          "start": 232.18000030517578,
+          "text": "अमिया"
+        }
+      ]
+    },
+    {
+      "id": "2cafc82d-2a72-4e8f-beaa-7b1c7befa501",
+      "original": "जो मांगे गर्मी में मूंगफलिया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.1599998474121094,
+          "gapAfterSec": 3.1599998474121094,
+          "gapBeforeSec": 3.6800003051757812,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Jo mā̃ge garmī mẽ mūṅfaliyā",
+      "start": 233.0999984741211,
+      "translation": "If one asks for peanuts in summer",
+      "words": [
+        {
+          "end": 233.43999862670898,
+          "gloss": "if",
+          "roman": "Jo",
+          "start": 233.0999984741211,
+          "text": "जो"
+        },
+        {
+          "end": 234.20000076293945,
+          "gloss": "ask",
+          "roman": "mā̃ge",
+          "start": 233.43999862670898,
+          "text": "मांगे"
+        },
+        {
+          "end": 234.7599983215332,
+          "gloss": "summer",
+          "roman": "garmī",
+          "start": 234.20000076293945,
+          "text": "गर्मी"
+        },
+        {
+          "end": 234.93999862670898,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": 234.7599983215332,
+          "text": "में"
+        },
+        {
+          "end": 236.2599983215332,
+          "gloss": "peanuts",
+          "roman": "mūṅfaliyā",
+          "start": 234.93999862670898,
+          "text": "मूंगफलिया"
+        }
+      ]
+    },
+    {
+      "id": "26f8afdd-6cf4-4380-bc9d-e754c79d659b",
+      "original": "तु बारिश में अगर कह दे",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 2.6400017738342285,
+          "gapAfterSec": 2.6400017738342285,
+          "gapBeforeSec": 3.1599998474121094,
+          "matchedWordCount": 6,
+          "matchRatio": 1,
+          "tokenCount": 6
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Tu bārish mẽ agar kah de",
+      "start": 236.2599983215332,
+      "translation": "If you say in the rain",
+      "words": [
+        {
+          "end": 236.45999908447266,
+          "gloss": "you",
+          "roman": "Tu",
+          "start": 236.2599983215332,
+          "text": "तु"
+        },
+        {
+          "end": 237.07999992370605,
+          "gloss": "rain",
+          "roman": "bārish",
+          "start": 236.42000007629395,
+          "text": "बारिश"
+        },
+        {
+          "end": 237.4800000190735,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": 237.07999992370605,
+          "text": "में"
+        },
+        {
+          "end": 238.1599998474121,
+          "gloss": "if",
+          "roman": "agar",
+          "start": 237.4800000190735,
+          "text": "अगर"
+        },
+        {
+          "end": 238.53999996185303,
+          "gloss": "say",
+          "roman": "kah",
+          "start": 238.1599998474121,
+          "text": "कह"
+        },
+        {
+          "end": 238.90000009536743,
+          "gloss": "give",
+          "roman": "de",
+          "start": 238.53999996185303,
+          "text": "दे"
+        }
+      ]
+    },
+    {
+      "id": "ec367ec7-20e7-4a6a-836d-1c6654fdefdd",
+      "original": "जा मेरे लिए तु धूप खिला",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.179999828338623,
+          "gapAfterSec": 11.559998989105225,
+          "gapBeforeSec": 2.6400017738342285,
+          "matchedWordCount": 6,
+          "matchRatio": 1,
+          "tokenCount": 6
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Jā mere liye tu dhūp khilā",
+      "start": 238.90000009536743,
+      "translation": "Go on, make the sunshine bloom for me",
+      "words": [
+        {
+          "end": 239.46000003814697,
+          "gloss": "go",
+          "roman": "Jā",
+          "start": 238.90000009536743,
+          "text": "जा"
+        },
+        {
+          "end": 239.95999908447266,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 239.43999862670898,
+          "text": "मेरे"
+        },
+        {
+          "end": 240.3400001525879,
+          "gloss": "for",
+          "roman": "liye",
+          "start": 239.90000009536743,
+          "text": "लिए"
+        },
+        {
+          "end": 240.82000017166138,
+          "gloss": "you",
+          "roman": "tu",
+          "start": 240.3400001525879,
+          "text": "तु"
+        },
+        {
+          "end": 241.38000011444092,
+          "gloss": "sunshine",
+          "roman": "dhūp",
+          "start": 240.82000017166138,
+          "text": "धूप"
+        },
+        {
+          "end": 242.07999992370605,
+          "gloss": "bloom",
+          "roman": "khilā",
+          "start": 241.38000011444092,
+          "text": "खिला"
+        }
+      ]
+    },
+    {
+      "id": "e91209dd-9692-4aa0-a45a-25ed3f82a2ba",
+      "original": "तो मैं सूरज को जटक दूँगा",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.520000457763672,
+          "gapAfterSec": 3.520000457763672,
+          "gapBeforeSec": 11.559998989105225,
+          "matchedWordCount": 6,
+          "matchRatio": 1,
+          "tokenCount": 6
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "To maĩ sūraj ko jaṭak dū̃gā",
+      "start": 250.45999908447266,
+      "translation": "Then I'll snatch the sun away",
+      "words": [
+        {
+          "end": 251.3799991607666,
+          "gloss": "then",
+          "roman": "To",
+          "start": 250.45999908447266,
+          "text": "तो"
+        },
+        {
+          "end": 251.79999923706055,
+          "gloss": "I",
+          "roman": "maĩ",
+          "start": 251.3799991607666,
+          "text": "मैं"
+        },
+        {
+          "end": 252.44000053405762,
+          "gloss": "sun",
+          "roman": "sūraj",
+          "start": 251.79999923706055,
+          "text": "सूरज"
+        },
+        {
+          "end": 252.7199993133545,
+          "gloss": "to",
+          "roman": "ko",
+          "start": 252.44000053405762,
+          "text": "को"
+        },
+        {
+          "end": 253.1599998474121,
+          "gloss": "snatch",
+          "roman": "jaṭak",
+          "start": 252.7199993133545,
+          "text": "जटक"
+        },
+        {
+          "end": 253.97999954223633,
+          "gloss": "will give",
+          "roman": "dū̃gā",
+          "start": 253.1599998474121,
+          "text": "दूँगा"
+        }
+      ]
+    },
+    {
+      "id": "0a3a8fe5-1242-4832-9d32-55aad2436b35",
+      "original": "तो मैं सावन को गटक लूँगा",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.0600013732910156,
+          "gapAfterSec": 3.440000534057617,
+          "gapBeforeSec": 3.520000457763672,
+          "matchedWordCount": 6,
+          "matchRatio": 1,
+          "tokenCount": 6
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "To maĩ sāvan ko gaṭak lū̃gā",
+      "start": 253.97999954223633,
+      "translation": "Then I'll gulp down the monsoon",
+      "words": [
+        {
+          "end": 254.42000007629395,
+          "gloss": "then",
+          "roman": "To",
+          "start": 253.97999954223633,
+          "text": "तो"
+        },
+        {
+          "end": 254.79999923706055,
+          "gloss": "I",
+          "roman": "maĩ",
+          "start": 254.42000007629395,
+          "text": "मैं"
+        },
+        {
+          "end": 255.44000053405762,
+          "gloss": "monsoon",
+          "roman": "sāvan",
+          "start": 254.79999923706055,
+          "text": "सावन"
+        },
+        {
+          "end": 255.7199993133545,
+          "gloss": "to",
+          "roman": "ko",
+          "start": 255.44000053405762,
+          "text": "को"
+        },
+        {
+          "end": 256.1800003051758,
+          "gloss": "gulp",
+          "roman": "gaṭak",
+          "start": 255.7199993133545,
+          "text": "गटक"
+        },
+        {
+          "end": 257.04000091552734,
+          "gloss": "will take",
+          "roman": "lū̃gā",
+          "start": 256.1800003051758,
+          "text": "लूँगा"
+        }
+      ]
+    },
+    {
+      "id": "dfd5a42f-81db-48c2-b646-e86143821fd2",
+      "original": "तु सारे तारों संग चंदा",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 2.6599998474121094,
+          "gapAfterSec": 2.6599998474121094,
+          "gapBeforeSec": 3.440000534057617,
+          "matchedWordCount": 4,
+          "matchRatio": 0.8,
+          "tokenCount": 5
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Tu sāre tārõ sang candā",
+      "start": 257.42000007629395,
+      "translation": "You, the moon along with all the stars",
+      "words": [
+        {
+          "end": null,
+          "gloss": "you",
+          "roman": "Tu",
+          "start": null,
+          "text": "तु"
+        },
+        {
+          "end": 258.1800003051758,
+          "gloss": "all",
+          "roman": "sāre",
+          "start": 257.42000007629395,
+          "text": "सारे"
+        },
+        {
+          "end": 258.95999908447266,
+          "gloss": "stars",
+          "roman": "tārõ",
+          "start": 258.1800003051758,
+          "text": "तारों"
+        },
+        {
+          "end": 259.2199993133545,
+          "gloss": "with",
+          "roman": "sang",
+          "start": 258.95999908447266,
+          "text": "संग"
+        },
+        {
+          "end": 260.07999992370605,
+          "gloss": "moon",
+          "roman": "candā",
+          "start": 259.2199993133545,
+          "text": "चंदा"
+        }
+      ]
+    },
+    {
+      "id": "3b64ecb5-c447-4094-8d01-3883ca995c12",
+      "original": "मैं तेरी गोद में रख दूँगा",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.4200000762939453,
+          "gapAfterSec": 3.4200000762939453,
+          "gapBeforeSec": 2.6599998474121094,
+          "matchedWordCount": 6,
+          "matchRatio": 1,
+          "tokenCount": 6
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Maĩ terī god mẽ rakh dū̃gā",
+      "start": 260.07999992370605,
+      "translation": "I'll place it in your lap",
+      "words": [
+        {
+          "end": 260.5200004577637,
+          "gloss": "I",
+          "roman": "Maĩ",
+          "start": 260.07999992370605,
+          "text": "मैं"
+        },
+        {
+          "end": 261.1000003814697,
+          "gloss": "your",
+          "roman": "terī",
+          "start": 260.5200004577637,
+          "text": "तेरी"
+        },
+        {
+          "end": 261.6200008392334,
+          "gloss": "lap",
+          "roman": "god",
+          "start": 261.1000003814697,
+          "text": "गोद"
+        },
+        {
+          "end": 261.86000061035156,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": 261.6200008392334,
+          "text": "में"
+        },
+        {
+          "end": 262.20000076293945,
+          "gloss": "place",
+          "roman": "rakh",
+          "start": 261.86000061035156,
+          "text": "रख"
+        },
+        {
+          "end": 263.5,
+          "gloss": "will give",
+          "roman": "dū̃gā",
+          "start": 262.20000076293945,
+          "text": "दूँगा"
+        }
+      ]
+    },
+    {
+      "id": "06833614-4f55-4679-b068-cb960724d17d",
+      "original": "बस मेरे लिए तु खिलके कभी मुस्कुरा देना",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 6.279998779296875,
+          "gapAfterSec": 6.279998779296875,
+          "gapBeforeSec": 3.4200000762939453,
+          "matchedWordCount": 7,
+          "matchRatio": 0.875,
+          "tokenCount": 8
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Bas mere liye tu khilke kabhī muskura denā",
+      "start": 263.5,
+      "translation": "Just smile brightly for me sometimes",
+      "words": [
+        {
+          "end": 264.1200008392334,
+          "gloss": "just",
+          "roman": "Bas",
+          "start": 263.5,
+          "text": "बस"
+        },
+        {
+          "end": 264.7199993133545,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 264.1200008392334,
+          "text": "मेरे"
+        },
+        {
+          "end": 265.1000003814697,
+          "gloss": "for",
+          "roman": "liye",
+          "start": 264.7199993133545,
+          "text": "लिए"
+        },
+        {
+          "end": 265.5599994659424,
+          "gloss": "you",
+          "roman": "tu",
+          "start": 265.1000003814697,
+          "text": "तु"
+        },
+        {
+          "end": null,
+          "gloss": "brightly",
+          "roman": "khilke",
+          "start": null,
+          "text": "खिलके"
+        },
+        {
+          "end": 266.79999923706055,
+          "gloss": "sometimes",
+          "roman": "kabhī",
+          "start": 266.2400016784668,
+          "text": "कभी"
+        },
+        {
+          "end": 268.3400001525879,
+          "gloss": "smile",
+          "roman": "muskura",
+          "start": 266.79999923706055,
+          "text": "मुस्कुरा"
+        },
+        {
+          "end": 269.7799987792969,
+          "gloss": "do",
+          "roman": "denā",
+          "start": 268.3400001525879,
+          "text": "देना"
+        }
+      ]
+    },
+    {
+      "id": "8be4f1ba-1ca9-4e16-87b1-e3e3cd3434ed",
+      "original": "आज से मेरी सारी सदियां तेरी हो गई",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 5.479999542236328,
+          "gapAfterSec": 5.900001525878906,
+          "gapBeforeSec": 6.279998779296875,
+          "matchedWordCount": 7,
+          "matchRatio": 0.875,
+          "tokenCount": 8
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Āj se merī sārī sadiyā̃ terī ho gaī",
+      "start": 269.7799987792969,
+      "translation": "From today, all my centuries are yours",
+      "words": [
+        {
+          "end": 270.7799987792969,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 269.7799987792969,
+          "text": "आज"
+        },
+        {
+          "end": 271.2599983215332,
+          "gloss": "from",
+          "roman": "se",
+          "start": 270.7799987792969,
+          "text": "से"
+        },
+        {
+          "end": 272.4799995422363,
+          "gloss": "my",
+          "roman": "merī",
+          "start": 271.2599983215332,
+          "text": "मेरी"
+        },
+        {
+          "end": 273.1599998474121,
+          "gloss": "all",
+          "roman": "sārī",
+          "start": 272.4799995422363,
+          "text": "सारी"
+        },
+        {
+          "end": 274.13999938964844,
+          "gloss": "centuries",
+          "roman": "sadiyā̃",
+          "start": 273.1599998474121,
+          "text": "सदियां"
+        },
+        {
+          "end": 274.61999893188477,
+          "gloss": "yours",
+          "roman": "terī",
+          "start": 274.13999938964844,
+          "text": "तेरी"
+        },
+        {
+          "end": 275.2599983215332,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 274.61999893188477,
+          "text": "हो"
+        },
+        {
+          "end": null,
+          "gloss": "became",
+          "roman": "gaī",
+          "start": null,
+          "text": "गई"
+        }
+      ]
+    },
+    {
+      "id": "76ce4e6c-6ffa-4b1b-9ff2-ce522b3a1a8b",
+      "original": "आज से तेरा पल मेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 5.139997959136963,
+          "gapAfterSec": 4.839999675750732,
+          "gapBeforeSec": 5.900001525878906,
+          "matchedWordCount": 7,
+          "matchRatio": 1,
+          "tokenCount": 7
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se terā pal merā ho gayā",
+      "start": 275.6800003051758,
+      "translation": "From today, your moment is mine",
+      "words": [
+        {
+          "end": 276.8400001525879,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 275.6800003051758,
+          "text": "आज"
+        },
+        {
+          "end": 277.38000106811523,
+          "gloss": "from",
+          "roman": "se",
+          "start": 276.8400001525879,
+          "text": "से"
+        },
+        {
+          "end": 278.6399984359741,
+          "gloss": "your",
+          "roman": "terā",
+          "start": 277.35999822616577,
+          "text": "तेरा"
+        },
+        {
+          "end": 279.1199984550476,
+          "gloss": "moment",
+          "roman": "pal",
+          "start": 278.6399984359741,
+          "text": "पल"
+        },
+        {
+          "end": 280.1399984359741,
+          "gloss": "mine",
+          "roman": "merā",
+          "start": 279.1199984550476,
+          "text": "मेरा"
+        },
+        {
+          "end": 280.51999855041504,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 280.1399984359741,
+          "text": "हो"
+        },
+        {
+          "end": 280.81999826431274,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 280.51999855041504,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "9b740850-e3f1-491b-ae7e-e4c4f3309ba8",
+      "original": "ओ तेरे कांधे का जो तिल है",
+      "quality": {
+        "flags": [
+          {
+            "code": "weak_text_evidence",
+            "message": "Matched words cover less than the expected share of this lyric line.",
+            "severity": "review"
+          },
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          },
+          {
+            "code": "gpt_questionable_text",
+            "message": "A secondary text audit marked this lyric as questionable.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 3.0400004386901855,
+          "gapAfterSec": 3.0400004386901855,
+          "gapBeforeSec": 4.839999675750732,
+          "matchedWordCount": 5,
+          "matchRatio": 0.7142857142857143,
+          "tokenCount": 7
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "low",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō tere kā̃dhe kā jo til hai",
+      "start": 280.5199999809265,
+      "translation": "Oh, the mole on your shoulder",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 281.5200004577637,
+          "gloss": "your",
+          "roman": "tere",
+          "start": 280.5199999809265,
+          "text": "तेरे"
+        },
+        {
+          "end": 282.5200004577637,
+          "gloss": "shoulder",
+          "roman": "kā̃dhe",
+          "start": 281.5200004577637,
+          "text": "कांधे"
+        },
+        {
+          "end": 282.69999980926514,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 282.5200004577637,
+          "text": "का"
+        },
+        {
+          "end": 283.0200004577637,
+          "gloss": "which",
+          "roman": "jo",
+          "start": 282.69999980926514,
+          "text": "जो"
+        },
+        {
+          "end": null,
+          "gloss": "mole",
+          "roman": "til",
+          "start": null,
+          "text": "तिल"
+        },
+        {
+          "end": 283.5600004196167,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 283.23999977111816,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "18e2b0a9-d598-45cd-b82c-8154956b2a06",
+      "original": "ओ तेरे सीने में जो दिल है",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 3.479999542236328,
+          "gapAfterSec": 3.479999542236328,
+          "gapBeforeSec": 3.0400004386901855,
+          "matchedWordCount": 6,
+          "matchRatio": 0.8571428571428571,
+          "tokenCount": 7
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō tere sīne mẽ jo dil hai",
+      "start": 283.5600004196167,
+      "translation": "Oh, the heart in your chest",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 284.76000022888184,
+          "gloss": "your",
+          "roman": "tere",
+          "start": 283.5600004196167,
+          "text": "तेरे"
+        },
+        {
+          "end": 285.5600004196167,
+          "gloss": "chest",
+          "roman": "sīne",
+          "start": 284.76000022888184,
+          "text": "सीने"
+        },
+        {
+          "end": 285.6800003051758,
+          "gloss": "in",
+          "roman": "mẽ",
+          "start": 285.5600004196167,
+          "text": "में"
+        },
+        {
+          "end": 285.8800001144409,
+          "gloss": "which",
+          "roman": "jo",
+          "start": 285.6800003051758,
+          "text": "जो"
+        },
+        {
+          "end": 286.23999977111816,
+          "gloss": "heart",
+          "roman": "dil",
+          "start": 285.8800001144409,
+          "text": "दिल"
+        },
+        {
+          "end": 287.039999961853,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 286.23999977111816,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "a4ec6bbf-8294-46b7-8455-f0599f29ef2d",
+      "original": "ओ तेरी बिजली का जो बिल है",
+      "quality": {
+        "flags": [
+          {
+            "code": "generated_not_high_evidence",
+            "message": "Generated lyric text is not backed by high-confidence word evidence.",
+            "severity": "review"
+          }
+        ],
+        "metrics": {
+          "durationSec": 3.0000009536743164,
+          "gapAfterSec": 3.0000009536743164,
+          "gapBeforeSec": 3.479999542236328,
+          "matchedWordCount": 6,
+          "matchRatio": 0.8571428571428571,
+          "tokenCount": 7
+        },
+        "riskLevel": "review",
+        "textEvidenceConfidence": "medium",
+        "timingConfidence": "medium"
+      },
+      "romanization": "Ō terī bijlī kā jo bil hai",
+      "start": 287.039999961853,
+      "translation": "Oh, the electricity bill in your name",
+      "words": [
+        {
+          "end": null,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": null,
+          "text": "ओ"
+        },
+        {
+          "end": 287.7799997329712,
+          "gloss": "your",
+          "roman": "terī",
+          "start": 287.039999961853,
+          "text": "तेरी"
+        },
+        {
+          "end": 288.42000007629395,
+          "gloss": "electricity",
+          "roman": "bijlī",
+          "start": 287.7799997329712,
+          "text": "बिजली"
+        },
+        {
+          "end": 288.73999977111816,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 288.42000007629395,
+          "text": "का"
+        },
+        {
+          "end": 288.92000007629395,
+          "gloss": "which",
+          "roman": "jo",
+          "start": 288.73999977111816,
+          "text": "जो"
+        },
+        {
+          "end": 289.20000076293945,
+          "gloss": "bill",
+          "roman": "bil",
+          "start": 288.92000007629395,
+          "text": "बिल"
+        },
+        {
+          "end": 290.04000091552734,
+          "gloss": "is",
+          "roman": "hai",
+          "start": 289.20000076293945,
+          "text": "है"
+        }
+      ]
+    },
+    {
+      "id": "32971e5f-2021-4902-aa25-26f7b598222d",
+      "original": "आज से मेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 2.8799991607666016,
+          "gapAfterSec": 2.8799991607666016,
+          "gapBeforeSec": 3.0000009536743164,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se merā ho gayā",
+      "start": 290.04000091552734,
+      "translation": "From today, it's mine",
+      "words": [
+        {
+          "end": 290.6800003051758,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 290.04000091552734,
+          "text": "आज"
+        },
+        {
+          "end": 291.1800003051758,
+          "gloss": "from",
+          "roman": "se",
+          "start": 290.6800003051758,
+          "text": "से"
+        },
+        {
+          "end": 292.0599994659424,
+          "gloss": "mine",
+          "roman": "merā",
+          "start": 291.1800003051758,
+          "text": "मेरा"
+        },
+        {
+          "end": 292.57999992370605,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 292.0599994659424,
+          "text": "हो"
+        },
+        {
+          "end": 292.92000007629395,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 292.57999992370605,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "4f74ff97-ef47-40e7-a019-89c5826bd6ec",
+      "original": "ओ मेरे ख्वाबों का अंबर",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 2.8199996948242188,
+          "gapAfterSec": 2.8199996948242188,
+          "gapBeforeSec": 2.8799991607666016,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Ō mere khvābõ kā ambar",
+      "start": 292.92000007629395,
+      "translation": "Oh, the sky of my dreams",
+      "words": [
+        {
+          "end": 293.42000007629395,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": 292.92000007629395,
+          "text": "ओ"
+        },
+        {
+          "end": 293.73999977111816,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 293.42000007629395,
+          "text": "मेरे"
+        },
+        {
+          "end": 294.5599994659424,
+          "gloss": "dreams",
+          "roman": "khvābõ",
+          "start": 293.73999977111816,
+          "text": "ख्वाबों"
+        },
+        {
+          "end": 294.8799991607666,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 294.5599994659424,
+          "text": "का"
+        },
+        {
+          "end": 295.73999977111816,
+          "gloss": "sky",
+          "roman": "ambar",
+          "start": 294.8799991607666,
+          "text": "अंबर"
+        }
+      ]
+    },
+    {
+      "id": "03ed5146-8348-4373-be36-6077665669be",
+      "original": "ओ मेरी खुशियों का समंदर",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.020000457763672,
+          "gapAfterSec": 3.020000457763672,
+          "gapBeforeSec": 2.8199996948242188,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Ō merī khushiyõ kā samandar",
+      "start": 295.73999977111816,
+      "translation": "Oh, the sea of my joys",
+      "words": [
+        {
+          "end": 296.4799995422363,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": 295.73999977111816,
+          "text": "ओ"
+        },
+        {
+          "end": 296.73999977111816,
+          "gloss": "my",
+          "roman": "merī",
+          "start": 296.4799995422363,
+          "text": "मेरी"
+        },
+        {
+          "end": 297.4400005340576,
+          "gloss": "joys",
+          "roman": "khushiyõ",
+          "start": 296.73999977111816,
+          "text": "खुशियों"
+        },
+        {
+          "end": 297.73999977111816,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 297.4400005340576,
+          "text": "का"
+        },
+        {
+          "end": 298.76000022888184,
+          "gloss": "sea",
+          "roman": "samandar",
+          "start": 297.73999977111816,
+          "text": "समंदर"
+        }
+      ]
+    },
+    {
+      "id": "f8879cdf-6060-48af-b16a-4acadf93dc1c",
+      "original": "ओ मेरे पिन कोड का नंबर",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 3.479999542236328,
+          "gapAfterSec": 3.479999542236328,
+          "gapBeforeSec": 3.020000457763672,
+          "matchedWordCount": 6,
+          "matchRatio": 1,
+          "tokenCount": 6
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Ō mere pin koḍ kā number",
+      "start": 298.76000022888184,
+      "translation": "Oh, my pin code number",
+      "words": [
+        {
+          "end": 299.5,
+          "gloss": "oh",
+          "roman": "Ō",
+          "start": 298.76000022888184,
+          "text": "ओ"
+        },
+        {
+          "end": 299.76000022888184,
+          "gloss": "my",
+          "roman": "mere",
+          "start": 299.5,
+          "text": "मेरे"
+        },
+        {
+          "end": 300.2199993133545,
+          "gloss": "pin",
+          "roman": "pin",
+          "start": 299.76000022888184,
+          "text": "पिन"
+        },
+        {
+          "end": 300.63999938964844,
+          "gloss": "code",
+          "roman": "koḍ",
+          "start": 300.2199993133545,
+          "text": "कोड"
+        },
+        {
+          "end": 300.9400005340576,
+          "gloss": "of",
+          "roman": "kā",
+          "start": 300.63999938964844,
+          "text": "का"
+        },
+        {
+          "end": 302.23999977111816,
+          "gloss": "number",
+          "roman": "number",
+          "start": 300.9400005340576,
+          "text": "नंबर"
+        }
+      ]
+    },
+    {
+      "id": "a6afc946-c639-4752-ad9c-038ae357306d",
+      "original": "आज से तेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 5.239999771118164,
+          "gapAfterSec": 6.179999828338623,
+          "gapBeforeSec": 3.479999542236328,
+          "matchedWordCount": 5,
+          "matchRatio": 1,
+          "tokenCount": 5
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se terā ho gayā",
+      "start": 302.23999977111816,
+      "translation": "From today, it's yours",
+      "words": [
+        {
+          "end": 302.73999977111816,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 302.23999977111816,
+          "text": "आज"
+        },
+        {
+          "end": 303.07999992370605,
+          "gloss": "from",
+          "roman": "se",
+          "start": 302.73999977111816,
+          "text": "से"
+        },
+        {
+          "end": 305.4799995422363,
+          "gloss": "yours",
+          "roman": "terā",
+          "start": 303.07999992370605,
+          "text": "तेरा"
+        },
+        {
+          "end": 306.29999923706055,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 305.4799995422363,
+          "text": "हो"
+        },
+        {
+          "end": 307.4799995422363,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 306.29999923706055,
+          "text": "गया"
+        }
+      ]
+    },
+    {
+      "id": "331d26bb-3a10-4ad7-a7aa-9b3ba6e6caed",
+      "original": "आज से तेरी सारी गलियां मेरी हो गई",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 5.920000076293945,
+          "gapAfterSec": 5.960000514984131,
+          "gapBeforeSec": 6.179999828338623,
+          "matchedWordCount": 8,
+          "matchRatio": 1,
+          "tokenCount": 8
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se terī sārī galiyā̃ merī ho gaī",
+      "start": 308.4199995994568,
+      "translation": "From today, all your streets are mine",
+      "words": [
+        {
+          "end": 309.65999960899353,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 308.4199995994568,
+          "text": "आज"
+        },
+        {
+          "end": 309.99999952316284,
+          "gloss": "from",
+          "roman": "se",
+          "start": 309.65999960899353,
+          "text": "से"
+        },
+        {
+          "end": 311.33999967575073,
+          "gloss": "your",
+          "roman": "terī",
+          "start": 309.99999952316284,
+          "text": "तेरी"
+        },
+        {
+          "end": 311.9399995803833,
+          "gloss": "all",
+          "roman": "sārī",
+          "start": 311.33999967575073,
+          "text": "सारी"
+        },
+        {
+          "end": 312.9599995613098,
+          "gloss": "streets",
+          "roman": "galiyā̃",
+          "start": 311.9399995803833,
+          "text": "गलियां"
+        },
+        {
+          "end": 313.44000005722046,
+          "gloss": "mine",
+          "roman": "merī",
+          "start": 312.81999999284744,
+          "text": "मेरी"
+        },
+        {
+          "end": 314.0599994659424,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 313.4199995994568,
+          "text": "हो"
+        },
+        {
+          "end": 314.33999967575073,
+          "gloss": "became",
+          "roman": "gaī",
+          "start": 314.0599994659424,
+          "text": "गई"
+        }
+      ]
+    },
+    {
+      "id": "3714fda4-643a-409c-9634-7fa6da559088",
+      "original": "आज से मेरा घर तेरा हो गया",
+      "quality": {
+        "flags": [],
+        "metrics": {
+          "durationSec": 5.359999656677246,
+          "gapAfterSec": 0,
+          "gapBeforeSec": 5.960000514984131,
+          "matchedWordCount": 7,
+          "matchRatio": 1,
+          "tokenCount": 7
+        },
+        "riskLevel": "ok",
+        "textEvidenceConfidence": "high",
+        "timingConfidence": "high"
+      },
+      "romanization": "Āj se merā ghar terā ho gayā",
+      "start": 314.3800001144409,
+      "translation": "From today, my home is yours",
+      "words": [
+        {
+          "end": 315.57999992370605,
+          "gloss": "today",
+          "roman": "Āj",
+          "start": 314.3800001144409,
+          "text": "आज"
+        },
+        {
+          "end": 316.07999992370605,
+          "gloss": "from",
+          "roman": "se",
+          "start": 315.57999992370605,
+          "text": "से"
+        },
+        {
+          "end": 317.3400001525879,
+          "gloss": "my",
+          "roman": "merā",
+          "start": 316.07999992370605,
+          "text": "मेरा"
+        },
+        {
+          "end": 317.92000007629395,
+          "gloss": "home",
+          "roman": "ghar",
+          "start": 317.3400001525879,
+          "text": "घर"
+        },
+        {
+          "end": 318.78000020980835,
+          "gloss": "your",
+          "roman": "terā",
+          "start": 317.92000007629395,
+          "text": "तेरा"
+        },
+        {
+          "end": 319.28000020980835,
+          "gloss": "become",
+          "roman": "ho",
+          "start": 318.78000020980835,
+          "text": "हो"
+        },
+        {
+          "end": 319.73999977111816,
+          "gloss": "became",
+          "roman": "gayā",
+          "start": 319.28000020980835,
+          "text": "गया"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "artist": "",
+    "title": ""
+  },
+  "timing": {
+    "lyricLeadInMs": 80
+  },
+  "style": {
+    "animation": {
+      "durationMs": 350,
+      "slidePx": 40,
+      "type": "fade-slide"
+    },
+    "color": "#FFFFFF",
+    "font": "noto-world",
+    "originalSize": 64,
+    "outline": {
+      "color": "#000000",
+      "enabled": false,
+      "width": 2
+    },
+    "preset": "clean",
+    "romanizationColor": "#C9D4E0",
+    "romanizationSize": 40,
+    "shadow": {
+      "blur": 8,
+      "color": "#000000",
+      "enabled": true,
+      "opacity": 0.6
+    },
+    "translationColor": "#D0D0D0",
+    "translationSize": 44,
+    "verticalPosition": 0.78
+  },
+  "version": 1
+}
