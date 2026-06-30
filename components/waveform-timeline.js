@@ -51,6 +51,54 @@ function getMarkerLeftPercent(lineStart, audio) {
   return ((lineStart - startOffset) / sectionDuration) * 100;
 }
 
+function clampPercent(value) {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, value));
+}
+
+function cancelWaveformReveal(frameRef, timeoutRef) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.cancelAnimationFrame(frameRef.current);
+  window.clearTimeout(timeoutRef.current);
+  frameRef.current = 0;
+  timeoutRef.current = 0;
+}
+
+function WaveformSkeleton({ currentPercent = 0 }) {
+  const cursorLeft = clampPercent(currentPercent * 100);
+
+  return (
+    <div aria-hidden="true" className="waveform-skeleton">
+      <div className="waveform-skeleton-bars">
+        {Array.from({ length: 128 }).map((_, index) => {
+          const amplitude =
+            0.38 +
+            ((Math.sin(index * 0.41) + Math.sin(index * 0.17 + 1.8) + 2) / 4) *
+              0.52;
+
+          return (
+            <span
+              className="waveform-skeleton-bar"
+              key={index}
+              style={{ "--bar-h": `${Math.max(8, Math.round(34 * amplitude))}px` }}
+            />
+          );
+        })}
+      </div>
+      <span
+        className="waveform-skeleton-cursor"
+        style={{ left: `${cursorLeft}%` }}
+      />
+    </div>
+  );
+}
+
 // The WebAudio backend plays through an AudioContext, which the browser starts
 // suspended until a user gesture. Resume it before any play() so sound (and the
 // audioContext-derived clock) actually advances.
@@ -127,6 +175,7 @@ export function WaveformTimeline({
   audio,
   audioSrc,
   currentTime,
+  isAudioRestoring = false,
   isPlaying,
   isTimingActive,
   lines,
@@ -138,6 +187,10 @@ export function WaveformTimeline({
   const containerRef = useRef(null);
   const waveSurferRef = useRef(null);
   const lastClockFrameRef = useRef(null);
+  const waveReadyRef = useRef(false);
+  const waveRedrawCompleteRef = useRef(false);
+  const revealFrameRef = useRef(0);
+  const revealTimeoutRef = useRef(0);
   // Mirror of the `currentTime` prop, kept current (via the effect below) so the
   // rAF playback clock — an effect with a stale closure — can see how far the
   // parent has actually rendered.
@@ -149,6 +202,14 @@ export function WaveformTimeline({
   const emittedTimesRef = useRef(new Set());
   const [errorMessage, setErrorMessage] = useState("");
   const [status, setStatus] = useState(audioSrc ? "loading" : "empty");
+  const [waveformVisualReadySource, setWaveformVisualReadySource] =
+    useState(null);
+  const hasReadyWaveform = Boolean(
+    audioSrc && waveformVisualReadySource === audioSrc,
+  );
+  const isWaveformBusy = Boolean(
+    (audioSrc && !hasReadyWaveform) || isAudioRestoring,
+  );
 
   const emitTimeChange = useEffectEvent((timeInSeconds) => {
     rememberEmittedTime(emittedTimesRef.current, timeInSeconds);
@@ -205,7 +266,7 @@ export function WaveformTimeline({
 
   useEffect(() => {
     if (!containerRef.current || !audioSrc) {
-      setStatus("empty");
+      setStatus(isAudioRestoring ? "loading" : "empty");
       setErrorMessage("");
       emitPlayingChange(false);
       return undefined;
@@ -213,6 +274,27 @@ export function WaveformTimeline({
 
     setStatus("loading");
     setErrorMessage("");
+    waveReadyRef.current = false;
+    waveRedrawCompleteRef.current = false;
+
+    const revealWaveform = () => {
+      window.cancelAnimationFrame(revealFrameRef.current);
+      revealFrameRef.current = window.requestAnimationFrame(() => {
+        revealFrameRef.current = window.requestAnimationFrame(() => {
+          setWaveformVisualReadySource(audioSrc);
+        });
+      });
+    };
+
+    const maybeRevealWaveform = () => {
+      if (!waveReadyRef.current || !waveRedrawCompleteRef.current) {
+        return;
+      }
+
+      window.clearTimeout(revealTimeoutRef.current);
+      revealTimeoutRef.current = 0;
+      revealWaveform();
+    };
 
     const waveSurfer = WaveSurfer.create({
       // Play through Web Audio (decoded PCM + AudioBufferSourceNode) instead of
@@ -238,11 +320,24 @@ export function WaveformTimeline({
     waveSurfer.on("ready", (durationInSeconds) => {
       const nextTime = clampToSection(getSectionStart(), durationInSeconds);
 
+      waveReadyRef.current = true;
       setStatus("ready");
       lastClockFrameRef.current = getClockFrame(nextTime);
       emitDurationChange(durationInSeconds);
       emitTimeChange(nextTime);
       waveSurfer.setTime(nextTime);
+
+      window.clearTimeout(revealTimeoutRef.current);
+      revealTimeoutRef.current = window.setTimeout(() => {
+        setWaveformVisualReadySource(audioSrc);
+      }, 900);
+
+      maybeRevealWaveform();
+    });
+
+    waveSurfer.on("redrawcomplete", () => {
+      waveRedrawCompleteRef.current = true;
+      maybeRevealWaveform();
     });
 
     // While playing, the rAF tick below is the SOLE clock publisher: it is
@@ -287,6 +382,8 @@ export function WaveformTimeline({
 
     waveSurfer.on("error", (error) => {
       setStatus("error");
+      cancelWaveformReveal(revealFrameRef, revealTimeoutRef);
+      setWaveformVisualReadySource(audioSrc);
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -296,6 +393,7 @@ export function WaveformTimeline({
     });
 
     return () => {
+      cancelWaveformReveal(revealFrameRef, revealTimeoutRef);
       // destroy() leaves the WebAudio backend's AudioContext open (it's treated
       // as "external media"), so close it ourselves to avoid leaking contexts
       // across track changes (browsers cap how many can exist).
@@ -309,7 +407,7 @@ export function WaveformTimeline({
 
       waveSurferRef.current = null;
     };
-  }, [audioSrc]);
+  }, [audioSrc, isAudioRestoring]);
 
   useEffect(() => {
     const waveSurfer = waveSurferRef.current;
@@ -433,84 +531,71 @@ export function WaveformTimeline({
       line.start >= startOffset &&
       line.start <= endOffset,
   );
-  const isReady = status === "ready" || !audioSrc;
+  const isReady = status === "ready" || (!audioSrc && !isAudioRestoring);
   const canMark = isReady && isTimingActive && Boolean(activeLineId) && typeof onMark === "function";
+  const currentWaveformPercent =
+    sectionDuration > 0 ? currentSectionTime / sectionDuration : 0;
 
   return (
     <div className="transport overflow-hidden border-t border-[var(--border)] bg-[var(--surface)] lg:rounded-[1.75rem] lg:border lg:border-[var(--border)] lg:bg-[var(--surface-2)]">
       <div className="transport-inner">
       <div className="transport-wave-wrap px-4 pb-3 pt-2.5 lg:px-4 lg:pb-2 lg:pt-3">
-        {audioSrc ? (
-          <div className="relative">
-            <div className="waveform relative overflow-hidden rounded-xl bg-[var(--surface)] px-2.5 py-2 lg:rounded-[1rem] lg:px-3 lg:py-2.5">
-              {/* Content-box wrapper: markers (CSS %) and the wavesurfer
-                  waveform/cursor share this exact coordinate space. */}
-              <div className="relative">
-                <div ref={containerRef} />
-
-                {markers.length ? (
-                  // Purely visual lyric markers. pointer-events-none lets clicks
-                  // fall through to the waveform so the mouse only seeks playback.
-                  <div className="pointer-events-none absolute inset-0 z-10">
-                    {markers.map((line) => {
-                      const isActiveMarker = activeLineId === line.id;
-                      const isHeardMarker = heardLine?.id === line.id;
-                      const left = getMarkerLeftPercent(line.start, audio);
-
-                      return (
-                        <div
-                          aria-hidden="true"
-                          className="absolute inset-y-0 z-10 w-4 -translate-x-1/2"
-                          key={line.id}
-                          style={{ left: `${left}%` }}
-                        >
-                          <span
-                            className={`absolute inset-y-2 left-1/2 w-0.5 -translate-x-1/2 rounded-full ${
-                              isActiveMarker
-                                ? "bg-[var(--accent)]"
-                                : isHeardMarker
-                                  ? "bg-[var(--surface-2)]"
-                                  : "bg-[var(--surface-2)]"
-                            }`}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        ) : (
+        <div className="relative">
           <div
-            aria-hidden="true"
-            className="waveform relative overflow-hidden rounded-xl bg-[var(--surface)] px-2.5 py-2 lg:rounded-[1rem] lg:px-3 lg:py-2.5"
+            aria-busy={isWaveformBusy}
+            className={`waveform waveform-surface ${
+              hasReadyWaveform ? "is-wave-ready" : "is-wave-loading"
+            } relative overflow-hidden rounded-xl bg-[var(--surface)] px-2.5 py-2 lg:rounded-[1rem] lg:px-3 lg:py-2.5`}
           >
-            <div className="flex h-9 items-center gap-[3px] lg:h-14">
-              {Array.from({ length: 84 }).map((_, index) => {
-                const amplitude = 0.25 + ((Math.sin(index * 0.55) + 1) / 2) * 0.75;
+            {/* Content-box wrapper: markers (CSS %) and the wavesurfer
+                waveform/cursor share this exact coordinate space. */}
+            <div className="waveform-content">
+              {audioSrc ? (
+                <div
+                  aria-hidden={!hasReadyWaveform}
+                  className="waveform-engine-layer"
+                >
+                  <div ref={containerRef} />
 
-                return (
-                  <span
-                    className="flex-1 rounded-full bg-slate-400/55"
-                    key={index}
-                    style={{
-                      height: `${Math.max(8, Math.round(24 * amplitude))}px`,
-                    }}
-                  />
-                );
-              })}
+                  {markers.length ? (
+                    // Purely visual lyric markers. pointer-events-none lets clicks
+                    // fall through to the waveform so the mouse only seeks playback.
+                    <div className="pointer-events-none absolute inset-0 z-10">
+                      {markers.map((line) => {
+                        const isActiveMarker = activeLineId === line.id;
+                        const isHeardMarker = heardLine?.id === line.id;
+                        const left = getMarkerLeftPercent(line.start, audio);
+
+                        return (
+                          <div
+                            aria-hidden="true"
+                            className="absolute inset-y-0 z-10 w-4 -translate-x-1/2"
+                            key={line.id}
+                            style={{ left: `${left}%` }}
+                          >
+                            <span
+                              className={`absolute inset-y-2 left-1/2 w-0.5 -translate-x-1/2 rounded-full ${
+                                isActiveMarker
+                                  ? "bg-[var(--accent)]"
+                                  : isHeardMarker
+                                    ? "bg-[var(--surface-2)]"
+                                    : "bg-[var(--surface-2)]"
+                              }`}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div ref={containerRef} />
+              )}
+
+              <WaveformSkeleton currentPercent={currentWaveformPercent} />
             </div>
-            <div
-              className="absolute inset-y-0 w-px bg-sky-200/35"
-              style={{ left: "10%" }}
-            />
-            <div
-              className="absolute inset-y-0 w-0.5 bg-[var(--accent)] shadow-[0_0_8px_rgba(251,191,36,0.8)]"
-              style={{ left: "14%" }}
-            />
           </div>
-        )}
+        </div>
 
         {errorMessage ? (
           <p className="mt-3 text-sm leading-6 text-[var(--danger)]">{errorMessage}</p>

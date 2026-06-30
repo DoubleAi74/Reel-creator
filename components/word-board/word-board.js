@@ -269,13 +269,13 @@ export function WordBoard({
 
   return (
     <div className="wb" ref={hostRef}>
-      {/* The frame is contain-fit by CSS, but the interior scale is measured on
-          the client. Keep the shell hidden until that pass lands so the first
-          visible board already has its final dimensions. */}
+      {/* The frame is contain-fit by CSS and can paint immediately. The
+          scale-sensitive lyric rows stay hidden until the client measurement
+          pass lands, so the first visible words already have their final size. */}
       <section
         className={`prototype-shell version-sketch is-scroll-mode${
           showRoman ? " show-inline-roman" : ""
-        }${ready ? "" : " is-measuring"}`}
+        }`}
         aria-busy={!ready}
         style={boardStyle}
       >

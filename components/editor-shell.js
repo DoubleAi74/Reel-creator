@@ -19,6 +19,7 @@ import {
   createLine,
   exportProjectJson,
   importProjectJson,
+  importProjectValue,
 } from "@/lib/project";
 import {
   AUTOSAVE_STORAGE_KEY,
@@ -87,6 +88,12 @@ const SECTIONS = [
 const SUB_TABS = SECTIONS.flatMap((section) =>
   section.tabs.map((tab) => ({ ...tab, section: section.id })),
 );
+
+// Bundled demo assets. The MP3 is copied into /public/samples so it can be
+// fetched and pushed through the normal audio upload pipeline; the project JSON
+// is loaded on demand via dynamic import.
+const SAMPLE_AUDIO_NAME = "Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3";
+const SAMPLE_AUDIO_URL = `/samples/${SAMPLE_AUDIO_NAME}`;
 
 function getSectionForSubTab(subTabId) {
   return (
@@ -896,6 +903,7 @@ export function EditorShell({ debugProbe = null, project }) {
     createBackgroundUploadState(project.background),
   );
   const [audioObjectUrl, setAudioObjectUrl] = useState(null);
+  const [isLoadingSample, setIsLoadingSample] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(
     getInitialTransportTime(project),
   );
@@ -2158,6 +2166,162 @@ export function EditorShell({ debugProbe = null, project }) {
     setIsJsonModalOpen(false);
   };
 
+  // Clear only the loaded MP3 (asset, blob URL, audio section, and the
+  // transcription state derived from it) while leaving the lyric lines intact.
+  const handleClearAudio = () => {
+    appliedTranscribeJobIdRef.current = null;
+
+    const blankAudio = { name: "", duration: 0, startOffset: 0, endOffset: null };
+
+    setProjectState((currentProject) => ({
+      ...currentProject,
+      audio: blankAudio,
+    }));
+    setAudioObjectUrl(null);
+    setAudioUpload({
+      asset: null,
+      message: "Track cleared. Upload an MP3 to start again.",
+      status: "idle",
+    });
+    setAudioOffsetDrafts(buildAudioOffsetDrafts(blankAudio));
+    setCurrentAudioTime(0);
+    setIsTransportPlaying(false);
+    setTranscription(null);
+    setAutoLyricsState(createIdleAutoLyricsState());
+    setAutoTimingState(createIdleAutoTimingState());
+    setWordTimingState(createIdleWordTimingState());
+    setTimingNotice({ message: "", status: "idle" });
+    setAudioSectionNotice({ message: "", status: "idle" });
+  };
+
+  // Clear only the lyric lines (and the board/timing/meaning state derived from
+  // them) while leaving the loaded MP3 intact.
+  const handleClearLyrics = () => {
+    setProjectState((currentProject) => ({
+      ...currentProject,
+      lines: [],
+    }));
+    editorActions.clearSelectedWord();
+    setSelectedTimingLineId(getDefaultTimingLineId([]));
+    setTimingDrafts({});
+    setRomanizeState({ message: "", status: "idle" });
+    setWordMeaningsState({ message: "", status: "idle" });
+    setAutoLyricsState(createIdleAutoLyricsState());
+    setTimingNotice({ message: "", status: "idle" });
+    setJsonNotice({ message: "Lyrics cleared.", status: "success" });
+  };
+
+  // Load the bundled demo: import the sample project JSON, then fetch the
+  // matching MP3 and push it through the real upload pipeline so the waveform,
+  // preview, and export all work. Composed as a single handler (rather than
+  // reusing handleProjectImport + handleAudioFile) so the line clamp runs
+  // against the freshly imported lines instead of stale closure state.
+  const handleLoadSample = async () => {
+    if (isLoadingSample) {
+      return;
+    }
+
+    setIsLoadingSample(true);
+    appliedTranscribeJobIdRef.current = null;
+    setJsonImportError("");
+    setJsonNotice({ message: "", status: "idle" });
+    setAudioUpload({
+      asset: null,
+      message: "Loading sample track…",
+      status: "uploading",
+    });
+
+    try {
+      const { default: sampleProjectJson } = await import(
+        "@/samples/reel-creator-project.json"
+      );
+      const importedProject = importProjectValue(sampleProjectJson);
+
+      const audioResponse = await fetch(SAMPLE_AUDIO_URL);
+      if (!audioResponse.ok) {
+        throw new Error("Sample track could not be loaded.");
+      }
+      const audioBlob = await audioResponse.blob();
+      const sampleFile = new File([audioBlob], SAMPLE_AUDIO_NAME, {
+        type: "audio/mpeg",
+      });
+
+      const formData = new FormData();
+      formData.append("file", sampleFile);
+      formData.append("kind", "audio");
+
+      const uploadResponse = await fetch("/api/upload", {
+        body: formData,
+        credentials: "same-origin",
+        method: "POST",
+      });
+      const payload = await uploadResponse.json();
+
+      if (!uploadResponse.ok) {
+        throw new Error(payload.error ?? "Sample upload failed.");
+      }
+
+      const durationSec = await readAudioDuration(sampleFile).catch(() => null);
+      const nextObjectUrl = URL.createObjectURL(sampleFile);
+      const nextAsset = {
+        ...payload,
+        durationSec: durationSec ?? payload.durationSec ?? null,
+      };
+      const nextAudio = normalizeAudioSection({
+        ...importedProject.audio,
+        duration:
+          durationSec && Number.isFinite(durationSec)
+            ? durationSec
+            : importedProject.audio.duration,
+        endOffset:
+          durationSec && Number.isFinite(durationSec)
+            ? null
+            : importedProject.audio.endOffset,
+        name: payload.name,
+        startOffset: 0,
+      });
+      const { lines } = clampLineStartsToSection(
+        importedProject.lines,
+        nextAudio,
+      );
+      const nextProject = { ...importedProject, audio: nextAudio, lines };
+
+      setProjectState(nextProject);
+      setAudioObjectUrl(nextObjectUrl);
+      setAudioUpload({
+        asset: nextAsset,
+        message: `${payload.name} uploaded successfully.`,
+        status: "success",
+      });
+      setBackgroundUpload(createBackgroundUploadState(nextProject.background));
+      setAudioOffsetDrafts(buildAudioOffsetDrafts(nextAudio));
+      setCurrentAudioTime(getInitialTransportTime(nextProject));
+      setIsTransportPlaying(false);
+      setSelectedTimingLineId(getDefaultTimingLineId(nextProject.lines));
+      setTimingDrafts({});
+      setTranscription(null);
+      setAutoFollowEnabled(true);
+      setTimingNotice({ message: "", status: "idle" });
+      setAudioSectionNotice({ message: "", status: "idle" });
+      setAutoLyricsState(createIdleAutoLyricsState());
+      setAutoTimingState(createIdleAutoTimingState());
+      setWordTimingState(createIdleWordTimingState());
+      setJsonNotice({
+        message: "Sample project loaded. The demo track and lyrics are ready.",
+        status: "success",
+      });
+    } catch (error) {
+      setAudioUpload({
+        asset: null,
+        message:
+          error instanceof Error ? error.message : "Sample could not be loaded.",
+        status: "error",
+      });
+    } finally {
+      setIsLoadingSample(false);
+    }
+  };
+
   const handleProjectExport = () => {
     const json = exportProjectJson(projectState);
     const downloadUrl = URL.createObjectURL(
@@ -3279,6 +3443,14 @@ export function EditorShell({ debugProbe = null, project }) {
       setCurrentAudioTime(getInitialTransportTime(restoredProject));
 
       if (restored.audioAsset?.assetId) {
+        setAudioUpload({
+          asset: { ...restored.audioAsset, kind: "audio" },
+          message: `Restoring ${
+            restored.audioAsset.name || "audio"
+          } from your last session...`,
+          status: "uploading",
+        });
+
         const assetExists = await verifyAssetExists(restored.audioAsset.assetId);
 
         if (cancelled) {
@@ -3931,6 +4103,28 @@ export function EditorShell({ debugProbe = null, project }) {
           >
             Choose MP3
           </button>
+          <button
+            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isLoadingSample}
+            onClick={() => {
+              void handleLoadSample();
+            }}
+            type="button"
+          >
+            {isLoadingSample ? "Loading sample…" : "Load sample"}
+          </button>
+          {projectState.audio.name ||
+          audioUpload.asset?.assetId ||
+          audioObjectUrl ? (
+            <button
+              className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isLoadingSample}
+              onClick={handleClearAudio}
+              type="button"
+            >
+              Clear track
+            </button>
+          ) : null}
           <StatusBadge
             tone={
               audioUpload.status === "success"
@@ -4325,6 +4519,14 @@ export function EditorShell({ debugProbe = null, project }) {
             type="button"
           >
             Export JSON
+          </button>
+          <button
+            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={projectState.lines.length === 0}
+            onClick={handleClearLyrics}
+            type="button"
+          >
+            Clear lyrics
           </button>
         </div>
         {showInlineJsonNotice ? (
@@ -5301,6 +5503,10 @@ export function EditorShell({ debugProbe = null, project }) {
     Boolean(jsonNotice.message) && jsonNotice.status === "error";
   const showInlineJsonNotice =
     Boolean(jsonNotice.message) && !showGlobalJsonNotice;
+  const isAudioRestoring =
+    audioUpload.status === "uploading" &&
+    Boolean(audioUpload.asset?.assetId) &&
+    !audioObjectUrl;
 
   return (
     <EditorProvider value={editor}>
@@ -5620,6 +5826,7 @@ export function EditorShell({ debugProbe = null, project }) {
             audio={projectState.audio}
             audioSrc={audioObjectUrl}
             currentTime={currentAudioTime}
+            isAudioRestoring={isAudioRestoring}
             isPlaying={isTransportPlaying}
             isTimingActive={isTimingTab}
             lines={projectState.lines}

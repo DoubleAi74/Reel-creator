@@ -44,9 +44,6 @@
 .version-sketch, .version-sketch * {
         box-sizing: border-box;
       }
-.prototype-shell.version-sketch.is-measuring {
-        visibility: hidden;
-      }
 .board-control-panel {
         grid-column: 2;
         grid-row: 1;
@@ -1029,6 +1026,11 @@
             aspect-ratio: 1094 / 922;
           }
   }
+  .wb-slot .prototype-shell.version-sketch {
+          width: 100%;
+          height: 100%;
+          aspect-ratio: auto;
+        }
   .version-sketch .board-frame {
           width: 100%;
           height: 100%;
@@ -1429,6 +1431,76 @@
         }
   .version-sketch .board-page-note {
           display: none;
+        }
+}
+
+/* The main workspace slot already has the final 1094:922 box. Size the visible
+   empty-frame chrome from that slot height so it cannot jump before hydration;
+   the lyric rows still wait for JS-measured text metrics. */
+@media (min-width: 1100px) {
+  .wb-slot .version-sketch .board-frame {
+          gap: max(10px, calc(var(--stage-h) * 15 / 922));
+          padding:
+            max(22px, calc(var(--stage-h) * 40 / 922))
+            max(30px, calc(var(--stage-h) * 47 / 922))
+            max(16px, calc(var(--stage-h) * 24 / 922));
+        }
+  .wb-slot .version-sketch .stage {
+          --stage-pad-y: max(10px, calc(var(--stage-h) * 13 / 922));
+          --stage-pad-x: max(18px, calc(var(--stage-h) * 25 / 922));
+        }
+  .wb-slot .version-sketch .pager-strip {
+          height: max(96px, calc(var(--stage-h) * 142 / 922));
+          column-gap: clamp(10px, calc(var(--stage-h) * 42 / 922), 42px);
+        }
+  .wb-slot .version-sketch .board-control-grid {
+          gap: clamp(6px, calc(var(--stage-h) * 12 / 922), 12px);
+        }
+  .wb-slot .version-sketch .roman-toggle,
+  .wb-slot .version-sketch .follow-toggle,
+  .wb-slot .version-sketch .mobile-size-button {
+          width: clamp(40px, calc(var(--stage-h) * 68 / 922), 64px);
+          height: clamp(40px, calc(var(--stage-h) * 68 / 922), 64px);
+          border-radius: clamp(8px, calc(var(--stage-h) * 12 / 922), 12px);
+          font-size: clamp(13px, calc(var(--stage-h) * 24 / 922), 24px);
+        }
+  .wb-slot .version-sketch .mobile-size-button {
+          font-size: clamp(21px, calc(var(--stage-h) * 31 / 922), 31px);
+        }
+  .wb-slot .version-sketch .selection-stack {
+          width: max(360px, calc(var(--stage-h) * 640 / 922));
+        }
+  .wb-slot .version-sketch .selection-panel,
+  .wb-slot .version-sketch .selection-panel.is-empty {
+          min-height: max(96px, calc(var(--stage-h) * 142 / 922));
+          height: max(96px, calc(var(--stage-h) * 142 / 922));
+          padding:
+            max(10px, calc(var(--stage-h) * 15 / 922))
+            max(22px, calc(var(--stage-h) * 32 / 922))
+            max(10px, calc(var(--stage-h) * 14 / 922));
+        }
+  .wb-slot .version-sketch .selection-main {
+          grid-template-rows:
+            max(25px, calc(var(--stage-h) * 34 / 922))
+            2px
+            minmax(34px, 1fr);
+          gap: max(5px, calc(var(--stage-h) * 7 / 922));
+        }
+  .wb-slot .version-sketch .selection-word-row {
+          min-height: max(25px, calc(var(--stage-h) * 34 / 922));
+          gap: max(10px, calc(var(--stage-h) * 16 / 922));
+        }
+  .wb-slot .version-sketch .selection-english {
+          font-size: max(24px, calc(var(--stage-h) * 36 / 922));
+        }
+  .wb-slot .version-sketch .selection-roman {
+          font-size: max(16px, calc(var(--stage-h) * 22 / 922));
+        }
+  .wb-slot .version-sketch .selection-hindi {
+          font-size: max(22px, calc(var(--stage-h) * 30 / 922));
+        }
+  .wb-slot .version-sketch .line-translation {
+          font-size: max(12px, calc(var(--stage-h) * 17 / 922));
         }
 }
 
