@@ -269,17 +269,14 @@ export function WordBoard({
 
   return (
     <div className="wb" ref={hostRef}>
-      {/* The frame (outline + nested boxes) is sized by CSS (container-query
-          contain-fit), so it paints at the correct size from the very first
-          frame — no JS needed, no size snap. Only the scale-dependent INTERIOR
-          (tile widths / fonts) needs the client measurement pass, so we hide
-          just the words + selection panel until `ready` and reveal them already
-          at their final scale. boardStyle carries the measured CSS variables and
-          is applied in render so the reveal is atomic (no one-frame larger text). */}
+      {/* The frame is contain-fit by CSS, but the interior scale is measured on
+          the client. Keep the shell hidden until that pass lands so the first
+          visible board already has its final dimensions. */}
       <section
         className={`prototype-shell version-sketch is-scroll-mode${
           showRoman ? " show-inline-roman" : ""
-        }`}
+        }${ready ? "" : " is-measuring"}`}
+        aria-busy={!ready}
         style={boardStyle}
       >
         <div className="board-frame">

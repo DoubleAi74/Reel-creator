@@ -44,6 +44,9 @@
 .version-sketch, .version-sketch * {
         box-sizing: border-box;
       }
+.prototype-shell.version-sketch.is-measuring {
+        visibility: hidden;
+      }
 .board-control-panel {
         grid-column: 2;
         grid-row: 1;

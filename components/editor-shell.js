@@ -2111,7 +2111,7 @@ export function EditorShell({ debugProbe = null, project }) {
             : "Project imported successfully. Re-upload the matching MP3 when you're ready to time or export.",
         status: "success",
       });
-      setActiveSubTab("edit-text");
+      setActiveSubTab("get-lyrics");
       setIsJsonModalOpen(false);
     } catch (error) {
       setJsonImportError(
@@ -4327,6 +4327,11 @@ export function EditorShell({ debugProbe = null, project }) {
             Export JSON
           </button>
         </div>
+        {showInlineJsonNotice ? (
+          <div className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm leading-6 text-[var(--text)]">
+            {jsonNotice.message}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -5290,7 +5295,12 @@ export function EditorShell({ debugProbe = null, project }) {
   };
 
   const layoutNoticeCount =
-    (!sectionWithinLimit ? 1 : 0) + (jsonNotice.message ? 1 : 0);
+    (!sectionWithinLimit ? 1 : 0) +
+    (jsonNotice.message && jsonNotice.status === "error" ? 1 : 0);
+  const showGlobalJsonNotice =
+    Boolean(jsonNotice.message) && jsonNotice.status === "error";
+  const showInlineJsonNotice =
+    Boolean(jsonNotice.message) && !showGlobalJsonNotice;
 
   return (
     <EditorProvider value={editor}>
@@ -5354,7 +5364,7 @@ export function EditorShell({ debugProbe = null, project }) {
           </div>
         </header>
 
-        {!sectionWithinLimit || jsonNotice.message ? (
+        {!sectionWithinLimit || showGlobalJsonNotice ? (
         <div className="absolute inset-x-3 top-[4.25rem] z-30 space-y-2 lg:static lg:inset-auto lg:space-y-3">
           {!sectionWithinLimit ? (
             <div className="rounded-2xl border border-[var(--danger)]/35 bg-[var(--danger-soft)] px-4 py-2.5 text-sm text-[var(--danger)]">
@@ -5364,13 +5374,9 @@ export function EditorShell({ debugProbe = null, project }) {
             </div>
           ) : null}
 
-          {jsonNotice.message ? (
+          {showGlobalJsonNotice ? (
             <div
-              className={`rounded-2xl border px-4 py-2.5 text-sm ${
-                jsonNotice.status === "error"
-                  ? "border-[var(--danger)]/35 bg-[var(--danger-soft)] text-[var(--danger)]"
-                  : "border-[var(--border)] bg-[var(--surface)] text-[var(--text)]"
-              }`}
+              className="rounded-2xl border border-[var(--danger)]/35 bg-[var(--danger-soft)] px-4 py-2.5 text-sm text-[var(--danger)]"
             >
               {jsonNotice.message}
             </div>
