@@ -5289,10 +5289,20 @@ export function EditorShell({ debugProbe = null, project }) {
     }
   };
 
+  const layoutNoticeCount =
+    (!sectionWithinLimit ? 1 : 0) + (jsonNotice.message ? 1 : 0);
+
   return (
     <EditorProvider value={editor}>
     <div className="app-frame relative flex h-dvh flex-col overflow-hidden bg-[var(--page)] text-[var(--text)]">
-      <div className="app-responsive mx-auto flex h-full w-full max-w-[1720px] flex-col lg:gap-3 lg:px-5 lg:py-4">
+      <div
+        className="app-responsive mx-auto flex h-full w-full max-w-[1720px] flex-col lg:gap-3 lg:px-5 lg:py-4"
+        style={
+          layoutNoticeCount
+            ? { "--layout-notice-offset": `${layoutNoticeCount * 62}px` }
+            : undefined
+        }
+      >
         <header className="top-frame absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 bg-gradient-to-b from-[var(--page)] via-[var(--page)]/70 to-transparent px-4 pb-7 pt-4 lg:static lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:px-4 lg:py-2.5 lg:shadow-[var(--shadow-soft)]">
           <div className="top-inner">
           <div className="brand-lockup flex min-w-0 items-center gap-3">

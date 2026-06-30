@@ -1006,11 +1006,10 @@
           height: var(--board-height);
           min-height: 0;
         }
-  /* Progressive enhancement — only when BOTH features are available:
-     · container-query units (cqw/cqh) to contain-fit the 1094:922 board, and
-     · CSS length division via tan(atan2(a,b)) == a / b to derive the scale.
-     Then the outline + every inner box are correct on the very first paint with
-     no JS measurement, so nothing resizes on load. */
+  /* Progressive enhancement: container-query units contain-fit the 1094:922
+     board outline. Keep --board-scale numeric from the React measurement hook;
+     Firefox can pass this @supports query but invalidate declarations that
+     consume a tan(atan2(...)) custom property at computed-value time. */
   @supports (container-type: size) and (aspect-ratio: tan(atan2(1px, 1px))) {
     .wb {
             width: 100%;
@@ -1022,7 +1021,6 @@
           }
     .prototype-shell.version-sketch {
             --board-w: min(100cqw, calc(100cqh * 1094 / 922));
-            --board-scale: tan(atan2(var(--board-w), 1094px)) !important;
             width: var(--board-w);
             height: auto;
             aspect-ratio: 1094 / 922;

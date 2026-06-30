@@ -132,9 +132,10 @@ textarea:focus-visible {
   gap: clamp(8px, 0.9vw, 14px);
   padding: clamp(8px, 0.9vw, 14px);
   --control-panel-w: clamp(320px, 31vw, 464px);
+  --layout-notice-offset: 0px;
   --stage-h: min(
     680px,
-    calc(100vh - 250px),
+    calc(100vh - 250px - var(--layout-notice-offset)),
     calc((100vw - var(--control-panel-w) - 94px) / 1.72)
   );
 }
