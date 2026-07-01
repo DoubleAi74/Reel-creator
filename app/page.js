@@ -8,7 +8,7 @@ import { createDefaultProject } from "@/lib/project";
  * The helpers below (`tokenize`, `buildSampleWords`, `createReferenceSampleProject`)
  * used to build a hard-coded "Aaj Se Teri" sample project that was rendered on
  * the home page. The sample data (`@/samples/aaj-se-teri.json`) and the
- * `WORD_BANK` Hindi->{gloss,roman} dictionary they relied on have been removed,
+ * `WORD_BANK`  Hindi->{gloss,roman} dictionary they relied on have been removed,
  * so this code does NOT run anymore. `Home()` now boots a fully blank project.
  *
  * They are intentionally kept (commented out) for future reference — e.g. if a
