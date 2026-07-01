@@ -58,48 +58,16 @@ import {
 import { VIDEO_FPS } from "@/remotion/constants";
 
 const SECTIONS = [
-  {
-    id: "audio",
-    label: "Audio",
-    tabs: [
-      { id: "track-upload", label: "Track upload" },
-      { id: "get-lyrics", label: "Get lyrics" },
-    ],
-  },
-  {
-    id: "lyrics",
-    label: "Lyrics",
-    tabs: [
-      { id: "edit-text", label: "Edit Text" },
-      { id: "timings", label: "Timings" },
-      { id: "words", label: "Words" },
-    ],
-  },
-  {
-    id: "style",
-    label: "Style",
-    tabs: [
-      { id: "text-display", label: "Text display" },
-      { id: "background", label: "Background" },
-    ],
-  },
+  { id: "audio", label: "Audio" },
+  { id: "lyrics", label: "Lyrics" },
+  { id: "style", label: "Style" },
 ];
-
-const SUB_TABS = SECTIONS.flatMap((section) =>
-  section.tabs.map((tab) => ({ ...tab, section: section.id })),
-);
 
 // Bundled demo assets. The MP3 is copied into /public/samples so it can be
 // fetched and pushed through the normal audio upload pipeline; the project JSON
 // is loaded on demand via dynamic import.
 const SAMPLE_AUDIO_NAME = "Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3";
 const SAMPLE_AUDIO_URL = `/samples/${SAMPLE_AUDIO_NAME}`;
-
-function getSectionForSubTab(subTabId) {
-  return (
-    SUB_TABS.find((tab) => tab.id === subTabId)?.section ?? SECTIONS[0].id
-  );
-}
 
 const SOURCE_LANGUAGE_OPTIONS = [
   { id: "auto", label: "Auto-detect" },
@@ -216,16 +184,6 @@ function formatSectionRelativeTime(totalSeconds, audio = {}) {
   const { startOffset } = getSectionBounds(audio);
 
   return formatPreciseTime(Math.max(0, totalSeconds - startOffset));
-}
-
-function buildAudioOffsetDrafts(audio = {}) {
-  const normalizedAudio = normalizeAudioSection(audio);
-
-  return {
-    endOffset:
-      audio.endOffset == null ? "" : formatPreciseTime(normalizedAudio.endOffset),
-    startOffset: formatPreciseTime(normalizedAudio.startOffset),
-  };
 }
 
 function cloneProject(project) {
@@ -453,30 +411,6 @@ function createIdleAutoTimingState() {
   };
 }
 
-function createIdleWordTimingState() {
-  return {
-    duration: 0,
-    errorMessage: "",
-    language: "",
-    status: "idle",
-    words: [],
-  };
-}
-
-function normalizeWordTimings(rawWords) {
-  return (Array.isArray(rawWords) ? rawWords : [])
-    .map((word, index) => ({
-      end: Number(word?.end),
-      index,
-      start: Number(word?.start),
-      word: String(word?.word ?? word?.text ?? "").trim(),
-    }))
-    .filter(
-      (word) =>
-        word.word && Number.isFinite(word.start) && Number.isFinite(word.end),
-    );
-}
-
 function normalizeLineWords(rawWords) {
   return (Array.isArray(rawWords) ? rawWords : [])
     .map((word) => ({
@@ -488,37 +422,6 @@ function normalizeLineWords(rawWords) {
       (word) =>
         word.text && Number.isFinite(word.start) && Number.isFinite(word.end),
     );
-}
-
-function getFlattenedLineWords(result) {
-  return (Array.isArray(result?.lines) ? result.lines : []).flatMap((line) =>
-    normalizeLineWords(line?.words).map((word) => ({
-      end: word.end,
-      start: word.start,
-      word: word.text,
-    })),
-  );
-}
-
-// Build a populated word-timings state from a pipeline result or explicit Load
-// words call so the Words tab is filled without needing a separate Whisper run.
-function buildWordTimingState(result) {
-  const transcriptWords = normalizeWordTimings(result?.words);
-  const words = transcriptWords.length
-    ? transcriptWords
-    : normalizeWordTimings(getFlattenedLineWords(result));
-
-  if (words.length === 0) {
-    return null;
-  }
-
-  return {
-    duration: Number.isFinite(result?.duration) ? result.duration : 0,
-    errorMessage: "",
-    language: typeof result?.language === "string" ? result.language : "",
-    status: "success",
-    words,
-  };
 }
 
 function getPipelineTimingCounts(payload, fallbackLineCount) {
@@ -736,6 +639,38 @@ function StyleColorField({ label, onChange, value }) {
   );
 }
 
+function CollapsibleSection({ children, onToggle, open, title }) {
+  return (
+    <section className="overflow-hidden rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)]">
+      <button
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+        onClick={onToggle}
+        type="button"
+      >
+        <span>{title}</span>
+        <svg
+          aria-hidden="true"
+          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open ? (
+        <div className="border-t border-[var(--border)] px-4 py-4">
+          {children}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 // Textarea that starts one line tall and grows to fit its content.
 function AutoGrowTextarea({ className = "", onChange, value, ...props }) {
   const ref = useRef(null);
@@ -763,26 +698,34 @@ function AutoGrowTextarea({ className = "", onChange, value, ...props }) {
 }
 
 function TimingRow({
+  canMoveDown,
+  canMoveUp,
   displayTime,
   index,
   isActive,
+  isEditing,
   isHeard,
   line,
   onClear,
+  onDelete,
   onDraftChange,
   onDraftCommit,
   onDraftReset,
   onMark,
+  onMoveDown,
+  onMoveUp,
   onNudge,
   onSelect,
+  onToggleEdit,
+  onUpdateLine,
   rowRef,
   timeValue,
 }) {
   return (
     <div
-      className={`rounded-[1rem] border px-2.5 py-2 transition ${
+      className={`relative min-w-0 max-w-full overflow-hidden rounded-[1rem] border px-2.5 py-2 transition ${
         isActive
-          ? "border-[var(--accent)] bg-[var(--surface-active)] shadow-[var(--shadow-soft)]"
+          ? "border-[var(--accent)] bg-[var(--surface-active)] pr-10 shadow-[var(--shadow-soft)]"
           : isHeard
             ? "border-[var(--border)] bg-[var(--surface-2)]"
             : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)]"
@@ -793,10 +736,41 @@ function TimingRow({
       tabIndex={0}
       title={getLineSummary(line)}
     >
-      <div className="flex items-center gap-2.5">
+      {isActive ? (
+        <button
+          aria-label={isEditing ? "Close line editor" : "Edit line text"}
+          className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text)] ${
+            isEditing
+              ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
+              : "border-[var(--border)] bg-[var(--surface)]"
+          }`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleEdit();
+          }}
+          title={isEditing ? "Close line editor" : "Edit line text"}
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            className="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+        </button>
+      ) : null}
+
+      <div className="flex min-w-0 items-center gap-2.5">
         {isActive ? (
           <input
-            className="w-[74px] rounded-md border border-[var(--accent)] bg-[var(--surface-active)] px-2 py-1 font-mono text-[11px] text-[var(--accent)] outline-none"
+            className="w-[74px] flex-none rounded-md border border-[var(--accent)] bg-[var(--surface-active)] px-2 py-1 font-mono text-[11px] text-[var(--accent)] outline-none"
             onBlur={() => onDraftCommit(line.id)}
             onChange={(event) => onDraftChange(line.id, event.target.value)}
             onClick={(event) => event.stopPropagation()}
@@ -821,7 +795,7 @@ function TimingRow({
           />
         ) : (
           <span
-            className={`rounded-md px-2 py-1 font-mono text-[11px] ${
+            className={`flex-none rounded-md px-2 py-1 font-mono text-[11px] ${
               Number.isFinite(line.start)
                 ? "bg-[var(--surface-2)] text-[var(--muted)]"
                 : "bg-[var(--surface-2)] text-[var(--muted)]"
@@ -832,8 +806,8 @@ function TimingRow({
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-[13px] font-medium text-[var(--text)] sm:text-sm">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="min-w-0 truncate text-[13px] font-medium text-[var(--text)] sm:text-sm">
               {line.original || `Line ${index + 1}`}
             </p>
             {isActive ? (
@@ -849,10 +823,10 @@ function TimingRow({
       </div>
 
       {isActive ? (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <div className="mt-2 grid min-w-0 grid-cols-3 gap-1.5 sm:grid-cols-6">
           {[-0.5, -0.05, 0.05, 0.5].map((delta) => (
             <button
-              className="flex-1 rounded-md border border-[var(--border)] px-2 py-1 font-mono text-[11px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+              className="min-w-0 truncate rounded-md border border-[var(--border)] px-1.5 py-1 font-mono text-[11px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
               key={delta}
               onClick={(event) => {
                 event.stopPropagation();
@@ -866,7 +840,7 @@ function TimingRow({
           ))}
 
           <button
-            className="rounded-md border border-[var(--accent)] bg-[var(--surface-active)] px-2.5 py-1 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-[var(--surface-hover)]"
+            className="min-w-0 truncate rounded-md border border-[var(--accent)] bg-[var(--surface-active)] px-1.5 py-1 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-[var(--surface-hover)]"
             onClick={(event) => {
               event.stopPropagation();
               onMark();
@@ -876,7 +850,7 @@ function TimingRow({
             {Number.isFinite(line.start) ? "Re-time" : "Mark"}
           </button>
           <button
-            className="rounded-md border border-[var(--border)] px-2.5 py-1 text-[11px] font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+            className="min-w-0 truncate rounded-md border border-[var(--border)] px-1.5 py-1 text-[11px] font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
             onClick={(event) => {
               event.stopPropagation();
               onClear();
@@ -887,13 +861,99 @@ function TimingRow({
           </button>
         </div>
       ) : null}
+
+      {isEditing ? (
+        <div
+          className="mt-3 grid gap-2 rounded-[0.85rem] border border-[var(--border)] bg-[var(--surface)] p-3"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <label className="block">
+            <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+              Original
+            </span>
+            <AutoGrowTextarea
+              className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] outline-none"
+              onChange={(event) =>
+                onUpdateLine({ original: event.target.value })
+              }
+              onClick={(event) => event.stopPropagation()}
+              value={line.original}
+            />
+          </label>
+
+          <label className="block">
+            <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+              Romanization
+            </span>
+            <AutoGrowTextarea
+              className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm italic text-[var(--muted)] outline-none"
+              onChange={(event) =>
+                onUpdateLine({ romanization: event.target.value })
+              }
+              onClick={(event) => event.stopPropagation()}
+              placeholder="Romanized text (optional)"
+              value={line.romanization ?? ""}
+            />
+          </label>
+
+          <label className="block">
+            <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+              Translation
+            </span>
+            <AutoGrowTextarea
+              className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] outline-none"
+              onChange={(event) =>
+                onUpdateLine({
+                  translation: event.target.value,
+                })
+              }
+              onClick={(event) => event.stopPropagation()}
+              value={line.translation}
+            />
+          </label>
+
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <button
+              className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!canMoveUp}
+              onClick={(event) => {
+                event.stopPropagation();
+                onMoveUp();
+              }}
+              type="button"
+            >
+              Up
+            </button>
+            <button
+              className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!canMoveDown}
+              onClick={(event) => {
+                event.stopPropagation();
+                onMoveDown();
+              }}
+              type="button"
+            >
+              Down
+            </button>
+            <button
+              className="rounded-full bg-[var(--danger-soft)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--danger)] transition hover:bg-[var(--danger-soft)]"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete();
+              }}
+              type="button"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function EditorShell({ debugProbe = null, project }) {
-  const [activeSubTab, setActiveSubTab] = useState("track-upload");
-  const activeSection = getSectionForSubTab(activeSubTab);
+  const [activeSection, setActiveSection] = useState("audio");
   const [audioUpload, setAudioUpload] = useState({
     asset: null,
     message: "Upload an MP3 to replace the sample track metadata.",
@@ -915,10 +975,6 @@ export function EditorShell({ debugProbe = null, project }) {
     message: "",
     status: "idle",
   });
-  const [audioSectionNotice, setAudioSectionNotice] = useState({
-    message: "",
-    status: "idle",
-  });
   const [timingNotice, setTimingNotice] = useState({
     message: "",
     status: "idle",
@@ -926,9 +982,6 @@ export function EditorShell({ debugProbe = null, project }) {
   const [debugMarkEvents, setDebugMarkEvents] = useState([]);
   const [debugProbeRunStatus, setDebugProbeRunStatus] = useState("idle");
   const [debugWaveSurferOnsets, setDebugWaveSurferOnsets] = useState(null);
-  const [audioOffsetDrafts, setAudioOffsetDrafts] = useState(() =>
-    buildAudioOffsetDrafts(project.audio),
-  );
   const [timingDrafts, setTimingDrafts] = useState({});
   const [tapTimingSession, setTapTimingSession] = useState(
     createIdleTapTimingSession,
@@ -948,20 +1001,12 @@ export function EditorShell({ debugProbe = null, project }) {
   // | "error", appliedJobId }. Survives sleep/reload via autosave so a job can
   // be resumed (or its finished result recovered) after the editor remounts.
   const [transcription, setTranscription] = useState(null);
-  const [wordTimingState, setWordTimingState] = useState(
-    createIdleWordTimingState,
-  );
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [otherSourceLanguage, setOtherSourceLanguage] = useState("");
-  const [romanizeState, setRomanizeState] = useState({
-    message: "",
-    status: "idle",
-  });
-  const [wordMeaningsState, setWordMeaningsState] = useState({
-    message: "",
-    status: "idle",
-  });
   const [timingControlsOpen, setTimingControlsOpen] = useState(false);
+  const [editingLineId, setEditingLineId] = useState(null);
+  const [textDisplayOpen, setTextDisplayOpen] = useState(true);
+  const [backgroundOpen, setBackgroundOpen] = useState(false);
   // Independent visibility for the two workspace panes. On wide desktop both can
   // be on at once (preview, board, both, or neither). When the viewport is narrow
   // enough that only one fits, the toggle handlers + an effect keep them mutually
@@ -1098,7 +1143,7 @@ export function EditorShell({ debugProbe = null, project }) {
       : null) ??
     (isTransportPlaying ? heardLine?.id : null) ??
     resolvedSelectedTimingLineId;
-  const isTimingTab = activeSubTab === "timings";
+  const isTimingTab = activeSection === "lyrics";
 
   // Publish cross-cutting signals into the shared editor context so the Word
   // Board can read project lines + playback + follow state without prop drilling.
@@ -1123,6 +1168,14 @@ export function EditorShell({ debugProbe = null, project }) {
   useEffect(() => {
     editorActions.setPreviewFullscreen(isPreviewFullscreen);
   }, [editorActions, isPreviewFullscreen]);
+  useEffect(() => {
+    if (
+      editingLineId &&
+      !projectState.lines.some((line) => line.id === editingLineId)
+    ) {
+      setEditingLineId(null);
+    }
+  }, [editingLineId, projectState.lines]);
 
   // Track whether the workspace is narrow enough to fit only one pane. Matches
   // the CSS breakpoint that collapses the workspace to a single column.
@@ -1183,7 +1236,6 @@ export function EditorShell({ debugProbe = null, project }) {
   );
   const autoLyricsBusy = autoLyricsState.status === "running";
   const autoTimingBusy = autoTimingState.status === "running";
-  const wordTimingBusy = wordTimingState.status === "running";
   const sourceLanguageRequired = sourceLanguage.trim().length === 0;
   const otherSourceLanguageRequired =
     sourceLanguage === "other" && otherSourceLanguage.trim().length === 0;
@@ -1199,19 +1251,6 @@ export function EditorShell({ debugProbe = null, project }) {
     !autoTimingBusy &&
     !sourceLanguageRequired &&
     !otherSourceLanguageRequired;
-  const canAutoTimeLyrics =
-    audioUpload.status === "success" &&
-    Boolean(audioUpload.asset?.assetId) &&
-    lineCount > 0 &&
-    !autoLyricsBusy &&
-    !autoTimingBusy &&
-    !otherSourceLanguageRequired;
-  const canLoadWordTimings =
-    audioUpload.status === "success" &&
-    Boolean(audioUpload.asset?.assetId) &&
-    !wordTimingBusy &&
-    !otherSourceLanguageRequired;
-
   const clearProgrammaticScrollGuard = () => {
     if (programmaticScrollTimeoutRef.current) {
       window.clearTimeout(programmaticScrollTimeoutRef.current);
@@ -1244,118 +1283,6 @@ export function EditorShell({ debugProbe = null, project }) {
       behavior,
       block: "center",
     });
-  };
-
-  const applySectionAudio = (audioPatch, successMessage) => {
-    const nextAudio = normalizeAudioSection({
-      ...projectState.audio,
-      ...audioPatch,
-    });
-    const { clampedCount, lines } = clampLineStartsToSection(
-      projectState.lines,
-      nextAudio,
-    );
-    const lineClampMessage =
-      clampedCount > 0
-        ? ` ${clampedCount} timed ${clampedCount === 1 ? "line was" : "lines were"} clamped inside the new section.`
-        : "";
-
-    setProjectState((currentProject) => ({
-      ...currentProject,
-      audio: nextAudio,
-      lines,
-    }));
-    setAudioOffsetDrafts(buildAudioOffsetDrafts(nextAudio));
-    setCurrentAudioTime((currentTime) => clampTimeToSection(currentTime, nextAudio));
-    setTimingDrafts({});
-    setAutoFollowEnabled(true);
-    setAudioSectionNotice({
-      message: `${successMessage}${lineClampMessage}`,
-      status:
-        clampedCount > 0 || !isSectionWithinLimit(nextAudio) ? "warning" : "success",
-    });
-    setTimingNotice(
-      clampedCount > 0
-        ? {
-            message: `${clampedCount} timed ${
-              clampedCount === 1 ? "line was" : "lines were"
-            } clamped inside the active section.`,
-            status: "danger",
-          }
-        : {
-            message: "",
-            status: "idle",
-          },
-    );
-
-    return nextAudio;
-  };
-
-  const resetAudioOffsetDraft = (field) => {
-    const currentDrafts = buildAudioOffsetDrafts(projectState.audio);
-
-    setAudioOffsetDrafts((drafts) => ({
-      ...drafts,
-      [field]: currentDrafts[field],
-    }));
-  };
-
-  const commitAudioOffsetDraft = (field) => {
-    const draftValue = audioOffsetDrafts[field]?.trim() ?? "";
-
-    if (field === "startOffset" && draftValue.length === 0) {
-      applySectionAudio(
-        {
-          startOffset: 0,
-        },
-        "Section start reset to 00:00.00.",
-      );
-      return;
-    }
-
-    if (field === "endOffset" && draftValue.length === 0) {
-      applySectionAudio(
-        {
-          endOffset: null,
-        },
-        "Section end reset to the full track.",
-      );
-      return;
-    }
-
-    const parsedTime = parseTypedTime(draftValue);
-
-    if (!Number.isFinite(parsedTime)) {
-      setAudioSectionNotice({
-        message: `Type the ${field === "startOffset" ? "start" : "end"} offset as seconds or mm:ss.ss.`,
-        status: "danger",
-      });
-      return;
-    }
-
-    const previewAudio = normalizeAudioSection({
-      ...projectState.audio,
-      [field]: parsedTime,
-    });
-    const wasClamped =
-      field === "startOffset"
-        ? Math.abs(previewAudio.startOffset - parsedTime) >= 0.0001
-        : Math.abs((previewAudio.endOffset ?? previewAudio.duration) - parsedTime) >=
-          0.0001;
-    const formattedValue = formatPreciseTime(
-      field === "startOffset"
-        ? previewAudio.startOffset
-        : previewAudio.endOffset ?? previewAudio.duration,
-    );
-
-    applySectionAudio(
-      {
-        [field]: parsedTime,
-      },
-      wasClamped
-        ? `Section ${field === "startOffset" ? "start" : "end"} was clamped to ${formattedValue}.`
-        : `Section ${field === "startOffset" ? "start" : "end"} set to ${formattedValue}.`,
-    );
   };
 
   const updateStyle = (updater) => {
@@ -1910,6 +1837,9 @@ export function EditorShell({ debugProbe = null, project }) {
 
   const handleTimingLineSelect = (line) => {
     setSelectedTimingLineId(line.id);
+    setEditingLineId((currentLineId) =>
+      currentLineId && currentLineId !== line.id ? null : currentLineId,
+    );
     setTapTimingSession((currentSession) =>
       currentSession.active
         ? {
@@ -1990,7 +1920,7 @@ export function EditorShell({ debugProbe = null, project }) {
 
   const handleManualTimingScroll = () => {
     if (
-      activeSubTab !== "timings" ||
+      activeSection !== "lyrics" ||
       !isTransportPlaying ||
       !autoFollowEnabled ||
       suppressManualScrollRef.current
@@ -2096,20 +2026,14 @@ export function EditorShell({ debugProbe = null, project }) {
       setCurrentAudioTime(getInitialTransportTime(importedProject));
       setIsTransportPlaying(false);
       setSelectedTimingLineId(getDefaultTimingLineId(importedProject.lines));
-      setAudioOffsetDrafts(buildAudioOffsetDrafts(importedProject.audio));
       setTimingDrafts({});
       setAutoFollowEnabled(true);
       setTimingNotice({
         message: "",
         status: "idle",
       });
-      setAudioSectionNotice({
-        message: "",
-        status: "idle",
-      });
       setAutoLyricsState(createIdleAutoLyricsState());
       setAutoTimingState(createIdleAutoTimingState());
-      setWordTimingState(createIdleWordTimingState());
       setJsonImportError("");
       setJsonNotice({
         message: needsImageReupload
@@ -2119,7 +2043,7 @@ export function EditorShell({ debugProbe = null, project }) {
             : "Project imported successfully. Re-upload the matching MP3 when you're ready to time or export.",
         status: "success",
       });
-      setActiveSubTab("get-lyrics");
+      setActiveSection("audio");
       setIsJsonModalOpen(false);
     } catch (error) {
       setJsonImportError(
@@ -2147,22 +2071,19 @@ export function EditorShell({ debugProbe = null, project }) {
     setCurrentAudioTime(getInitialTransportTime(blankProject));
     setIsTransportPlaying(false);
     setSelectedTimingLineId(getDefaultTimingLineId(blankProject.lines));
-    setAudioOffsetDrafts(buildAudioOffsetDrafts(blankProject.audio));
     setTimingDrafts({});
     setTranscription(null);
     setAutoFollowEnabled(true);
     setTimingNotice({ message: "", status: "idle" });
-    setAudioSectionNotice({ message: "", status: "idle" });
     setAutoLyricsState(createIdleAutoLyricsState());
     setAutoTimingState(createIdleAutoTimingState());
-    setWordTimingState(createIdleWordTimingState());
     setJsonImportError("");
     setJsonDraft("");
     setJsonNotice({
       message: "Started a new blank project.",
       status: "success",
     });
-    setActiveSubTab("track-upload");
+    setActiveSection("audio");
     setIsJsonModalOpen(false);
   };
 
@@ -2183,15 +2104,12 @@ export function EditorShell({ debugProbe = null, project }) {
       message: "Track cleared. Upload an MP3 to start again.",
       status: "idle",
     });
-    setAudioOffsetDrafts(buildAudioOffsetDrafts(blankAudio));
     setCurrentAudioTime(0);
     setIsTransportPlaying(false);
     setTranscription(null);
     setAutoLyricsState(createIdleAutoLyricsState());
     setAutoTimingState(createIdleAutoTimingState());
-    setWordTimingState(createIdleWordTimingState());
     setTimingNotice({ message: "", status: "idle" });
-    setAudioSectionNotice({ message: "", status: "idle" });
   };
 
   // Clear only the lyric lines (and the board/timing/meaning state derived from
@@ -2204,8 +2122,6 @@ export function EditorShell({ debugProbe = null, project }) {
     editorActions.clearSelectedWord();
     setSelectedTimingLineId(getDefaultTimingLineId([]));
     setTimingDrafts({});
-    setRomanizeState({ message: "", status: "idle" });
-    setWordMeaningsState({ message: "", status: "idle" });
     setAutoLyricsState(createIdleAutoLyricsState());
     setTimingNotice({ message: "", status: "idle" });
     setJsonNotice({ message: "Lyrics cleared.", status: "success" });
@@ -2294,7 +2210,6 @@ export function EditorShell({ debugProbe = null, project }) {
         status: "success",
       });
       setBackgroundUpload(createBackgroundUploadState(nextProject.background));
-      setAudioOffsetDrafts(buildAudioOffsetDrafts(nextAudio));
       setCurrentAudioTime(getInitialTransportTime(nextProject));
       setIsTransportPlaying(false);
       setSelectedTimingLineId(getDefaultTimingLineId(nextProject.lines));
@@ -2302,10 +2217,8 @@ export function EditorShell({ debugProbe = null, project }) {
       setTranscription(null);
       setAutoFollowEnabled(true);
       setTimingNotice({ message: "", status: "idle" });
-      setAudioSectionNotice({ message: "", status: "idle" });
       setAutoLyricsState(createIdleAutoLyricsState());
       setAutoTimingState(createIdleAutoTimingState());
-      setWordTimingState(createIdleWordTimingState());
       setJsonNotice({
         message: "Sample project loaded. The demo track and lyrics are ready.",
         status: "success",
@@ -2523,12 +2436,6 @@ export function EditorShell({ debugProbe = null, project }) {
       return;
     }
 
-    const generatedWordState = buildWordTimingState(finalPayload);
-
-    if (generatedWordState) {
-      setWordTimingState(generatedWordState);
-    }
-
     const nextLines = finalPayload.lines.map((line) =>
       createLine({
         confidence: String(line?.confidence ?? ""),
@@ -2647,12 +2554,6 @@ export function EditorShell({ debugProbe = null, project }) {
       return;
     }
 
-    const autoTimeWordState = buildWordTimingState(payload);
-
-    if (autoTimeWordState) {
-      setWordTimingState(autoTimeWordState);
-    }
-
     const returnedLinesById = new Map(
       payload.lines
         .filter((line) => typeof line?.id === "string" && line.id)
@@ -2729,313 +2630,6 @@ export function EditorShell({ debugProbe = null, project }) {
       status: timingSummary.timedCount > 0 ? "success" : "danger",
     });
   });
-
-  const handleAutoTimeCurrentLines = async () => {
-    if (!canAutoTimeLyrics) {
-      setAutoTimingState({
-        detail: "",
-        lineCount,
-        message: !audioUpload.asset?.assetId
-          ? "Upload an MP3 before auto-timing lyrics."
-          : otherSourceLanguageRequired
-            ? "Type the source language to use Other."
-            : "Add lyric lines before auto-timing.",
-        status: "error",
-        title: "Auto-time unavailable",
-      });
-      return;
-    }
-
-    setAutoTimingState({
-      detail: "Running the unified lyric timing pipeline.",
-      lineCount,
-      message: "",
-      status: "running",
-      title: "Auto-timing lyrics",
-    });
-    setTimingNotice({
-      message: "",
-      status: "idle",
-    });
-
-    try {
-      const jobId = await startTranscriptionJob({
-        audio: projectState.audio,
-        audioAssetId: audioUpload.asset.assetId,
-        includeRomanization: false,
-        lines: projectState.lines.map((line) => ({
-          id: line.id,
-          original: line.original,
-          romanization: line.romanization,
-          translation: line.translation,
-        })),
-        otherLanguage: otherSourceLanguage.trim(),
-        sourceLanguage,
-      });
-
-      beginTranscriptionTracking(jobId, "timing");
-    } catch (error) {
-      setAutoTimingState({
-        detail: "",
-        lineCount,
-        message:
-          error instanceof Error ? error.message : "Auto-timing failed unexpectedly.",
-        status: "error",
-        title: "Auto-time failed",
-      });
-      setTimingNotice({
-        message:
-          error instanceof Error ? error.message : "Auto-timing failed unexpectedly.",
-        status: "danger",
-      });
-    }
-  };
-
-  const handleRomanizeLyrics = async () => {
-    const lines = projectState.lines
-      .map((line) => ({ id: line.id, original: line.original }))
-      .filter((line) => line.original.trim());
-
-    if (lines.length === 0) {
-      setRomanizeState({
-        message: "Add lyric lines before romanizing.",
-        status: "error",
-      });
-      return;
-    }
-
-    if (otherSourceLanguageRequired) {
-      setRomanizeState({
-        message: "Type the source language to use Other.",
-        status: "error",
-      });
-      return;
-    }
-
-    setRomanizeState({ message: "Romanizing lyrics…", status: "running" });
-
-    try {
-      const response = await fetch("/api/ai/romanize", {
-        body: JSON.stringify({
-          lines,
-          otherLanguage: otherSourceLanguage.trim(),
-          sourceLanguage,
-        }),
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Romanizing lyrics failed.");
-      }
-
-      const romanizationById = new Map(
-        (Array.isArray(payload.romanizations) ? payload.romanizations : [])
-          .filter((entry) => typeof entry?.id === "string")
-          .map((entry) => [
-            entry.id,
-            typeof entry.romanization === "string" ? entry.romanization : "",
-          ]),
-      );
-
-      setProjectState((current) => ({
-        ...current,
-        lines: current.lines.map((line) =>
-          romanizationById.has(line.id)
-            ? { ...line, romanization: romanizationById.get(line.id) }
-            : line,
-        ),
-      }));
-
-      setRomanizeState({
-        message: `Romanized ${romanizationById.size} line${
-          romanizationById.size === 1 ? "" : "s"
-        }.`,
-        status: "success",
-      });
-    } catch (error) {
-      setRomanizeState({
-        message:
-          error instanceof Error
-            ? error.message
-            : "Romanizing lyrics failed unexpectedly.",
-        status: "error",
-      });
-    }
-  };
-
-  // Re-runnable per-word gloss/roman for the Word Board (P6 / T06.4). Fills the
-  // merged words[] on each line; timing (start/end) is preserved/best-effort.
-  const handleGenerateWordMeanings = async () => {
-    const requestLines = projectState.lines
-      .filter((line) => line.original.trim())
-      .map((line) => ({
-        id: line.id,
-        original: line.original,
-        romanization: line.romanization,
-        translation: line.translation,
-      }));
-
-    if (requestLines.length === 0) {
-      setWordMeaningsState({
-        message: "Add lyric lines before generating word meanings.",
-        status: "error",
-      });
-      return;
-    }
-
-    if (otherSourceLanguageRequired) {
-      setWordMeaningsState({
-        message: "Type the source language to use Other.",
-        status: "error",
-      });
-      return;
-    }
-
-    setWordMeaningsState({
-      message: "Generating word meanings…",
-      status: "running",
-    });
-
-    try {
-      const response = await fetch("/api/ai/word-meanings", {
-        body: JSON.stringify({
-          lines: requestLines,
-          otherLanguage: otherSourceLanguage.trim(),
-          sourceLanguage,
-        }),
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Generating word meanings failed.");
-      }
-
-      const wordsByLineId = new Map();
-      (Array.isArray(payload.lines) ? payload.lines : []).forEach((entry) => {
-        const requestLine = requestLines[entry?.line_number - 1];
-        if (requestLine && Array.isArray(entry?.words)) {
-          wordsByLineId.set(requestLine.id, entry.words);
-        }
-      });
-
-      setProjectState((current) => ({
-        ...current,
-        lines: current.lines.map((line) =>
-          wordsByLineId.has(line.id)
-            ? {
-                ...line,
-                words: mergeMeaningWordsWithTiming(
-                  line.words,
-                  wordsByLineId.get(line.id),
-                ),
-              }
-            : line,
-        ),
-      }));
-
-      setWordMeaningsState({
-        message: `Added word meanings to ${wordsByLineId.size} line${
-          wordsByLineId.size === 1 ? "" : "s"
-        }.`,
-        status: "success",
-      });
-    } catch (error) {
-      setWordMeaningsState({
-        message:
-          error instanceof Error
-            ? error.message
-            : "Generating word meanings failed unexpectedly.",
-        status: "error",
-      });
-    }
-  };
-
-  const handleLoadWordTimings = async () => {
-    if (!canLoadWordTimings) {
-      setWordTimingState({
-        duration: 0,
-        errorMessage: !audioUpload.asset?.assetId
-          ? "Upload an MP3 before loading word timings."
-          : otherSourceLanguageRequired
-            ? "Type the source language to use Other."
-            : "Word timings are not available right now.",
-        language: "",
-        status: "error",
-        words: [],
-      });
-      return;
-    }
-
-    setWordTimingState({
-      duration: 0,
-      errorMessage: "",
-      language: "",
-      status: "running",
-      words: [],
-    });
-
-    try {
-      const response = await fetch("/api/ai/word-timings", {
-        body: JSON.stringify({
-          audio: projectState.audio,
-          audioAssetId: audioUpload.asset.assetId,
-          otherLanguage: otherSourceLanguage.trim(),
-          sourceLanguage,
-        }),
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Word timing transcription failed.");
-      }
-
-      const words = Array.isArray(payload.words)
-        ? payload.words
-            .map((word, index) => ({
-              end: Number(word?.end),
-              index,
-              start: Number(word?.start),
-              word: String(word?.word ?? "").trim(),
-            }))
-            .filter(
-              (word) =>
-                word.word &&
-                Number.isFinite(word.start) &&
-                Number.isFinite(word.end),
-            )
-        : [];
-
-      setWordTimingState({
-        duration: Number.isFinite(payload.duration) ? payload.duration : 0,
-        errorMessage: "",
-        language: typeof payload.language === "string" ? payload.language : "",
-        status: "success",
-        words,
-      });
-    } catch (error) {
-      setWordTimingState({
-        duration: 0,
-        errorMessage:
-          error instanceof Error
-            ? error.message
-            : "Word timing transcription failed unexpectedly.",
-        language: "",
-        status: "error",
-        words: [],
-      });
-    }
-  };
 
   const handleAutoRenderDownload = useEffectEvent((fileUrl, fallbackName) => {
     void runRenderDownload({
@@ -3146,13 +2740,8 @@ export function EditorShell({ debugProbe = null, project }) {
       message: `Uploading ${file.name}...`,
       status: "uploading",
     });
-    setAudioSectionNotice({
-      message: "",
-      status: "idle",
-    });
     setAutoLyricsState(createIdleAutoLyricsState());
     setAutoTimingState(createIdleAutoTimingState());
-    setWordTimingState(createIdleWordTimingState());
 
     try {
       const formData = new FormData();
@@ -3199,25 +2788,11 @@ export function EditorShell({ debugProbe = null, project }) {
         audio: nextAudio,
         lines,
       }));
-      setAudioOffsetDrafts(buildAudioOffsetDrafts(nextAudio));
       setAudioUpload({
         asset: nextAsset,
         message: `${payload.name} uploaded successfully.`,
         status: "success",
       });
-      setAudioSectionNotice(
-        clampedCount > 0
-          ? {
-              message: `${clampedCount} timed ${
-                clampedCount === 1 ? "line was" : "lines were"
-              } clamped to the new track length.`,
-              status: "warning",
-            }
-          : {
-              message: "",
-              status: "idle",
-            },
-      );
       setTimingNotice(
         clampedCount > 0
           ? {
@@ -3439,7 +3014,6 @@ export function EditorShell({ debugProbe = null, project }) {
 
       setProjectState(restoredProject);
       setSelectedTimingLineId(getDefaultTimingLineId(restoredProject.lines));
-      setAudioOffsetDrafts(buildAudioOffsetDrafts(restoredProject.audio));
       setCurrentAudioTime(getInitialTransportTime(restoredProject));
 
       if (restored.audioAsset?.assetId) {
@@ -3767,20 +3341,15 @@ export function EditorShell({ debugProbe = null, project }) {
     setDebugMarkEvents([]);
     setDebugProbeRunStatus("idle");
     setDebugWaveSurferOnsets(null);
-    setActiveSubTab("timings");
+    setActiveSection("lyrics");
     setTimingDrafts({});
     setAutoFollowEnabled(true);
     setJsonNotice({
       message: "",
       status: "idle",
     });
-    setAudioSectionNotice({
-      message: "",
-      status: "idle",
-    });
     setAutoLyricsState(createIdleAutoLyricsState());
     setAutoTimingState(createIdleAutoTimingState());
-    setWordTimingState(createIdleWordTimingState());
     setTimingNotice({
       message: "",
       status: "idle",
@@ -3829,20 +3398,15 @@ export function EditorShell({ debugProbe = null, project }) {
       setCurrentAudioTime(getInitialTransportTime(importedProject));
       setIsTransportPlaying(false);
       setSelectedTimingLineId(getDefaultTimingLineId(importedProject.lines));
-      setActiveSubTab("timings");
+      setActiveSection("lyrics");
       setTimingDrafts({});
       setAutoFollowEnabled(true);
       setJsonNotice({
         message: "",
         status: "idle",
       });
-      setAudioSectionNotice({
-        message: "",
-        status: "idle",
-      });
       setAutoLyricsState(createIdleAutoLyricsState());
       setAutoTimingState(createIdleAutoTimingState());
-      setWordTimingState(createIdleWordTimingState());
       setTimingNotice({
         message: "",
         status: "idle",
@@ -3887,14 +3451,14 @@ export function EditorShell({ debugProbe = null, project }) {
   }, [debugProbe]);
 
   useEffect(() => {
-    if (!tapTimingSession.active || activeSubTab === "timings") {
+    if (!tapTimingSession.active || activeSection === "lyrics") {
       return;
     }
 
     handleStopTapTimingEffect({
       message: null,
     });
-  }, [activeSubTab, tapTimingSession.active]);
+  }, [activeSection, tapTimingSession.active]);
 
   useEffect(() => {
     if (!tapTimingSession.active) {
@@ -3921,7 +3485,7 @@ export function EditorShell({ debugProbe = null, project }) {
   ]);
 
   useEffect(() => {
-    if (activeSubTab !== "timings" || !autoFollowEnabled || !followTimingLineId) {
+    if (activeSection !== "lyrics" || !autoFollowEnabled || !followTimingLineId) {
       return;
     }
 
@@ -3943,10 +3507,10 @@ export function EditorShell({ debugProbe = null, project }) {
       behavior: "smooth",
       block: "center",
     });
-  }, [activeSubTab, autoFollowEnabled, followTimingLineId]);
+  }, [activeSection, autoFollowEnabled, followTimingLineId]);
 
   useEffect(() => {
-    if (activeSubTab !== "timings" || isJsonModalOpen) {
+    if (activeSection !== "lyrics" || isJsonModalOpen) {
       return undefined;
     }
 
@@ -4024,7 +3588,7 @@ export function EditorShell({ debugProbe = null, project }) {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [
-    activeSubTab,
+    activeSection,
     currentAudioTime,
     isJsonModalOpen,
     projectState.audio,
@@ -4056,16 +3620,9 @@ export function EditorShell({ debugProbe = null, project }) {
       audio: nextAudio,
       lines,
     }));
-    setAudioOffsetDrafts(buildAudioOffsetDrafts(nextAudio));
     setCurrentAudioTime((currentTime) => clampTimeToSection(currentTime, nextAudio));
 
     if (clampedCount > 0) {
-      setAudioSectionNotice({
-        message: `${clampedCount} timed ${
-          clampedCount === 1 ? "line was" : "lines were"
-        } clamped when the browser confirmed the track duration.`,
-        status: "warning",
-      });
       setTimingNotice({
         message: `${clampedCount} timed ${
           clampedCount === 1 ? "line was" : "lines were"
@@ -4111,7 +3668,7 @@ export function EditorShell({ debugProbe = null, project }) {
     });
   };
 
-  const renderTrackUploadTab = () => (
+  const renderAudioTab = () => (
     <div className="grid gap-4">
       <div
         className="rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
@@ -4175,218 +3732,27 @@ export function EditorShell({ debugProbe = null, project }) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Track name</p>
-          <p className="mt-2 text-sm font-medium text-[var(--muted)]">
-            {projectState.audio.name || "No uploaded file yet"}
-          </p>
-        </div>
-        <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Duration</p>
-          <p className="mt-2 text-sm font-medium text-[var(--muted)]">
-            {projectState.audio.duration > 0
-              ? formatTime(projectState.audio.duration)
-              : "Waiting for audio metadata"}
-          </p>
-        </div>
-      </div>
+      <p
+        className={`truncate rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
+          audioUpload.status === "error"
+            ? "text-[var(--danger)]"
+            : "text-[var(--muted)]"
+        }`}
+        title={audioUpload.message}
+      >
+        <span className="font-medium text-[var(--text)]">
+          {projectState.audio.name || "No track"}
+        </span>
+        <span>
+          {" · "}
+          {projectState.audio.duration > 0
+            ? formatTime(projectState.audio.duration)
+            : "—"}
+          {" · "}
+          {audioUpload.status === "success" ? "ready" : audioUpload.status}
+        </span>
+      </p>
 
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-[var(--muted)]">Section offsets</p>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              Timing and preview now count from this section start. In the Timing
-              tab, <span className="text-[var(--muted)]">00:00.00</span> maps to track
-              time <span className="text-[var(--muted)]">{formatPreciseTime(sectionBounds.startOffset)}</span>.
-            </p>
-          </div>
-          <StatusBadge tone={sectionWithinLimit ? "success" : "danger"}>
-            {sectionWithinLimit ? "Within 6:00" : "Trim to 6:00"}
-          </StatusBadge>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="block rounded-[1rem] border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-            <span className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-              Start offset
-            </span>
-            <input
-              className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!hasAudioDuration}
-              onBlur={() => commitAudioOffsetDraft("startOffset")}
-              onChange={(event) =>
-                setAudioOffsetDrafts((currentDrafts) => ({
-                  ...currentDrafts,
-                  startOffset: event.target.value,
-                }))
-              }
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  commitAudioOffsetDraft("startOffset");
-                }
-
-                if (event.key === "Escape") {
-                  event.preventDefault();
-                  resetAudioOffsetDraft("startOffset");
-                }
-              }}
-              placeholder="00:00.00"
-              type="text"
-              value={audioOffsetDrafts.startOffset}
-            />
-          </label>
-
-          <label className="block rounded-[1rem] border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-                End offset (optional)
-              </span>
-              <button
-                className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-[0.65rem] font-medium uppercase tracking-[0.22em] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!hasAudioDuration}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => {
-                  setAudioOffsetDrafts((currentDrafts) => ({
-                    ...currentDrafts,
-                    endOffset: "",
-                  }));
-                  applySectionAudio(
-                    {
-                      endOffset: null,
-                    },
-                    "Section end reset to the full track.",
-                  );
-                }}
-                type="button"
-              >
-                Use track end
-              </button>
-            </div>
-            <input
-              className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!hasAudioDuration}
-              onBlur={() => commitAudioOffsetDraft("endOffset")}
-              onChange={(event) =>
-                setAudioOffsetDrafts((currentDrafts) => ({
-                  ...currentDrafts,
-                  endOffset: event.target.value,
-                }))
-              }
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  commitAudioOffsetDraft("endOffset");
-                }
-
-                if (event.key === "Escape") {
-                  event.preventDefault();
-                  resetAudioOffsetDraft("endOffset");
-                }
-              }}
-              placeholder="Track end"
-              type="text"
-              value={audioOffsetDrafts.endOffset}
-            />
-          </label>
-        </div>
-
-        <p className="mt-3 text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
-          Press Enter or click away to apply. Leave the end blank to use the full
-          track.
-        </p>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Section start</p>
-            <p className="mt-2 text-sm font-medium text-[var(--muted)]">
-              {formatPreciseTime(sectionBounds.startOffset)}
-            </p>
-          </div>
-          <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Section end</p>
-            <p className="mt-2 text-sm font-medium text-[var(--muted)]">
-              {projectState.audio.endOffset == null
-                ? `Track end (${formatPreciseTime(sectionBounds.endOffset)})`
-                : formatPreciseTime(sectionBounds.endOffset)}
-            </p>
-          </div>
-          <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Section length</p>
-            <p className="mt-2 text-sm font-medium text-[var(--muted)]">
-              {formatPreciseTime(sectionDuration)}
-            </p>
-          </div>
-        </div>
-
-        {audioSectionNotice.message ? (
-          <p
-            className={`mt-4 text-sm leading-6 ${
-              audioSectionNotice.status === "danger"
-                ? "text-[var(--danger)]"
-                : audioSectionNotice.status === "warning"
-                  ? "text-[var(--accent)]"
-                  : "text-[var(--muted)]"
-            }`}
-          >
-            {audioSectionNotice.message}
-          </p>
-        ) : null}
-
-        {!hasAudioDuration ? (
-          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-            Upload or import track metadata first to unlock section offsets.
-          </p>
-        ) : null}
-
-        {!sectionWithinLimit ? (
-          <p className="mt-4 text-sm leading-6 text-[var(--danger)]">
-            Export stays blocked: this section is {formatPreciseTime(sectionDuration)}.
-            Move the start forward or trim the end until it is {formatPreciseTime(
-              MAX_SECTION_DURATION_SECONDS,
-            )} or shorter.
-          </p>
-        ) : null}
-      </div>
-
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-[var(--muted)]">Upload status</p>
-            <p
-              className={`mt-2 text-sm leading-6 ${
-                audioUpload.status === "error"
-                  ? "text-[var(--danger)]"
-                  : audioUpload.status === "success"
-                    ? "text-[var(--muted)]"
-                    : "text-[var(--muted)]"
-              }`}
-            >
-              {audioUpload.message}
-            </p>
-          </div>
-          <div className="grid gap-2 text-right">
-            <span className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
-              Session asset
-            </span>
-            <span className="text-sm font-medium text-[var(--muted)]">
-              {audioUpload.asset?.assetId ?? "Pending"}
-            </span>
-            <span className="text-xs text-[var(--muted)]">
-              {audioUpload.asset?.sizeBytes
-                ? formatBytes(audioUpload.asset.sizeBytes)
-                : "No upload yet"}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderGetLyricsTab = () => (
-    <div className="grid gap-4">
       <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -4424,7 +3790,6 @@ export function EditorShell({ debugProbe = null, project }) {
                 disabled={autoLyricsBusy || autoTimingBusy}
                 onChange={(event) => {
                   setSourceLanguage(event.target.value);
-                  setWordTimingState(createIdleWordTimingState());
                   setAutoTimingState((currentState) =>
                     currentState.status === "error"
                       ? createIdleAutoTimingState()
@@ -4459,7 +3824,6 @@ export function EditorShell({ debugProbe = null, project }) {
                   disabled={autoLyricsBusy || autoTimingBusy}
                   onChange={(event) => {
                     setOtherSourceLanguage(event.target.value);
-                    setWordTimingState(createIdleWordTimingState());
                     setAutoTimingState((currentState) =>
                       currentState.status === "error"
                         ? createIdleAutoTimingState()
@@ -4574,185 +3938,26 @@ export function EditorShell({ debugProbe = null, project }) {
     </div>
   );
 
-  const renderLyricsTab = () => (
-    <div className="grid gap-3">
-      <div className="rounded-[1.15rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm leading-6 text-[var(--muted)]">
-        Edit the original text, romanization, and translation for each line. The
-        Timings sub-tab handles tap-along and auto-timing.
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 rounded-[1.15rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
-        <button
-          className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
-          disabled={romanizeState.status === "running"}
-          onClick={() => {
-            void handleRomanizeLyrics();
-          }}
-          type="button"
-        >
-          {romanizeState.status === "running"
-            ? "Romanizing…"
-            : "Romanize lyrics"}
-        </button>
-        <span className="text-xs text-[var(--muted)]">
-          Adds a Latin-script reading (pinyin, romaji, IAST…) under each line
-          using the selected source language.
-        </span>
-        {romanizeState.message ? (
-          <p
-            className={`w-full text-xs leading-5 ${
-              romanizeState.status === "error"
-                ? "text-[var(--danger)]"
-                : romanizeState.status === "success"
-                  ? "text-[var(--muted)]"
-                  : "text-[var(--accent)]"
-            }`}
-          >
-            {romanizeState.message}
-          </p>
-        ) : null}
-        <button
-          className="rounded-full border border-[var(--accent)] bg-[var(--surface-active)] px-4 py-2 text-sm font-semibold text-[var(--accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
-          disabled={wordMeaningsState.status === "running"}
-          onClick={() => {
-            void handleGenerateWordMeanings();
-          }}
-          type="button"
-        >
-          {wordMeaningsState.status === "running"
-            ? "Generating…"
-            : "Generate word meanings"}
-        </button>
-        <span className="text-xs text-[var(--muted)]">
-          Fills per-word meanings + romanization for the Word Board, using the
-          selected source language.
-        </span>
-        {wordMeaningsState.message ? (
-          <p
-            className={`w-full text-xs leading-5 ${
-              wordMeaningsState.status === "error"
-                ? "text-[var(--danger)]"
-                : wordMeaningsState.status === "success"
-                  ? "text-[var(--muted)]"
-                  : "text-[var(--accent)]"
-            }`}
-          >
-            {wordMeaningsState.message}
-          </p>
-        ) : null}
-      </div>
-
-      {projectState.lines.map((line, index) => (
-        <div
-          className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4"
-          key={line.id}
-        >
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-sm font-medium text-[var(--muted)]">Line {index + 1}</p>
-            <div className="flex items-center gap-2">
-              <button
-                className="rounded-full bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text)]"
-                onClick={() => moveLine(line.id, -1)}
-                type="button"
-              >
-                Up
-              </button>
-              <button
-                className="rounded-full bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text)]"
-                onClick={() => moveLine(line.id, 1)}
-                type="button"
-              >
-                Down
-              </button>
-              <button
-                className="rounded-full bg-[var(--danger-soft)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--danger)] transition hover:bg-[var(--danger-soft)]"
-                onClick={() => deleteLine(line.id)}
-                type="button"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-3 grid gap-2">
-            <label className="block">
-              <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-                Original
-              </span>
-              <AutoGrowTextarea
-                className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] outline-none"
-                onChange={(event) =>
-                  updateLine(line.id, { original: event.target.value })
-                }
-                value={line.original}
-              />
-            </label>
-
-            <label className="block">
-              <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-                Romanization
-              </span>
-              <AutoGrowTextarea
-                className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm italic text-[var(--muted)] outline-none"
-                onChange={(event) =>
-                  updateLine(line.id, { romanization: event.target.value })
-                }
-                placeholder="Romanized text (optional)"
-                value={line.romanization ?? ""}
-              />
-            </label>
-
-            <label className="block">
-              <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-                Translation
-              </span>
-              <AutoGrowTextarea
-                className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] outline-none"
-                onChange={(event) =>
-                  updateLine(line.id, {
-                    translation: event.target.value,
-                  })
-                }
-                value={line.translation}
-              />
-            </label>
-
-            <label className="block">
-              <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-                Start time (track seconds)
-              </span>
-              <input
-                className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] outline-none"
-                min="0"
-                onChange={(event) =>
-                  updateLine(line.id, {
-                    start:
-                      event.target.value === "" ? null : Number(event.target.value),
-                  })
-                }
-                step="0.05"
-                type="number"
-                value={line.start ?? ""}
-              />
-            </label>
-          </div>
-        </div>
-      ))}
-
-      <button
-        className="rounded-[1.25rem] border border-dashed border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface)]"
-        onClick={addLine}
-        type="button"
-      >
-        Add lyric line
-      </button>
-    </div>
-  );
-
   const timingControlsVisible = timingControlsOpen || tapTimingSession.active;
 
-  const renderTimingTab = () => (
-    <div className="grid gap-3">
+  const renderLyricsTab = () => (
+    <div className="grid min-w-0 gap-3">
+      {activeSection === "lyrics" && !tapTimingSession.active ? (
+        <div className="flex justify-end">
+          <button
+            className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition lg:text-xs ${
+              timingControlsVisible
+                ? "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
+                : "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)] hover:opacity-90"
+            }`}
+            onClick={() => setTimingControlsOpen((open) => !open)}
+            type="button"
+          >
+            {timingControlsVisible ? "Hide times" : "Set times"}
+          </button>
+        </div>
+      ) : null}
+
       {timingControlsVisible ? (
       <div className="sticky top-0 z-10 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface)] px-3 py-3 shadow-[0_18px_40px_rgba(2,6,23,0.24)] backdrop-blur">
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -4899,16 +4104,6 @@ export function EditorShell({ debugProbe = null, project }) {
 
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <button
-                className="rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
-                disabled={!canAutoTimeLyrics}
-                onClick={() => {
-                  void handleAutoTimeCurrentLines();
-                }}
-                type="button"
-              >
-                {autoTimingBusy ? "Auto-timing..." : "Auto-time from audio"}
-              </button>
-              <button
                 className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={!canStartTapTiming || autoTimingBusy}
                 onClick={() => {
@@ -4934,12 +4129,15 @@ export function EditorShell({ debugProbe = null, project }) {
       </div>
       ) : null}
 
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         {projectState.lines.map((line, index) => (
           <TimingRow
+            canMoveDown={index < projectState.lines.length - 1}
+            canMoveUp={index > 0}
             displayTime={formatSectionRelativeTime(line.start, projectState.audio)}
             index={index}
             isActive={activeTimingLineId === line.id}
+            isEditing={activeTimingLineId === line.id && editingLineId === line.id}
             isHeard={heardLine?.id === line.id}
             key={line.id}
             line={line}
@@ -4949,6 +4147,10 @@ export function EditorShell({ debugProbe = null, project }) {
                 message: `Cleared line ${index + 1}.`,
                 status: "success",
               });
+            }}
+            onDelete={() => {
+              setEditingLineId(null);
+              deleteLine(line.id);
             }}
             onDraftChange={(lineId, nextDraft) => {
               setSelectedTimingLineId(lineId);
@@ -4962,8 +4164,16 @@ export function EditorShell({ debugProbe = null, project }) {
             onMark={
               tapTimingSession.active ? tapNextTimingLine : handleMarkCurrentLine
             }
+            onMoveDown={() => moveLine(line.id, 1)}
+            onMoveUp={() => moveLine(line.id, -1)}
             onNudge={handleNudgeSelectedLine}
             onSelect={() => handleTimingLineSelect(line)}
+            onToggleEdit={() =>
+              setEditingLineId((currentLineId) =>
+                currentLineId === line.id ? null : line.id,
+              )
+            }
+            onUpdateLine={(patch) => updateLine(line.id, patch)}
             rowRef={(node) => {
               if (node) {
                 timingRowRefs.current.set(line.id, node);
@@ -4981,6 +4191,14 @@ export function EditorShell({ debugProbe = null, project }) {
           />
         ))}
       </div>
+
+      <button
+        className="rounded-[1.25rem] border border-dashed border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+        onClick={addLine}
+        type="button"
+      >
+        Add lyric line
+      </button>
 
       <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-[var(--muted)]">
         <p>
@@ -5003,7 +4221,7 @@ export function EditorShell({ debugProbe = null, project }) {
     </div>
   );
 
-  const renderStyleTab = () => (
+  const renderTextDisplayControls = () => (
     <div className="grid gap-4">
       <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
         <p className="text-sm font-medium text-[var(--muted)]">Presets</p>
@@ -5203,7 +4421,7 @@ export function EditorShell({ debugProbe = null, project }) {
     </div>
   );
 
-  const renderBackgroundTab = () => (
+  const renderBackgroundControls = () => (
     <div className="grid gap-4">
       <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
         <p className="text-sm font-medium text-[var(--muted)]">Background mode</p>
@@ -5421,112 +4639,34 @@ export function EditorShell({ debugProbe = null, project }) {
     </div>
   );
 
-  const renderWordsTab = () => (
+  const renderStyleTab = () => (
     <div className="grid gap-3">
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-[var(--muted)]">Word timings</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              The word-level transcript from your last Generate or Auto-time run.
-              Use Load words to fetch it fresh from the uploaded MP3.
-            </p>
-          </div>
-          <button
-            className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={!canLoadWordTimings}
-            onClick={() => {
-              void handleLoadWordTimings();
-            }}
-            type="button"
-          >
-            {wordTimingBusy ? "Loading..." : "Load words"}
-          </button>
-        </div>
+      <CollapsibleSection
+        onToggle={() => setTextDisplayOpen((open) => !open)}
+        open={textDisplayOpen}
+        title="Text display"
+      >
+        {renderTextDisplayControls()}
+      </CollapsibleSection>
 
-        <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-[var(--muted)]">
-          <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1">
-            {wordTimingState.words.length} words
-          </span>
-          {wordTimingState.language ? (
-            <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1">
-              {wordTimingState.language}
-            </span>
-          ) : null}
-          {Number.isFinite(wordTimingState.duration) && wordTimingState.duration > 0 ? (
-            <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1">
-              {formatPreciseTime(wordTimingState.duration)}
-            </span>
-          ) : null}
-        </div>
-
-        {!audioUpload.asset?.assetId ? (
-          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-            Upload an MP3 first to load word timings.
-          </p>
-        ) : otherSourceLanguageRequired ? (
-          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-            Type the source language to use Other.
-          </p>
-        ) : null}
-
-        {wordTimingState.status === "error" ? (
-          <p className="mt-4 text-sm leading-6 text-[var(--danger)]">
-            {wordTimingState.errorMessage}
-          </p>
-        ) : null}
-      </div>
-
-      {wordTimingState.words.length ? (
-        <div className="overflow-hidden rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface)]">
-          <div className="grid grid-cols-[4rem_minmax(0,1fr)_5rem_5rem_5rem] gap-2 border-b border-[var(--border)] px-3 py-2 text-[10px] uppercase tracking-[0.22em] text-[var(--muted)]">
-            <span>#</span>
-            <span>Word</span>
-            <span>Start</span>
-            <span>End</span>
-            <span>Dur</span>
-          </div>
-          <div className="max-h-[58vh] overflow-y-auto">
-            {wordTimingState.words.map((word) => (
-              <div
-                className="grid grid-cols-[4rem_minmax(0,1fr)_5rem_5rem_5rem] gap-2 border-b border-[var(--border)] px-3 py-2 font-mono text-[11px] text-[var(--muted)] last:border-b-0"
-                key={`${word.index}-${word.start}-${word.word}`}
-              >
-                <span className="text-[var(--muted)]">{word.index + 1}</span>
-                <span className="truncate font-sans text-sm text-[var(--muted)]">
-                  {word.word}
-                </span>
-                <span>{formatPreciseTime(word.start)}</span>
-                <span>{formatPreciseTime(word.end)}</span>
-                <span>{Math.max(0, word.end - word.start).toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : wordTimingState.status === "running" ? (
-        <div className="rounded-[1.25rem] border border-[var(--accent)] bg-[var(--surface-active)] px-4 py-4 text-sm text-[var(--accent)]">
-          Loading word timings from the uploaded MP3.
-        </div>
-      ) : null}
+      <CollapsibleSection
+        onToggle={() => setBackgroundOpen((open) => !open)}
+        open={backgroundOpen}
+        title="Background"
+      >
+        {renderBackgroundControls()}
+      </CollapsibleSection>
     </div>
   );
 
   const renderActiveTab = () => {
-    switch (activeSubTab) {
-      case "track-upload":
-        return renderTrackUploadTab();
-      case "get-lyrics":
-        return renderGetLyricsTab();
-      case "edit-text":
+    switch (activeSection) {
+      case "audio":
+        return renderAudioTab();
+      case "lyrics":
         return renderLyricsTab();
-      case "timings":
-        return renderTimingTab();
-      case "words":
-        return renderWordsTab();
-      case "text-display":
+      case "style":
         return renderStyleTab();
-      case "background":
-        return renderBackgroundTab();
       default:
         return null;
     }
@@ -5761,7 +4901,7 @@ export function EditorShell({ debugProbe = null, project }) {
                       }`}
                       aria-selected={selected}
                       key={section.id}
-                      onClick={() => setActiveSubTab(section.tabs[0].id)}
+                      onClick={() => setActiveSection(section.id)}
                       role="tab"
                       type="button"
                     >
@@ -5769,48 +4909,6 @@ export function EditorShell({ debugProbe = null, project }) {
                     </button>
                   );
                 })}
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-1.5">
-                <div className="sub-tabs no-scrollbar flex flex-wrap items-center gap-1.5">
-                  {(
-                    SECTIONS.find((section) => section.id === activeSection)
-                      ?.tabs ?? []
-                  ).map((tab) => {
-                    const selected = tab.id === activeSubTab;
-
-                    return (
-                      <button
-                        className={`sub-tab rounded-full border px-3 py-1 text-[11px] font-medium transition lg:text-xs ${
-                          selected
-                            ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
-                            : "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-                        }`}
-                        aria-selected={selected}
-                        key={tab.id}
-                        onClick={() => setActiveSubTab(tab.id)}
-                        role="tab"
-                        type="button"
-                      >
-                        {tab.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {activeSubTab === "timings" && !tapTimingSession.active ? (
-                  <button
-                    className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition lg:text-xs ${
-                      timingControlsVisible
-                        ? "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-                        : "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)] hover:opacity-90"
-                    }`}
-                    onClick={() => setTimingControlsOpen((open) => !open)}
-                    type="button"
-                  >
-                    {timingControlsVisible ? "Hide times" : "Set times"}
-                  </button>
-                ) : null}
               </div>
             </div>
 
@@ -5846,7 +4944,7 @@ export function EditorShell({ debugProbe = null, project }) {
             />
 
             <div
-              className="editor-panel-content px-4 pb-4 pt-3 lg:no-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-3.5 lg:py-4"
+              className="editor-panel-content overflow-x-hidden px-4 pb-4 pt-3 lg:no-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-3.5 lg:py-4"
               onTouchMove={handleManualTimingScroll}
               onWheel={handleManualTimingScroll}
               ref={editorScrollRef}

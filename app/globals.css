@@ -475,39 +475,6 @@ textarea:focus-visible {
   color: var(--muted) !important;
 }
 
-.sub-tabs {
-  display: flex;
-  min-height: 50px;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  border-bottom: 0;
-  padding: 0;
-  scrollbar-width: thin;
-}
-
-.sub-tab {
-  min-height: 29px;
-  flex: 0 0 auto;
-  border: 1px solid var(--border) !important;
-  border-radius: 999px !important;
-  background: var(--surface-2) !important;
-  padding: 0 12px !important;
-  color: var(--muted) !important;
-  font-size: 11px;
-  font-weight: 700;
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease;
-}
-
-.sub-tab[aria-selected="true"] {
-  border-color: hsl(124 32% 75%) !important;
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-}
-
 .editor-panel-content {
   flex: 1 1 auto;
   min-height: 0;
@@ -871,8 +838,7 @@ textarea:focus-visible {
   box-shadow: none !important;
 }
 
-.editor-panel-content,
-.sub-tabs {
+.editor-panel-content {
   scrollbar-color: hsl(58 8% 72%) var(--panel);
 }
 

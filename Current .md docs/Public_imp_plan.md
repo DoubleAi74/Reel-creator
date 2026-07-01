@@ -70,3 +70,20 @@ Mobile browser view
 Header in mobile browser
 
 - preview / word board, dashboard, colapsable crdits view (request the passwoord button)
+
+[DESCRIBE THE DESIRED CHANGE AND ITS PURPOSE.]
+
+First, inspect the current codebase and relevant files so your understanding is up to date.
+
+Then create:
+
+- [PLAN_FILE], containing a detailed implementation plan for the proposed changes.
+- [PROGRESS_FILE], containing a step-by-step implementation guide and progress tracker that a fresh agent can follow.
+
+Save both documents in [TARGET_FOLDER].
+
+Before creating them, ask all questions needed to clarify the intended outcome, scope, constraints, and implementation preferences. Do not begin implementation.
+
+...
+
+Good. Now write a paste-ready kickoff prompt for a fresh agent to implement the plan, including all necessary context, required reading, progress tracking, validation, and how to handle ambiguities or deviations.
