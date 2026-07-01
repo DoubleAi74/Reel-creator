@@ -60,7 +60,10 @@ function normalizeAudio(audio) {
   };
 }
 
-async function resolveSessionIdForAudioAsset(sessionIdFromCookie, audioAssetId) {
+async function resolveSessionIdForAudioAsset(
+  sessionIdFromCookie,
+  audioAssetId,
+) {
   if (sessionIdFromCookie) {
     try {
       await readAssetMetadata(sessionIdFromCookie, audioAssetId);
@@ -100,7 +103,9 @@ export async function POST(request) {
   }
 
   const audioAssetId =
-    typeof payload?.audioAssetId === "string" ? payload.audioAssetId.trim() : "";
+    typeof payload?.audioAssetId === "string"
+      ? payload.audioAssetId.trim()
+      : "";
 
   if (!audioAssetId) {
     return NextResponse.json(
