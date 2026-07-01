@@ -4,11 +4,14 @@ import { startTransition, useEffect, useEffectEvent, useRef, useState } from "re
 
 import { EditorProvider } from "@/components/editor-context";
 import { useEditorState } from "@/components/editor-state";
-import { PreviewPlayer } from "@/components/preview-player";
-import { ProjectJsonModal } from "@/components/project-json-modal";
-import { RenderExportModal } from "@/components/render-export-modal";
+import { EditorHeader } from "@/components/editor-header";
+import { EditorModals } from "@/components/editor-modals";
+import { EditorTabBar } from "@/components/editor-tab-bar";
+import { PreviewStage } from "@/components/preview-stage";
+import { AudioTab } from "@/components/tabs/audio-tab";
+import { LyricsTab } from "@/components/tabs/lyrics-tab";
+import { StyleTab } from "@/components/tabs/style-tab";
 import { WaveformTimeline } from "@/components/waveform-timeline";
-import { WordBoard } from "@/components/word-board/word-board";
 import {
   getExportReadiness,
   getRenderPollDelayMs,
@@ -39,47 +42,27 @@ import {
 import {
   clampLineStartsToSection,
   clampTimeToSection,
-  DEFAULT_LYRIC_LEAD_IN_MS,
   findActiveLine,
   getSectionBounds,
   getSectionDurationInFrames,
   getSectionFrameFromTime,
   isSectionWithinLimit,
-  MAX_LYRIC_LEAD_IN_MS,
   MAX_SECTION_DURATION_SECONDS,
-  MIN_LYRIC_LEAD_IN_MS,
   normalizeAudioSection,
 } from "@/lib/timing";
+import { applyStylePreset, STYLE_PRESETS } from "@/lib/style-presets";
 import {
-  applyStylePreset,
-  FONT_OPTIONS,
-  STYLE_PRESETS,
-} from "@/lib/style-presets";
+  formatPreciseTime,
+  formatSectionRelativeTime,
+  isBackgroundMediaType,
+} from "@/lib/editor-format";
 import { VIDEO_FPS } from "@/remotion/constants";
-
-const SECTIONS = [
-  { id: "audio", label: "Audio" },
-  { id: "lyrics", label: "Lyrics" },
-  { id: "style", label: "Style" },
-];
 
 // Bundled demo assets. The MP3 is copied into /public/samples so it can be
 // fetched and pushed through the normal audio upload pipeline; the project JSON
 // is loaded on demand via dynamic import.
 const SAMPLE_AUDIO_NAME = "Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3";
 const SAMPLE_AUDIO_URL = `/samples/${SAMPLE_AUDIO_NAME}`;
-
-const SOURCE_LANGUAGE_OPTIONS = [
-  { id: "auto", label: "Auto-detect" },
-  { id: "hi", label: "Hindi" },
-  { id: "es", label: "Spanish" },
-  { id: "fr", label: "French" },
-  { id: "ja", label: "Japanese" },
-  { id: "ko", label: "Korean" },
-  { id: "ar", label: "Arabic" },
-  { id: "zh", label: "Chinese" },
-  { id: "other", label: "Other" },
-];
 
 // Mobile-only bottom-sheet snap heights (ignored at lg+, where the editor fills its grid column).
 const SHEET_SNAPS = [
@@ -112,38 +95,6 @@ const BACKGROUND_UPLOAD_COPY = {
   },
 };
 
-function formatTime(totalSeconds) {
-  const wholeSeconds = Math.max(0, Math.round(totalSeconds));
-  const minutes = Math.floor(wholeSeconds / 60);
-  const seconds = wholeSeconds % 60;
-
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
-function formatPreciseTime(totalSeconds) {
-  if (!Number.isFinite(totalSeconds)) {
-    return "";
-  }
-
-  const safeSeconds = Math.max(0, totalSeconds);
-  const minutes = Math.floor(safeSeconds / 60);
-  const seconds = safeSeconds - minutes * 60;
-
-  return `${String(minutes).padStart(2, "0")}:${seconds.toFixed(2).padStart(5, "0")}`;
-}
-
-function formatBytes(sizeBytes) {
-  if (!Number.isFinite(sizeBytes) || sizeBytes <= 0) {
-    return "0 B";
-  }
-
-  if (sizeBytes < 1024 * 1024) {
-    return `${Math.round(sizeBytes / 1024)} KB`;
-  }
-
-  return `${(sizeBytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
 function parseTypedTime(value) {
   const trimmed = value.trim();
 
@@ -174,16 +125,6 @@ function parseTypedTime(value) {
   }
 
   return totalSeconds;
-}
-
-function formatSectionRelativeTime(totalSeconds, audio = {}) {
-  if (!Number.isFinite(totalSeconds)) {
-    return "";
-  }
-
-  const { startOffset } = getSectionBounds(audio);
-
-  return formatPreciseTime(Math.max(0, totalSeconds - startOffset));
 }
 
 function cloneProject(project) {
@@ -246,10 +187,6 @@ async function verifyAssetExists(assetId) {
   } catch {
     return false;
   }
-}
-
-function isBackgroundMediaType(backgroundType) {
-  return backgroundType === "image" || backgroundType === "video";
 }
 
 function createBackgroundUploadEntry(kind, assetName = null) {
@@ -563,393 +500,6 @@ function getLineNumber(lines = [], lineId) {
   const index = lines.findIndex((line) => line.id === lineId);
 
   return index === -1 ? null : index + 1;
-}
-
-function getLineSummary(line) {
-  if (!line) {
-    return "";
-  }
-
-  return line.translation
-    ? `${line.original} — ${line.translation}`
-    : line.original;
-}
-
-function StatusBadge({ children, tone = "neutral" }) {
-  const toneClasses =
-    tone === "accent"
-      ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
-      : tone === "success"
-        ? "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]"
-        : tone === "danger"
-          ? "border-[var(--danger)] bg-[var(--danger-soft)] text-[var(--danger)]"
-          : "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]";
-
-  return (
-    <span
-      className={`rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] ${toneClasses}`}
-    >
-      {children}
-    </span>
-  );
-}
-
-function StyleSlider({
-  label,
-  max,
-  min,
-  onChange,
-  step,
-  value,
-  valueLabel = value,
-}) {
-  return (
-    <label className="block rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-sm font-medium text-[var(--muted)]">{label}</span>
-        <span className="text-sm text-[var(--muted)]">{valueLabel}</span>
-      </div>
-      <input
-        className="mt-4 w-full accent-[var(--accent)]"
-        max={max}
-        min={min}
-        onChange={onChange}
-        step={step}
-        type="range"
-        value={value}
-      />
-    </label>
-  );
-}
-
-function StyleColorField({ label, onChange, value }) {
-  return (
-    <label className="block rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-      <span className="text-sm font-medium text-[var(--muted)]">{label}</span>
-      <div className="mt-4 flex items-center gap-3">
-        <input
-          className="h-11 w-16 rounded-lg border border-[var(--border)] bg-transparent"
-          onChange={onChange}
-          type="color"
-          value={value}
-        />
-        <code className="text-sm text-[var(--muted)]">{value}</code>
-      </div>
-    </label>
-  );
-}
-
-function CollapsibleSection({ children, onToggle, open, title }) {
-  return (
-    <section className="overflow-hidden rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)]">
-      <button
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-        onClick={onToggle}
-        type="button"
-      >
-        <span>{title}</span>
-        <svg
-          aria-hidden="true"
-          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-        >
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </button>
-      {open ? (
-        <div className="border-t border-[var(--border)] px-4 py-4">
-          {children}
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-// Textarea that starts one line tall and grows to fit its content.
-function AutoGrowTextarea({ className = "", onChange, value, ...props }) {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const element = ref.current;
-
-    if (element) {
-      element.style.height = "auto";
-      element.style.height = `${element.scrollHeight}px`;
-    }
-  }, [value]);
-
-  return (
-    <textarea
-      className={className}
-      onChange={onChange}
-      ref={ref}
-      rows={1}
-      style={{ overflow: "hidden", resize: "none" }}
-      value={value}
-      {...props}
-    />
-  );
-}
-
-function TimingRow({
-  canMoveDown,
-  canMoveUp,
-  displayTime,
-  index,
-  isActive,
-  isEditing,
-  isHeard,
-  line,
-  onClear,
-  onDelete,
-  onDraftChange,
-  onDraftCommit,
-  onDraftReset,
-  onMark,
-  onMoveDown,
-  onMoveUp,
-  onNudge,
-  onSelect,
-  onToggleEdit,
-  onUpdateLine,
-  rowRef,
-  timeValue,
-}) {
-  return (
-    <div
-      className={`relative min-w-0 max-w-full overflow-hidden rounded-[1rem] border px-2.5 py-2 transition ${
-        isActive
-          ? "border-[var(--accent)] bg-[var(--surface-active)] pr-10 shadow-[var(--shadow-soft)]"
-          : isHeard
-            ? "border-[var(--border)] bg-[var(--surface-2)]"
-            : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)]"
-      }`}
-      onClick={onSelect}
-      ref={rowRef}
-      role="button"
-      tabIndex={0}
-      title={getLineSummary(line)}
-    >
-      {isActive ? (
-        <button
-          aria-label={isEditing ? "Close line editor" : "Edit line text"}
-          className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md border text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text)] ${
-            isEditing
-              ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
-              : "border-[var(--border)] bg-[var(--surface)]"
-          }`}
-          onClick={(event) => {
-            event.stopPropagation();
-            onToggleEdit();
-          }}
-          title={isEditing ? "Close line editor" : "Edit line text"}
-          type="button"
-        >
-          <svg
-            aria-hidden="true"
-            className="h-3.5 w-3.5"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-          </svg>
-        </button>
-      ) : null}
-
-      <div className="flex min-w-0 items-center gap-2.5">
-        {isActive ? (
-          <input
-            className="w-[74px] flex-none rounded-md border border-[var(--accent)] bg-[var(--surface-active)] px-2 py-1 font-mono text-[11px] text-[var(--accent)] outline-none"
-            onBlur={() => onDraftCommit(line.id)}
-            onChange={(event) => onDraftChange(line.id, event.target.value)}
-            onClick={(event) => event.stopPropagation()}
-            onFocus={onSelect}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                // Enter always stamps the playhead + advances (identical to
-                // Mark), whether or not this line is already timed. Discard any
-                // in-progress typed value; commit a typed time with Tab / blur.
-                event.preventDefault();
-                onDraftReset(line.id);
-                onMark();
-                return;
-              }
-
-              if (event.key === "Escape") {
-                event.preventDefault();
-                onDraftReset(line.id);
-              }
-            }}
-            value={timeValue}
-          />
-        ) : (
-          <span
-            className={`flex-none rounded-md px-2 py-1 font-mono text-[11px] ${
-              Number.isFinite(line.start)
-                ? "bg-[var(--surface-2)] text-[var(--muted)]"
-                : "bg-[var(--surface-2)] text-[var(--muted)]"
-            }`}
-          >
-            {Number.isFinite(line.start) ? displayTime : "—:—"}
-          </span>
-        )}
-
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-2">
-            <p className="min-w-0 truncate text-[13px] font-medium text-[var(--text)] sm:text-sm">
-              {line.original || `Line ${index + 1}`}
-            </p>
-            {isActive ? (
-              <span className="shrink-0 text-[9px] uppercase tracking-[0.28em] text-[var(--accent)]">
-                Active
-              </span>
-            ) : null}
-          </div>
-          <p className="truncate text-[11px] text-[var(--muted)]">
-            {line.translation || "No translation"}
-          </p>
-        </div>
-      </div>
-
-      {isActive ? (
-        <div className="mt-2 grid min-w-0 grid-cols-3 gap-1.5 sm:grid-cols-6">
-          {[-0.5, -0.05, 0.05, 0.5].map((delta) => (
-            <button
-              className="min-w-0 truncate rounded-md border border-[var(--border)] px-1.5 py-1 font-mono text-[11px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-              key={delta}
-              onClick={(event) => {
-                event.stopPropagation();
-                onNudge(delta);
-              }}
-              type="button"
-            >
-              {delta > 0 ? "+" : ""}
-              {Math.abs(delta) === 0.5 ? delta.toFixed(1) : delta.toFixed(2)}
-            </button>
-          ))}
-
-          <button
-            className="min-w-0 truncate rounded-md border border-[var(--accent)] bg-[var(--surface-active)] px-1.5 py-1 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-[var(--surface-hover)]"
-            onClick={(event) => {
-              event.stopPropagation();
-              onMark();
-            }}
-            type="button"
-          >
-            {Number.isFinite(line.start) ? "Re-time" : "Mark"}
-          </button>
-          <button
-            className="min-w-0 truncate rounded-md border border-[var(--border)] px-1.5 py-1 text-[11px] font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-            onClick={(event) => {
-              event.stopPropagation();
-              onClear();
-            }}
-            type="button"
-          >
-            Clear
-          </button>
-        </div>
-      ) : null}
-
-      {isEditing ? (
-        <div
-          className="mt-3 grid gap-2 rounded-[0.85rem] border border-[var(--border)] bg-[var(--surface)] p-3"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <label className="block">
-            <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-              Original
-            </span>
-            <AutoGrowTextarea
-              className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] outline-none"
-              onChange={(event) =>
-                onUpdateLine({ original: event.target.value })
-              }
-              onClick={(event) => event.stopPropagation()}
-              value={line.original}
-            />
-          </label>
-
-          <label className="block">
-            <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-              Romanization
-            </span>
-            <AutoGrowTextarea
-              className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm italic text-[var(--muted)] outline-none"
-              onChange={(event) =>
-                onUpdateLine({ romanization: event.target.value })
-              }
-              onClick={(event) => event.stopPropagation()}
-              placeholder="Romanized text (optional)"
-              value={line.romanization ?? ""}
-            />
-          </label>
-
-          <label className="block">
-            <span className="block text-right text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-              Translation
-            </span>
-            <AutoGrowTextarea
-              className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] outline-none"
-              onChange={(event) =>
-                onUpdateLine({
-                  translation: event.target.value,
-                })
-              }
-              onClick={(event) => event.stopPropagation()}
-              value={line.translation}
-            />
-          </label>
-
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <button
-              className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={!canMoveUp}
-              onClick={(event) => {
-                event.stopPropagation();
-                onMoveUp();
-              }}
-              type="button"
-            >
-              Up
-            </button>
-            <button
-              className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={!canMoveDown}
-              onClick={(event) => {
-                event.stopPropagation();
-                onMoveDown();
-              }}
-              type="button"
-            >
-              Down
-            </button>
-            <button
-              className="rounded-full bg-[var(--danger-soft)] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-[var(--danger)] transition hover:bg-[var(--danger-soft)]"
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete();
-              }}
-              type="button"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
 }
 
 export function EditorShell({ debugProbe = null, project }) {
@@ -3668,1005 +3218,149 @@ export function EditorShell({ debugProbe = null, project }) {
     });
   };
 
-  const renderAudioTab = () => (
-    <div className="grid gap-4">
-      <div
-        className="rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
-        onDragOver={(event) => {
-          event.preventDefault();
-        }}
-        onDrop={(event) => {
-          event.preventDefault();
-          handleAudioFile(event.dataTransfer.files?.[0] ?? null);
-        }}
-      >
-        <p className="text-sm font-medium text-[var(--text)]">
-          Drag an MP3 here or choose one from your computer
-        </p>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          Up to 25 MB. The uploaded track drives the persistent waveform dock,
-          timing workflow, and later export.
-        </p>
-
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-          <button
-            className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
-            onClick={() => audioInputRef.current?.click()}
-            type="button"
-          >
-            Choose MP3
-          </button>
-          <button
-            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isLoadingSample}
-            onClick={() => {
-              void handleLoadSample();
-            }}
-            type="button"
-          >
-            {isLoadingSample ? "Loading sample…" : "Load sample"}
-          </button>
-          {projectState.audio.name ||
-          audioUpload.asset?.assetId ||
-          audioObjectUrl ? (
-            <button
-              className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={isLoadingSample}
-              onClick={handleClearAudio}
-              type="button"
-            >
-              Clear track
-            </button>
-          ) : null}
-          <StatusBadge
-            tone={
-              audioUpload.status === "success"
-                ? "success"
-                : audioUpload.status === "error"
-                  ? "danger"
-                  : "neutral"
-            }
-          >
-            {audioUpload.status}
-          </StatusBadge>
-        </div>
-      </div>
-
-      <p
-        className={`truncate rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
-          audioUpload.status === "error"
-            ? "text-[var(--danger)]"
-            : "text-[var(--muted)]"
-        }`}
-        title={audioUpload.message}
-      >
-        <span className="font-medium text-[var(--text)]">
-          {projectState.audio.name || "No track"}
-        </span>
-        <span>
-          {" · "}
-          {projectState.audio.duration > 0
-            ? formatTime(projectState.audio.duration)
-            : "—"}
-          {" · "}
-          {audioUpload.status === "success" ? "ready" : audioUpload.status}
-        </span>
-      </p>
-
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-[var(--muted)]">Auto-lyrics</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              Transcribe the uploaded MP3 and replace the current lyric lines with
-              English translations.
-            </p>
-          </div>
-          <StatusBadge
-            tone={
-              autoLyricsState.status === "running"
-                ? "accent"
-                : autoLyricsState.status === "success"
-                  ? "success"
-                  : autoLyricsState.status === "error"
-                    ? "danger"
-                    : "neutral"
-            }
-          >
-            {autoLyricsState.status === "running"
-              ? "Running"
-              : autoLyricsState.status}
-          </StatusBadge>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-          <div className="grid gap-3">
-            <label className="block">
-              <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
-                Source language
-              </span>
-              <select
-                className="mt-2 w-full min-w-[11rem] rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={autoLyricsBusy || autoTimingBusy}
-                onChange={(event) => {
-                  setSourceLanguage(event.target.value);
-                  setAutoTimingState((currentState) =>
-                    currentState.status === "error"
-                      ? createIdleAutoTimingState()
-                      : currentState,
-                  );
-                  setAutoLyricsState((currentState) =>
-                    currentState.status === "error"
-                      ? createIdleAutoLyricsState()
-                      : currentState,
-                  );
-                }}
-                value={sourceLanguage}
-              >
-                <option disabled value="">
-                  Select language
-                </option>
-                {SOURCE_LANGUAGE_OPTIONS.map((languageOption) => (
-                  <option key={languageOption.id} value={languageOption.id}>
-                    {languageOption.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {sourceLanguage === "other" ? (
-              <label className="block">
-                <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
-                  Other language
-                </span>
-                <input
-                  className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={autoLyricsBusy || autoTimingBusy}
-                  onChange={(event) => {
-                    setOtherSourceLanguage(event.target.value);
-                    setAutoTimingState((currentState) =>
-                      currentState.status === "error"
-                        ? createIdleAutoTimingState()
-                        : currentState,
-                    );
-                    setAutoLyricsState((currentState) =>
-                      currentState.status === "error"
-                        ? createIdleAutoLyricsState()
-                        : currentState,
-                    );
-                  }}
-                  placeholder="e.g. Tamil"
-                  type="text"
-                  value={otherSourceLanguage}
-                />
-              </label>
-            ) : null}
-          </div>
-
-          <button
-            className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={!canGenerateAutoLyrics}
-            onClick={() => {
-              void handleGenerateAutoLyrics();
-            }}
-            title={
-              canGenerateAutoLyrics
-                ? undefined
-                : !audioUpload.asset?.assetId
-                  ? "Upload an MP3 before generating and timing lyrics."
-                  : autoLyricsLanguageRequirementMessage || undefined
-            }
-            type="button"
-          >
-            {autoLyricsBusy ? "Generating & timing..." : "Generate & time lyrics"}
-          </button>
-        </div>
-
-        <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
-          Romanization is added automatically for non-Latin scripts.
-        </p>
-
-        {autoLyricsState.status !== "idle" ? (
-          <div
-            className={`mt-4 rounded-[1rem] border px-4 py-3 ${
-              autoLyricsState.status === "error"
-                ? "border-[var(--danger)] bg-[var(--danger-soft)] text-[var(--danger)]"
-                : autoLyricsState.status === "success"
-                  ? "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]"
-                  : "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
-            }`}
-          >
-            <p className="text-sm font-medium">{autoLyricsState.title}</p>
-            {autoLyricsState.message ? (
-              <p className="mt-1 text-sm leading-6">{autoLyricsState.message}</p>
-            ) : null}
-            {autoLyricsState.detail ? (
-              <p className="mt-1 text-sm leading-6 opacity-80">
-                {autoLyricsState.detail}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-
-        {!audioUpload.asset?.assetId ? (
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            Upload an MP3 first to enable generation.
-          </p>
-        ) : autoLyricsLanguageRequirementMessage ? (
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            {autoLyricsLanguageRequirementMessage}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <p className="text-sm font-medium text-[var(--muted)]">Lyrics data</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          Import a project JSON to load existing lyrics and timings, or export the
-          current project to a file.
-        </p>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button
-            className="rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-            onClick={openJsonImport}
-            type="button"
-          >
-            Import JSON
-          </button>
-          <button
-            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-            onClick={handleProjectExport}
-            type="button"
-          >
-            Export JSON
-          </button>
-          <button
-            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={projectState.lines.length === 0}
-            onClick={handleClearLyrics}
-            type="button"
-          >
-            Clear lyrics
-          </button>
-        </div>
-        {showInlineJsonNotice ? (
-          <div className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm leading-6 text-[var(--text)]">
-            {jsonNotice.message}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-
   const timingControlsVisible = timingControlsOpen || tapTimingSession.active;
-
-  const renderLyricsTab = () => (
-    <div className="grid min-w-0 gap-3">
-      {activeSection === "lyrics" && !tapTimingSession.active ? (
-        <div className="flex justify-end">
-          <button
-            className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition lg:text-xs ${
-              timingControlsVisible
-                ? "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-                : "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)] hover:opacity-90"
-            }`}
-            onClick={() => setTimingControlsOpen((open) => !open)}
-            type="button"
-          >
-            {timingControlsVisible ? "Hide times" : "Set times"}
-          </button>
-        </div>
-      ) : null}
-
-      {timingControlsVisible ? (
-      <div className="sticky top-0 z-10 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface)] px-3 py-3 shadow-[0_18px_40px_rgba(2,6,23,0.24)] backdrop-blur">
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <button
-            className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-              autoFollowEnabled
-                ? "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-                : "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)] hover:bg-[var(--surface-hover)]"
-            }`}
-            onClick={handleJumpToCurrentLine}
-            type="button"
-          >
-            ↩ Jump
-          </button>
-          <span
-            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-              autoFollowEnabled
-                ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
-                : "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]"
-            }`}
-          >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                autoFollowEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-2)]"
-              }`}
-            />
-            {autoFollowEnabled ? "Auto-follow" : "Follow paused"}
-          </span>
-        </div>
-
-        {tapTimingSession.active ? (
-          <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-[var(--muted)]">
-                <span className="rounded-full border border-[var(--accent)] bg-[var(--surface-active)] px-2.5 py-1 text-[var(--accent)]">
-                  Line {tapTimingProgress.current} of {tapTimingProgress.total}
-                </span>
-                {tapTimingSession.paused ? (
-                  <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-[var(--muted)]">
-                    Paused
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-1.5">
-                {tapTimingSession.paused ? (
-                  <button
-                    className="rounded-full bg-[var(--accent)] px-3 py-1.5 text-[11px] font-semibold text-[var(--on-accent)] transition hover:opacity-90"
-                    onClick={() => {
-                      void resumeTapTimingSession();
-                    }}
-                    type="button"
-                  >
-                    Resume
-                  </button>
-                ) : (
-                  <button
-                    className="rounded-full border border-[var(--border)] px-3 py-1.5 text-[11px] font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-                    onClick={pauseTapTimingSession}
-                    type="button"
-                  >
-                    Pause
-                  </button>
-                )}
-                <button
-                  className="rounded-full border border-[var(--border)] px-3 py-1.5 text-[11px] font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={tapTimingSession.history.length === 0}
-                  onClick={undoLastTap}
-                  type="button"
-                >
-                  Undo
-                </button>
-                <button
-                  className="rounded-full border border-[var(--border)] px-3 py-1.5 text-[11px] font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-                  onClick={() => stopTapTimingSession()}
-                  type="button"
-                >
-                  Stop
-                </button>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end lg:grid-cols-1">
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--muted)]">
-                  Current
-                </p>
-                <p className="mt-1 truncate text-base font-semibold text-[var(--text)]">
-                  {tapTimingCursorLine?.original ||
-                    `Line ${tapTimingProgress.current}`}
-                </p>
-                <p className="mt-1 truncate text-sm text-[var(--muted)]">
-                  {tapTimingCursorLine?.translation || "No translation"}
-                </p>
-                <p className="mt-2 truncate text-xs text-[var(--muted)]">
-                  Next: {tapTimingNextLine?.original || "Complete"}
-                </p>
-              </div>
-
-              <button
-                className="min-h-14 rounded-xl bg-[var(--accent)] px-6 py-4 text-sm font-bold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45 sm:min-w-44"
-                disabled={tapTimingSession.paused}
-                onClick={tapNextTimingLine}
-                type="button"
-              >
-                Tap next line
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end lg:grid-cols-1 lg:items-stretch">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--muted)]">
-                <span>
-                  Line {tapTimingStartLineNumber ?? "—"} of {lineCount}
-                </span>
-                <span>
-                  {timedLineCount} timed · {lineCount - timedLineCount} untimed
-                </span>
-              </div>
-              <p className="mt-1 truncate text-sm font-medium text-[var(--muted)]">
-                {tapTimingStartLine?.original || "No lyric lines"}
-              </p>
-              {tapTimingStartDisabledReason ? (
-                <p className="mt-1 text-xs text-[var(--muted)]">
-                  {tapTimingStartDisabledReason}
-                </p>
-              ) : null}
-              {autoTimingState.status !== "idle" ? (
-                <p
-                  className={`mt-2 text-xs leading-5 ${
-                    autoTimingState.status === "error"
-                      ? "text-[var(--danger)]"
-                      : autoTimingState.status === "success"
-                        ? "text-[var(--muted)]"
-                        : "text-[var(--accent)]"
-                  }`}
-                >
-                  {autoTimingState.title ? `${autoTimingState.title}. ` : ""}
-                  {autoTimingState.message || autoTimingState.detail}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-              <button
-                className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-45"
-                disabled={!canStartTapTiming || autoTimingBusy}
-                onClick={() => {
-                  void startTapTimingSession();
-                }}
-                type="button"
-              >
-                Start tap timing
-              </button>
-            </div>
-          </div>
-        )}
-
-        {timingNotice.message ? (
-          <p
-            className={`mt-3 text-sm leading-6 ${
-              timingNotice.status === "danger" ? "text-[var(--danger)]" : "text-[var(--muted)]"
-            }`}
-          >
-            {timingNotice.message}
-          </p>
-        ) : null}
-      </div>
-      ) : null}
-
-      <div className="grid min-w-0 gap-2">
-        {projectState.lines.map((line, index) => (
-          <TimingRow
-            canMoveDown={index < projectState.lines.length - 1}
-            canMoveUp={index > 0}
-            displayTime={formatSectionRelativeTime(line.start, projectState.audio)}
-            index={index}
-            isActive={activeTimingLineId === line.id}
-            isEditing={activeTimingLineId === line.id && editingLineId === line.id}
-            isHeard={heardLine?.id === line.id}
-            key={line.id}
-            line={line}
-            onClear={() => {
-              clearTimingLineStart(line.id);
-              setTimingNotice({
-                message: `Cleared line ${index + 1}.`,
-                status: "success",
-              });
-            }}
-            onDelete={() => {
-              setEditingLineId(null);
-              deleteLine(line.id);
-            }}
-            onDraftChange={(lineId, nextDraft) => {
-              setSelectedTimingLineId(lineId);
-              setTimingDrafts((currentDrafts) => ({
-                ...currentDrafts,
-                [lineId]: nextDraft,
-              }));
-            }}
-            onDraftCommit={handleTimingDraftCommit}
-            onDraftReset={handleTimingDraftReset}
-            onMark={
-              tapTimingSession.active ? tapNextTimingLine : handleMarkCurrentLine
-            }
-            onMoveDown={() => moveLine(line.id, 1)}
-            onMoveUp={() => moveLine(line.id, -1)}
-            onNudge={handleNudgeSelectedLine}
-            onSelect={() => handleTimingLineSelect(line)}
-            onToggleEdit={() =>
-              setEditingLineId((currentLineId) =>
-                currentLineId === line.id ? null : line.id,
-              )
-            }
-            onUpdateLine={(patch) => updateLine(line.id, patch)}
-            rowRef={(node) => {
-              if (node) {
-                timingRowRefs.current.set(line.id, node);
-                return;
-              }
-
-              timingRowRefs.current.delete(line.id);
-            }}
-            timeValue={
-              timingDrafts[line.id] ??
-              (Number.isFinite(line.start)
-                ? formatSectionRelativeTime(line.start, projectState.audio)
-                : "")
-            }
-          />
-        ))}
-      </div>
-
-      <button
-        className="rounded-[1.25rem] border border-dashed border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-        onClick={addLine}
-        type="button"
-      >
-        Add lyric line
-      </button>
-
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-[var(--muted)]">
-        <p>
-          Press <span className="text-[var(--muted)]">Enter</span> or tap{" "}
-          <span className="text-[var(--muted)]">Mark</span> to time the active line.
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          <span>
-            {timedLineCount} timed · {lineCount - timedLineCount} untimed
-          </span>
-          <button
-            className="rounded-full border border-[var(--border)] px-2.5 py-1 text-[11px] font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--muted)]"
-            onClick={handleClearAllTimes}
-            type="button"
-          >
-            Clear all
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderTextDisplayControls = () => (
-    <div className="grid gap-4">
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <p className="text-sm font-medium text-[var(--muted)]">Presets</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {stylePresetEntries.map(([presetId, preset]) => {
-            const selected = projectState.style.preset === presetId;
-
-            return (
-              <button
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                  selected
-                    ? "bg-[var(--accent)] text-[var(--on-accent)]"
-                    : "bg-[var(--surface-2)] text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]"
-                }`}
-                key={presetId}
-                onClick={() => applyPreset(presetId)}
-                type="button"
-              >
-                {preset.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <label className="block rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <span className="text-sm font-medium text-[var(--muted)]">Font</span>
-        <select
-          className="mt-4 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] outline-none"
-          onChange={(event) =>
-            updateStyle({ font: event.target.value, preset: "custom" })
-          }
-          value={projectState.style.font}
-        >
-          {FONT_OPTIONS.map((fontOption) => (
-            <option key={fontOption.id} value={fontOption.id}>
-              {fontOption.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <StyleSlider
-          label="Original size"
-          max={92}
-          min={40}
-          onChange={(event) =>
-            updateStyle({
-              originalSize: Number(event.target.value),
-              preset: "custom",
-            })
-          }
-          step={1}
-          value={projectState.style.originalSize}
-        />
-        <StyleSlider
-          label="Translation size"
-          max={64}
-          min={26}
-          onChange={(event) =>
-            updateStyle({
-              translationSize: Number(event.target.value),
-              preset: "custom",
-            })
-          }
-          step={1}
-          value={projectState.style.translationSize}
-        />
-        <StyleSlider
-          label="Romanization size"
-          max={64}
-          min={22}
-          onChange={(event) =>
-            updateStyle({
-              romanizationSize: Number(event.target.value),
-              preset: "custom",
-            })
-          }
-          step={1}
-          value={projectState.style.romanizationSize ?? 40}
-        />
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <StyleColorField
-          label="Primary color"
-          onChange={(event) =>
-            updateStyle({ color: event.target.value, preset: "custom" })
-          }
-          value={projectState.style.color}
-        />
-        <StyleColorField
-          label="Translation color"
-          onChange={(event) =>
-            updateStyle({
-              translationColor: event.target.value,
-              preset: "custom",
-            })
-          }
-          value={projectState.style.translationColor}
-        />
-        <StyleColorField
-          label="Romanization color"
-          onChange={(event) =>
-            updateStyle({
-              romanizationColor: event.target.value,
-              preset: "custom",
-            })
-          }
-          value={projectState.style.romanizationColor ?? "#C9D4E0"}
-        />
-      </div>
-
-      <StyleSlider
-        label="Vertical position"
-        max={0.9}
-        min={0.58}
-        onChange={(event) =>
-          updateStyle({
-            verticalPosition: Number(event.target.value),
-            preset: "custom",
-          })
-        }
-        step={0.01}
-        value={projectState.style.verticalPosition}
-      />
-
-      <StyleSlider
-        label="Lyric lead-in"
-        max={MAX_LYRIC_LEAD_IN_MS}
-        min={MIN_LYRIC_LEAD_IN_MS}
-        onChange={(event) =>
-          updateTiming({
-            lyricLeadInMs: Number(event.target.value),
-          })
-        }
-        step={10}
-        value={projectState.timing?.lyricLeadInMs ?? DEFAULT_LYRIC_LEAD_IN_MS}
-        valueLabel={`${
-          projectState.timing?.lyricLeadInMs ?? DEFAULT_LYRIC_LEAD_IN_MS
-        } ms`}
-      />
-
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-[var(--muted)]">Shadow</p>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              Keep lyrics legible over bright or busy backgrounds.
-            </p>
-          </div>
-          <button
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              projectState.style.shadow.enabled
-                ? "bg-[var(--accent)] text-[var(--on-accent)]"
-                : "bg-[var(--surface-2)] text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]"
-            }`}
-            onClick={() =>
-              updateShadow({
-                enabled: !projectState.style.shadow.enabled,
-              })
-            }
-            type="button"
-          >
-            {projectState.style.shadow.enabled ? "On" : "Off"}
-          </button>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <StyleSlider
-            label="Blur"
-            max={24}
-            min={0}
-            onChange={(event) =>
-              updateShadow({
-                blur: Number(event.target.value),
-              })
-            }
-            step={1}
-            value={projectState.style.shadow.blur}
-          />
-          <StyleSlider
-            label="Opacity"
-            max={1}
-            min={0}
-            onChange={(event) =>
-              updateShadow({
-                opacity: Number(event.target.value),
-              })
-            }
-            step={0.05}
-            value={projectState.style.shadow.opacity}
-          />
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderBackgroundControls = () => (
-    <div className="grid gap-4">
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <p className="text-sm font-medium text-[var(--muted)]">Background mode</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {["solid", "gradient", "image", "video"].map((backgroundType) => {
-            const selected = projectState.background.type === backgroundType;
-
-            return (
-              <button
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                  selected
-                    ? "bg-[var(--accent)] text-[var(--on-accent)]"
-                    : "bg-[var(--surface-2)] text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]"
-                }`}
-                key={backgroundType}
-                onClick={() => selectBackgroundType(backgroundType)}
-                type="button"
-              >
-                {backgroundType === "solid"
-                  ? "Solid"
-                  : backgroundType === "gradient"
-                    ? "Gradient"
-                    : backgroundType === "image"
-                      ? "Image"
-                      : "Video loop"}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {projectState.background.type === "solid" ? (
-        <StyleColorField
-          label="Solid color"
-          onChange={(event) =>
-            updateBackground({
-              color: event.target.value,
-              type: "solid",
-            })
-          }
-          value={projectState.background.color}
-        />
-      ) : null}
-
-      {projectState.background.type === "gradient" ? (
-        <>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <StyleColorField
-              label="Gradient from"
-              onChange={(event) =>
-                updateBackground((currentBackground) => ({
-                  ...currentBackground,
-                  type: "gradient",
-                  gradient: {
-                    ...currentBackground.gradient,
-                    from: event.target.value,
-                  },
-                }))
-              }
-              value={projectState.background.gradient.from}
-            />
-            <StyleColorField
-              label="Gradient to"
-              onChange={(event) =>
-                updateBackground((currentBackground) => ({
-                  ...currentBackground,
-                  type: "gradient",
-                  gradient: {
-                    ...currentBackground.gradient,
-                    to: event.target.value,
-                  },
-                }))
-              }
-              value={projectState.background.gradient.to}
-            />
-          </div>
-
-          <StyleSlider
-            label="Gradient angle"
-            max={360}
-            min={0}
-            onChange={(event) =>
-              updateBackground((currentBackground) => ({
-                ...currentBackground,
-                type: "gradient",
-                gradient: {
-                  ...currentBackground.gradient,
-                  angle: Number(event.target.value),
-                },
-              }))
-            }
-            step={1}
-            value={projectState.background.gradient.angle}
-          />
-        </>
-      ) : null}
-
-      {isBackgroundMediaType(projectState.background.type) ? (
-        <>
-          <div
-            className="rounded-[1.25rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
-            onDragOver={(event) => {
-              event.preventDefault();
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              if (projectState.background.type === "video") {
-                void handleBackgroundVideoFile(event.dataTransfer.files?.[0] ?? null);
-                return;
-              }
-
-              void handleBackgroundImageFile(event.dataTransfer.files?.[0] ?? null);
-            }}
-          >
-            <p className="text-sm font-medium text-[var(--text)]">
-              {activeBackgroundUploadCopy.uploadLabel}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              {activeBackgroundUploadCopy.helperText}
-            </p>
-
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-              <button
-                className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
-                onClick={() =>
-                  projectState.background.type === "video"
-                    ? backgroundVideoInputRef.current?.click()
-                    : backgroundImageInputRef.current?.click()
-                }
-                type="button"
-              >
-                {activeBackgroundUploadCopy.buttonLabel}
-              </button>
-              <StatusBadge
-                tone={
-                  activeBackgroundUpload.status === "success"
-                    ? "success"
-                    : activeBackgroundUpload.status === "error"
-                      ? "danger"
-                      : "neutral"
-                }
-              >
-                {activeBackgroundUpload.status}
-              </StatusBadge>
-            </div>
-          </div>
-
-          <StyleSlider
-            label="Legibility scrim"
-            max={0.8}
-            min={0}
-            onChange={(event) =>
-              updateBackground((currentBackground) => ({
-                ...currentBackground,
-                scrim: {
-                  ...currentBackground.scrim,
-                  opacity: Number(event.target.value),
-                },
-              }))
-            }
-            step={0.05}
-            value={projectState.background.scrim.opacity}
-          />
-
-          <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-[var(--muted)]">
-                  {activeBackgroundUploadCopy.statusLabel}
-                </p>
-                <p
-                  className={`mt-2 text-sm leading-6 ${
-                    activeBackgroundUpload.status === "error"
-                      ? "text-[var(--danger)]"
-                      : activeBackgroundUpload.status === "success"
-                        ? "text-[var(--muted)]"
-                        : "text-[var(--muted)]"
-                  }`}
-                >
-                  {activeBackgroundUpload.message}
-                </p>
-              </div>
-              <div className="grid gap-2 text-right">
-                <span className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
-                  Session asset
-                </span>
-                <span className="text-sm font-medium text-[var(--muted)]">
-                  {activeBackgroundAsset?.assetId ?? "Pending"}
-                </span>
-                <span className="text-xs text-[var(--muted)]">
-                  {activeBackgroundAsset?.sizeBytes
-                    ? formatBytes(activeBackgroundAsset.sizeBytes)
-                    : projectState.background.assetName || "No upload yet"}
-                </span>
-              </div>
-            </div>
-
-            <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-              Current scrim opacity:{" "}
-              <span className="font-mono text-[var(--muted)]">
-                {Math.round((projectState.background.scrim.opacity ?? 0) * 100)}%
-              </span>
-              . Lower values keep more of the background visible; higher values
-              push lyrics forward.
-            </p>
-
-            {!activeBackgroundAsset ? (
-              <p className="mt-4 text-sm leading-6 text-[var(--accent)]">
-                {activeBackgroundUploadCopy.missingMessage}
-              </p>
-            ) : null}
-          </div>
-        </>
-      ) : null}
-    </div>
-  );
-
-  const renderStyleTab = () => (
-    <div className="grid gap-3">
-      <CollapsibleSection
-        onToggle={() => setTextDisplayOpen((open) => !open)}
-        open={textDisplayOpen}
-        title="Text display"
-      >
-        {renderTextDisplayControls()}
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        onToggle={() => setBackgroundOpen((open) => !open)}
-        open={backgroundOpen}
-        title="Background"
-      >
-        {renderBackgroundControls()}
-      </CollapsibleSection>
-    </div>
-  );
 
   const renderActiveTab = () => {
     switch (activeSection) {
       case "audio":
-        return renderAudioTab();
+        return (
+          <AudioTab
+            audio={{
+              upload: audioUpload,
+              objectUrl: audioObjectUrl,
+              isLoadingSample,
+              onFile: handleAudioFile,
+              onClear: handleClearAudio,
+              onLoadSample: handleLoadSample,
+              onPickFile: () => audioInputRef.current?.click(),
+            }}
+            lyricsSource={{
+              auto: autoLyricsState,
+              autoLyricsBusy,
+              autoTimingBusy,
+              sourceLanguage,
+              otherSourceLanguage,
+              canGenerate: canGenerateAutoLyrics,
+              languageRequirementMessage: autoLyricsLanguageRequirementMessage,
+              onSourceLanguage: (value) => {
+                setSourceLanguage(value);
+                setAutoTimingState((currentState) =>
+                  currentState.status === "error"
+                    ? createIdleAutoTimingState()
+                    : currentState,
+                );
+                setAutoLyricsState((currentState) =>
+                  currentState.status === "error"
+                    ? createIdleAutoLyricsState()
+                    : currentState,
+                );
+              },
+              onOtherSourceLanguage: (value) => {
+                setOtherSourceLanguage(value);
+                setAutoTimingState((currentState) =>
+                  currentState.status === "error"
+                    ? createIdleAutoTimingState()
+                    : currentState,
+                );
+                setAutoLyricsState((currentState) =>
+                  currentState.status === "error"
+                    ? createIdleAutoLyricsState()
+                    : currentState,
+                );
+              },
+              onGenerate: handleGenerateAutoLyrics,
+              onImportJson: openJsonImport,
+              onExportJson: handleProjectExport,
+              onClearLyrics: handleClearLyrics,
+              inlineNotice: showInlineJsonNotice ? jsonNotice.message : null,
+            }}
+            project={projectState}
+          />
+        );
       case "lyrics":
-        return renderLyricsTab();
+        return (
+          <LyricsTab
+            project={projectState}
+            timing={{
+              sectionActive: activeSection === "lyrics",
+              controlsVisible: timingControlsVisible,
+              autoFollowEnabled,
+              notice: timingNotice,
+              drafts: timingDrafts,
+              editingLineId,
+              activeTimingLineId,
+              heardLineId: heardLine?.id ?? null,
+              lineCount,
+              timedLineCount,
+              session: tapTimingSession,
+              progress: tapTimingProgress,
+              cursorLine: tapTimingCursorLine,
+              nextLine: tapTimingNextLine,
+              startLine: tapTimingStartLine,
+              startLineNumber: tapTimingStartLineNumber,
+              startDisabledReason: tapTimingStartDisabledReason,
+              canStart: canStartTapTiming,
+              autoTiming: autoTimingState,
+              autoTimingBusy,
+              rowRefs: timingRowRefs,
+              onToggleControls: () => setTimingControlsOpen((open) => !open),
+              onJump: handleJumpToCurrentLine,
+              onResumeSession: resumeTapTimingSession,
+              onPauseSession: pauseTapTimingSession,
+              onUndoTap: undoLastTap,
+              onStopSession: stopTapTimingSession,
+              onTapNext: tapNextTimingLine,
+              onStartSession: startTapTimingSession,
+              onMark: tapTimingSession.active
+                ? tapNextTimingLine
+                : handleMarkCurrentLine,
+              onClearLineStart: clearTimingLineStart,
+              onSetNotice: setTimingNotice,
+              onSetEditingLine: setEditingLineId,
+              onDeleteLine: deleteLine,
+              onSetSelectedLine: setSelectedTimingLineId,
+              onSetDrafts: setTimingDrafts,
+              onDraftCommit: handleTimingDraftCommit,
+              onDraftReset: handleTimingDraftReset,
+              onMoveLine: moveLine,
+              onNudge: handleNudgeSelectedLine,
+              onSelectLine: handleTimingLineSelect,
+              onUpdateLine: updateLine,
+              onAddLine: addLine,
+              onClearAll: handleClearAllTimes,
+            }}
+          />
+        );
       case "style":
-        return renderStyleTab();
+        return (
+          <StyleTab
+            textDisplay={{
+              style: projectState.style,
+              timing: projectState.timing,
+              presetEntries: stylePresetEntries,
+              open: textDisplayOpen,
+              onToggle: () => setTextDisplayOpen((open) => !open),
+              onApplyPreset: applyPreset,
+              onUpdateStyle: updateStyle,
+              onUpdateTiming: updateTiming,
+              onUpdateShadow: updateShadow,
+            }}
+            background={{
+              settings: projectState.background,
+              open: backgroundOpen,
+              onToggle: () => setBackgroundOpen((open) => !open),
+              onSelectType: selectBackgroundType,
+              onUpdateBackground: updateBackground,
+              onImageFile: handleBackgroundImageFile,
+              onVideoFile: handleBackgroundVideoFile,
+              onPickImage: () => backgroundImageInputRef.current?.click(),
+              onPickVideo: () => backgroundVideoInputRef.current?.click(),
+              uploadCopy: activeBackgroundUploadCopy,
+              upload: activeBackgroundUpload,
+              asset: activeBackgroundAsset,
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -4695,56 +3389,14 @@ export function EditorShell({ debugProbe = null, project }) {
             : undefined
         }
       >
-        <header className="top-frame absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 bg-gradient-to-b from-[var(--page)] via-[var(--page)]/70 to-transparent px-4 pb-7 pt-4 lg:static lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:px-4 lg:py-2.5 lg:shadow-[var(--shadow-soft)]">
-          <div className="top-inner">
-          <div className="brand-lockup flex min-w-0 items-center gap-3">
-            <div className="brand-mark flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-[var(--accent)] text-xs font-bold text-[var(--on-accent)] lg:h-9 lg:w-9 lg:rounded-xl lg:text-sm">
-              RC
-            </div>
-            <div className="brand-copy min-w-0 leading-tight">
-              <p className="text-[9px] uppercase tracking-[0.3em] text-[var(--muted)] lg:text-[10px]">
-                Vertical lyric video maker
-              </p>
-              <div className="flex items-baseline gap-2">
-                <h1 className="truncate text-sm font-semibold tracking-tight lg:text-base">
-                  {projectState.meta.title || "Reel Creator"}
-                </h1>
-                {projectState.meta.artist ? (
-                  <span className="hidden truncate text-xs text-[var(--muted)] lg:inline">
-                    · {projectState.meta.artist}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="mobile-view-toggle"
-            role="group"
-            aria-label="Show or hide the preview and word board"
-          >
-            <button
-              className={showPreview ? "is-active" : ""}
-              type="button"
-              data-wsview="preview"
-              aria-pressed={showPreview}
-              onClick={handleTogglePreview}
-            >
-              Preview
-            </button>
-            <button
-              className={showWordBoard ? "is-active" : ""}
-              type="button"
-              data-wsview="board"
-              aria-pressed={showWordBoard}
-              onClick={handleToggleWordBoard}
-            >
-              Word board
-            </button>
-          </div>
-
-          </div>
-        </header>
+        <EditorHeader
+          artist={projectState.meta.artist}
+          onTogglePreview={handleTogglePreview}
+          onToggleWordBoard={handleToggleWordBoard}
+          showPreview={showPreview}
+          showWordBoard={showWordBoard}
+          title={projectState.meta.title}
+        />
 
         {!sectionWithinLimit || showGlobalJsonNotice ? (
         <div className="absolute inset-x-3 top-[4.25rem] z-30 space-y-2 lg:static lg:inset-auto lg:space-y-3">
@@ -4777,96 +3429,23 @@ export function EditorShell({ debugProbe = null, project }) {
                 !showWordBoard ? " hide-board" : ""
               }`}
             >
-          <section
-            className={`preview-col ${
-              isPreviewFullscreen
-                ? "fixed inset-0 z-50 flex min-h-0 flex-col items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
-                : "relative z-0 flex min-h-[74dvh] flex-none flex-col overflow-hidden bg-transparent lg:static lg:order-2 lg:min-h-0 lg:flex-1 lg:items-center lg:justify-center lg:rounded-2xl lg:border lg:border-white/8 lg:bg-white/[0.03] lg:p-4"
-            }`}
-          >
-            {isPreviewFullscreen ? (
-              <button
-                aria-label="Close full-screen preview"
-                className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-lg text-white transition hover:bg-white/20"
-                onClick={() => setIsPreviewFullscreen(false)}
-                type="button"
-              >
-                ✕
-              </button>
-            ) : null}
-
-            <div
-              className={`relative flex min-h-0 w-full flex-1 items-center justify-center ${
-                isPreviewFullscreen ? "gap-5" : ""
-              }`}
-            >
-              <div
-                className={`preview-screen relative overflow-hidden bg-[linear-gradient(180deg,#1a1a2e_0%,#13102a_52%,#0a0816_100%)] ${
-                  isPreviewFullscreen
-                    ? "aspect-[9/16] h-full max-h-full w-auto max-w-full rounded-[1.75rem] border border-white/12 shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
-                    : "h-full w-full lg:aspect-[9/16] lg:h-full lg:max-h-full lg:w-auto lg:max-w-full lg:rounded-[2rem] lg:border lg:border-white/12 lg:shadow-[0_30px_70px_rgba(0,0,0,0.5)]"
-                }`}
-              >
-                <div className="absolute inset-0">
-                  <PreviewPlayer
-                    backgroundDurationSec={activeBackgroundAsset?.durationSec ?? null}
-                    backgroundUrl={backgroundPreviewUrl}
-                    playerRef={previewPlayerRef}
-                    project={projectState}
-                    targetFrame={previewCurrentFrame}
-                  />
-                </div>
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/55 to-transparent" />
-              </div>
-
-              {/* D-Modal: fullscreen preview shows the phone + Word Board. */}
-              {isPreviewFullscreen ? (
-                <div className="hidden h-full max-h-full min-w-0 flex-1 items-center justify-center lg:flex">
-                  <WordBoard
-                    lines={projectState.lines}
-                    selectedWordId={editor.state.selection.selectedWord?.id ?? null}
-                    onSelectWord={(word) => editor.actions.setSelectedWord(word)}
-                    currentTime={currentAudioTime}
-                    followAudioResetKey={wordBoardFollowAudioResetKey}
-                  />
-                </div>
-              ) : null}
-            </div>
-
-            {!isPreviewFullscreen ? (
-              <div className="preview-under-actions mt-3 hidden w-full flex-none items-center justify-between gap-4 text-[11px] text-[var(--muted)] lg:flex">
-                <button
-                  className="top-action preview-under-action"
-                  onClick={() => setIsPreviewFullscreen(true)}
-                  type="button"
-                >
-                  Preview
-                </button>
-                <button
-                  className="top-action preview-under-action"
-                  disabled={!exportReadiness.canExport || exportBusy}
-                  onClick={() => {
-                    void handleStartExport(false);
-                  }}
-                  type="button"
-                >
-                  {exportBusy ? "Exporting..." : "Export MP4"}
-                </button>
-              </div>
-            ) : null}
-          </section>
-
-          {!isPreviewFullscreen ? (
-            <section className="wb-slot hidden min-h-0 flex-none flex-col overflow-hidden lg:order-2 lg:flex lg:min-h-0 lg:flex-1 lg:items-center lg:justify-center lg:rounded-2xl lg:p-2">
-              <WordBoard
-                lines={projectState.lines}
-                selectedWordId={editor.state.selection.selectedWord?.id ?? null}
-                onSelectWord={(word) => editor.actions.setSelectedWord(word)}
-                currentTime={currentAudioTime}
-                followAudioResetKey={wordBoardFollowAudioResetKey}
-              />
-            </section>
-          ) : null}
+          <PreviewStage
+            backgroundDurationSec={activeBackgroundAsset?.durationSec ?? null}
+            backgroundPreviewUrl={backgroundPreviewUrl}
+            canExport={exportReadiness.canExport}
+            currentAudioTime={currentAudioTime}
+            exportBusy={exportBusy}
+            isPreviewFullscreen={isPreviewFullscreen}
+            onEnterFullscreen={() => setIsPreviewFullscreen(true)}
+            onExitFullscreen={() => setIsPreviewFullscreen(false)}
+            onExport={() => {
+              void handleStartExport(false);
+            }}
+            previewCurrentFrame={previewCurrentFrame}
+            previewPlayerRef={previewPlayerRef}
+            project={projectState}
+            wordBoardFollowAudioResetKey={wordBoardFollowAudioResetKey}
+          />
             </div>
           </section>
 
@@ -4887,30 +3466,10 @@ export function EditorShell({ debugProbe = null, project }) {
               </span>
             </button>
 
-            <div className="panel-tabs flex flex-none flex-col gap-1.5 border-b border-[var(--border)] px-4 pb-2.5 pt-2 lg:px-3 lg:py-3">
-              <div className="no-scrollbar flex flex-wrap items-center gap-1.5">
-                {SECTIONS.map((section) => {
-                  const selected = section.id === activeSection;
-
-                  return (
-                    <button
-                      className={`section-tab rounded-full px-3 py-1.5 text-[11px] font-semibold transition lg:px-3.5 lg:text-xs ${
-                        selected
-                          ? "active-tab bg-[var(--accent)] text-[var(--on-accent)]"
-                          : "tab-link text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-                      }`}
-                      aria-selected={selected}
-                      key={section.id}
-                      onClick={() => setActiveSection(section.id)}
-                      role="tab"
-                      type="button"
-                    >
-                      {section.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <EditorTabBar
+              activeSection={activeSection}
+              onSelectSection={setActiveSection}
+            />
 
             <input
               accept=".mp3,audio/mpeg"
@@ -5013,26 +3572,26 @@ export function EditorShell({ debugProbe = null, project }) {
         ) : null}
       </div>
 
-      <ProjectJsonModal
-        draft={jsonDraft}
-        errorMessage={jsonImportError}
-        isOpen={isJsonModalOpen}
-        onChange={setJsonDraft}
-        onClose={closeJsonImport}
-        onFileSelected={handleJsonFile}
-        onImport={handleProjectImport}
-        onStartNew={handleStartNewProject}
-      />
-
-      {exportModalOpen ? (
-        <RenderExportModal
-          downloadError={exportState.downloadError}
-          errorMessage={exportState.errorMessage}
-          isDownloading={exportState.isDownloading}
-          isReconnecting={exportState.isReconnecting}
-          lineCount={lineCount}
-          onClose={closeExportModal}
-          onDownload={() => {
+      <EditorModals
+        json={{
+          draft: jsonDraft,
+          errorMessage: jsonImportError,
+          isOpen: isJsonModalOpen,
+          onChange: setJsonDraft,
+          onClose: closeJsonImport,
+          onFileSelected: handleJsonFile,
+          onImport: handleProjectImport,
+          onStartNew: handleStartNewProject,
+        }}
+        exportModal={{
+          isOpen: exportModalOpen,
+          downloadError: exportState.downloadError,
+          errorMessage: exportState.errorMessage,
+          isDownloading: exportState.isDownloading,
+          isReconnecting: exportState.isReconnecting,
+          lineCount,
+          onClose: closeExportModal,
+          onDownload: () => {
             void runRenderDownload({
               fallbackName: getFallbackRenderFileName(
                 projectState.meta.title,
@@ -5041,23 +3600,21 @@ export function EditorShell({ debugProbe = null, project }) {
               ),
               fileUrl: exportState.fileUrl,
             });
-          }}
-          onRetry={() => {
+          },
+          onRetry: () => {
             void handleStartExport(exportState.transparent, exportState.textLayerMode);
-          }}
-          formatLabel={
-            exportState.transparent
-              ? getTextLayerFormat(exportState.textLayerMode).formatLabel
-              : "MP4"
-          }
-          phase={exportState.phase}
-          progressPercent={exportProgressPercent}
-          projectTitle={projectState.meta.title || "Reel Creator"}
-          renderStatus={exportState.renderStatus}
-          sectionLengthLabel={formatPreciseTime(sectionDuration)}
-          statusNote={exportState.statusNote}
-        />
-      ) : null}
+          },
+          formatLabel: exportState.transparent
+            ? getTextLayerFormat(exportState.textLayerMode).formatLabel
+            : "MP4",
+          phase: exportState.phase,
+          progressPercent: exportProgressPercent,
+          projectTitle: projectState.meta.title || "Reel Creator",
+          renderStatus: exportState.renderStatus,
+          sectionLengthLabel: formatPreciseTime(sectionDuration),
+          statusNote: exportState.statusNote,
+        }}
+      />
     </div>
     </EditorProvider>
   );
