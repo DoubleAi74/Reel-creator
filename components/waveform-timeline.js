@@ -10,6 +10,11 @@ import {
 import WaveSurfer from "wavesurfer.js";
 
 import {
+  createWaveformPeaksCache,
+  getWaveformPeaksForWaveSurfer,
+  WAVEFORM_PEAKS_CACHE_CONFIG,
+} from "@/lib/autosave";
+import {
   clampTimeToSection,
   findActiveLine,
   getSectionFrameFromTime,
@@ -23,22 +28,22 @@ import {
 } from "@/lib/waveform-sync";
 import { VIDEO_FPS } from "@/remotion/constants";
 
-function formatTime(totalSeconds) {
+// One consistent clock format for both sides of the readout: `M:SS` (total) and
+// `M:SS.t` (current). Holding the character count constant — plus tabular-nums and a
+// min-width on the chip — keeps the readout from reflowing the row as it ticks.
+function formatClock(totalSeconds, withTenths = false) {
   const safeSeconds = Number.isFinite(totalSeconds) ? Math.max(0, totalSeconds) : 0;
   const minutes = Math.floor(safeSeconds / 60);
   const seconds = Math.floor(safeSeconds % 60);
+  const base = `${minutes}:${String(seconds).padStart(2, "0")}`;
 
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
+  if (!withTenths) {
+    return base;
+  }
 
-function formatTenths(totalSeconds) {
-  const safeSeconds = Number.isFinite(totalSeconds) ? Math.max(0, totalSeconds) : 0;
+  const tenths = Math.floor((safeSeconds % 1) * 10);
 
-  return safeSeconds < 60
-    ? safeSeconds.toFixed(1)
-    : `${Math.floor(safeSeconds / 60)}:${String(
-        Math.floor(safeSeconds % 60),
-      ).padStart(2, "0")}`;
+  return `${base}.${tenths}`;
 }
 
 function getMarkerLeftPercent(lineStart, audio) {
@@ -173,7 +178,10 @@ function installTimingDebugHook(waveSurferRef) {
 export function WaveformTimeline({
   activeLineId,
   audio,
+  audioAssetDurationSec = null,
+  audioAssetId = "",
   audioSrc,
+  cachedWaveformPeaks = null,
   currentTime,
   isAudioRestoring = false,
   isPlaying,
@@ -183,6 +191,7 @@ export function WaveformTimeline({
   onMark,
   onPlayingChange,
   onTimeChange,
+  onWaveformPeaks,
 }) {
   const containerRef = useRef(null);
   const waveSurferRef = useRef(null);
@@ -204,6 +213,9 @@ export function WaveformTimeline({
   const [status, setStatus] = useState(audioSrc ? "loading" : "empty");
   const [waveformVisualReadySource, setWaveformVisualReadySource] =
     useState(null);
+  // 1 = normal, 0.5 = half-speed (pitch preserved). Reset to 1 whenever new audio
+  // loads; applied to the engine by the effect below.
+  const [speed, setSpeed] = useState(1);
   const hasReadyWaveform = Boolean(
     audioSrc && waveformVisualReadySource === audioSrc,
   );
@@ -221,6 +233,23 @@ export function WaveformTimeline({
   const emitDurationChange = useEffectEvent((durationInSeconds) => {
     onDurationChange?.(durationInSeconds);
   });
+  const emitWaveformPeaks = useEffectEvent((waveformPeaks) => {
+    onWaveformPeaks?.(waveformPeaks);
+  });
+  const getWaveformPeaksForLoad = useEffectEvent(() =>
+    getWaveformPeaksForWaveSurfer(cachedWaveformPeaks, {
+      assetId: audioAssetId,
+      durationSec: audioAssetDurationSec ?? audio.duration,
+    }),
+  );
+  const createWaveformPeaksForCurrentAsset = useEffectEvent(
+    (durationInSeconds, peaks) =>
+      createWaveformPeaksCache({
+        assetId: audioAssetId,
+        durationSec: durationInSeconds,
+        peaks,
+      }),
+  );
   const getSectionStart = useEffectEvent(() => getSectionBounds(audio).startOffset);
   const getClockFrame = useEffectEvent((timeInSeconds) =>
     getSectionFrameFromTime(timeInSeconds, audio, VIDEO_FPS),
@@ -274,6 +303,7 @@ export function WaveformTimeline({
 
     setStatus("loading");
     setErrorMessage("");
+    setSpeed(1);
     waveReadyRef.current = false;
     waveRedrawCompleteRef.current = false;
 
@@ -295,6 +325,13 @@ export function WaveformTimeline({
       revealTimeoutRef.current = 0;
       revealWaveform();
     };
+    const cachedWaveform = getWaveformPeaksForLoad();
+    const loadedWithCachedPeaks = Boolean(cachedWaveform);
+    let exportedWaveformPeaks = false;
+    let mediaCanPlay = !loadedWithCachedPeaks;
+    let mediaCanPlayCleanup = () => {};
+    let readyDuration = null;
+    let statusReadyApplied = false;
 
     const waveSurfer = WaveSurfer.create({
       // Play through Web Audio (decoded PCM + AudioBufferSourceNode) instead of
@@ -302,30 +339,99 @@ export function WaveformTimeline({
       // rebuffer-free seeks, so the preview (which is slaved to this clock)
       // stays locked to the music after mid-song seeks and ±2s jumps.
       backend: "WebAudio",
-      barGap: 3,
+      barGap: 2,
       barRadius: 999,
-      barWidth: 4,
+      barWidth: 2,
       container: containerRef.current,
       cursorColor: "#2C9B3F",
       dragToSeek: true,
-      height: 64,
+      // Fill the container height (which CSS centres) instead of a fixed 64px that
+      // mismatched the 63px track — that mismatch top-clipped the waveform and shoved
+      // it below centre. "auto" also adapts to the per-breakpoint padding.
+      height: "auto",
       normalize: true,
       progressColor: "rgba(44, 155, 63, 0.85)",
       waveColor: "rgba(99, 91, 77, 0.32)",
       url: audioSrc,
+      ...(cachedWaveform
+        ? {
+            duration: cachedWaveform.duration,
+            peaks: cachedWaveform.peaks,
+          }
+        : {}),
     });
 
     waveSurferRef.current = waveSurfer;
 
-    waveSurfer.on("ready", (durationInSeconds) => {
-      const nextTime = clampToSection(getSectionStart(), durationInSeconds);
+    const applyFunctionalReady = (durationInSeconds) => {
+      if (statusReadyApplied || !mediaCanPlay) {
+        return;
+      }
 
-      waveReadyRef.current = true;
+      const usableDuration = Number.isFinite(durationInSeconds)
+        ? durationInSeconds
+        : waveSurfer.getDuration();
+      const nextTime = clampToSection(getSectionStart(), usableDuration);
+
+      statusReadyApplied = true;
       setStatus("ready");
       lastClockFrameRef.current = getClockFrame(nextTime);
-      emitDurationChange(durationInSeconds);
+      emitDurationChange(usableDuration);
       emitTimeChange(nextTime);
       waveSurfer.setTime(nextTime);
+    };
+
+    if (loadedWithCachedPeaks) {
+      const mediaElement = waveSurfer.getMediaElement?.();
+      const handleMediaCanPlay = () => {
+        mediaCanPlay = true;
+        applyFunctionalReady(readyDuration);
+      };
+
+      mediaElement?.addEventListener?.("canplay", handleMediaCanPlay, {
+        once: true,
+      });
+      mediaCanPlayCleanup = () => {
+        mediaElement?.removeEventListener?.("canplay", handleMediaCanPlay);
+      };
+    }
+
+    const maybeExportWaveformPeaks = (durationInSeconds) => {
+      if (loadedWithCachedPeaks || exportedWaveformPeaks) {
+        return;
+      }
+
+      try {
+        const exportDuration = Number.isFinite(durationInSeconds)
+          ? durationInSeconds
+          : waveSurfer.getDuration();
+        const peaks = waveSurfer.exportPeaks({
+          channels: WAVEFORM_PEAKS_CACHE_CONFIG.channels,
+          maxLength: WAVEFORM_PEAKS_CACHE_CONFIG.maxLength,
+          precision: WAVEFORM_PEAKS_CACHE_CONFIG.precision,
+        });
+        const waveformPeaks = createWaveformPeaksForCurrentAsset(
+          exportDuration,
+          peaks,
+        );
+
+        if (waveformPeaks) {
+          exportedWaveformPeaks = true;
+          emitWaveformPeaks(waveformPeaks);
+        }
+      } catch {
+        // Peaks are a disposable performance cache. Decode/playback remain valid.
+      }
+    };
+
+    waveSurfer.on("decode", (durationInSeconds) => {
+      maybeExportWaveformPeaks(durationInSeconds);
+    });
+
+    waveSurfer.on("ready", (durationInSeconds) => {
+      readyDuration = durationInSeconds;
+      maybeExportWaveformPeaks(durationInSeconds);
+      waveReadyRef.current = true;
 
       window.clearTimeout(revealTimeoutRef.current);
       revealTimeoutRef.current = window.setTimeout(() => {
@@ -333,6 +439,7 @@ export function WaveformTimeline({
       }, 900);
 
       maybeRevealWaveform();
+      applyFunctionalReady(durationInSeconds);
     });
 
     waveSurfer.on("redrawcomplete", () => {
@@ -370,6 +477,13 @@ export function WaveformTimeline({
 
     waveSurfer.on("pause", () => {
       emitPlayingChange(false);
+      // Publish the engine's EXACT stop position. During playback the rAF clock is
+      // the sole publisher and is frame-gated + backpressure-gated, so the parent
+      // legitimately lags the engine by up to a frame; without this the readout would
+      // freeze at that lagged time (a visible backward jump) and snap forward on
+      // resume. emitTimeChange is the UNGATED publisher and records into emittedTimes,
+      // so the controlled-sync effect treats this as an echo and does NOT re-seek.
+      emitTimeChange(clampToSection(waveSurfer.getCurrentTime()));
     });
 
     waveSurfer.on("finish", () => {
@@ -394,6 +508,7 @@ export function WaveformTimeline({
 
     return () => {
       cancelWaveformReveal(revealFrameRef, revealTimeoutRef);
+      mediaCanPlayCleanup();
       // destroy() leaves the WebAudio backend's AudioContext open (it's treated
       // as "external media"), so close it ourselves to avoid leaking contexts
       // across track changes (browsers cap how many can exist).
@@ -434,6 +549,19 @@ export function WaveformTimeline({
 
     lastClockFrameRef.current = getClockFrame(nextTime);
   }, [audio, currentTime, status]);
+
+  // Apply the playback rate to the engine. preservePitch keeps 0.5× from dropping an
+  // octave. The rAF clock reads the engine's own time, so half-rate playback needs no
+  // clock changes — frames simply advance at half wall-clock speed.
+  useEffect(() => {
+    const waveSurfer = waveSurferRef.current;
+
+    if (!waveSurfer || status !== "ready") {
+      return;
+    }
+
+    waveSurfer.setPlaybackRate(speed, true);
+  }, [speed, status]);
 
   useEffect(() => {
     if (status !== "ready" || !isPlaying) {
@@ -531,6 +659,23 @@ export function WaveformTimeline({
       line.start >= startOffset &&
       line.start <= endOffset,
   );
+  // Nearest timed-lyric starts on either side of the playhead, for the prev/next
+  // buttons. `markers` is already sorted ascending and clamped to the section. The
+  // epsilon keeps a playhead sitting exactly on a marker from re-selecting it.
+  const navReferenceTime = clampTimeToSection(currentTime, audio);
+  const NAV_EPSILON = 1e-3;
+  let previousLyricStart = null;
+  let nextLyricStart = null;
+  for (const line of markers) {
+    if (line.start < navReferenceTime - NAV_EPSILON) {
+      previousLyricStart = line.start;
+    } else if (
+      line.start > navReferenceTime + NAV_EPSILON &&
+      nextLyricStart === null
+    ) {
+      nextLyricStart = line.start;
+    }
+  }
   const isReady = status === "ready" || (!audioSrc && !isAudioRestoring);
   const canMark = isReady && isTimingActive && Boolean(activeLineId) && typeof onMark === "function";
   const currentWaveformPercent =
@@ -555,7 +700,7 @@ export function WaveformTimeline({
                   aria-hidden={!hasReadyWaveform}
                   className="waveform-engine-layer"
                 >
-                  <div ref={containerRef} />
+                  <div className="waveform-canvas" ref={containerRef} />
 
                   {markers.length ? (
                     // Purely visual lyric markers. pointer-events-none lets clicks
@@ -563,25 +708,24 @@ export function WaveformTimeline({
                     <div className="pointer-events-none absolute inset-0 z-10">
                       {markers.map((line) => {
                         const isActiveMarker = activeLineId === line.id;
-                        const isHeardMarker = heardLine?.id === line.id;
+                        const isHeardMarker =
+                          !isActiveMarker && heardLine?.id === line.id;
+                        const markerState = isActiveMarker
+                          ? "active"
+                          : isHeardMarker
+                            ? "heard"
+                            : "idle";
                         const left = getMarkerLeftPercent(line.start, audio);
 
                         return (
                           <div
                             aria-hidden="true"
-                            className="absolute inset-y-0 z-10 w-4 -translate-x-1/2"
+                            className={`waveform-marker waveform-marker--${markerState}`}
                             key={line.id}
                             style={{ left: `${left}%` }}
                           >
-                            <span
-                              className={`absolute inset-y-2 left-1/2 w-0.5 -translate-x-1/2 rounded-full ${
-                                isActiveMarker
-                                  ? "bg-[var(--accent)]"
-                                  : isHeardMarker
-                                    ? "bg-[var(--surface-2)]"
-                                    : "bg-[var(--surface-2)]"
-                              }`}
-                            />
+                            <span className="waveform-marker-cap" />
+                            <span className="waveform-marker-line" />
                           </div>
                         );
                       })}
@@ -589,7 +733,7 @@ export function WaveformTimeline({
                   ) : null}
                 </div>
               ) : (
-                <div ref={containerRef} />
+                <div className="waveform-canvas" ref={containerRef} />
               )}
 
               <WaveformSkeleton currentPercent={currentWaveformPercent} />
@@ -604,11 +748,9 @@ export function WaveformTimeline({
 
       <div className="transport-controls flex items-center gap-2 border-t border-[var(--border)] px-4 pb-5 pt-3 lg:flex-wrap lg:justify-between lg:gap-4 lg:px-4 lg:py-3">
         <div className="flex min-w-0 flex-1 items-center gap-2 lg:flex-none lg:flex-wrap">
-          <span className="font-mono text-[11px] text-[var(--muted)] lg:hidden">
-            {formatTenths(currentSectionTime)}
-          </span>
           <button
-            className="rewind-button hidden rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:text-[var(--muted)] lg:inline-flex"
+            aria-label="Rewind to section start"
+            className="rewind-button hidden rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:inline-flex"
             disabled={!isReady}
             onClick={() => jumpTo(startOffset)}
             type="button"
@@ -616,7 +758,20 @@ export function WaveformTimeline({
             ⏮ Rewind
           </button>
           <button
-            className={`play-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:w-auto lg:gap-2 lg:rounded-full lg:bg-[var(--accent)] lg:px-5 lg:py-1.5 lg:text-sm lg:font-semibold lg:text-[var(--on-accent)] lg:hover:opacity-90 ${isPlaying ? "is-playing" : ""}`}
+            aria-label="Jump to previous lyric"
+            className="nav-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[13px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
+            data-dir="prev"
+            disabled={!isReady || previousLyricStart === null}
+            onClick={() => jumpTo(previousLyricStart)}
+            title="Previous lyric"
+            type="button"
+          >
+            <span aria-hidden>⇤</span>
+          </button>
+          <button
+            aria-label={isPlaying ? "Pause" : "Play"}
+            aria-pressed={isPlaying}
+            className={`play-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:w-auto lg:gap-2 lg:rounded-full lg:bg-[var(--accent)] lg:px-5 lg:py-1.5 lg:text-sm lg:font-semibold lg:text-[var(--on-accent)] lg:hover:opacity-90 ${isPlaying ? "is-playing" : ""} ${isReady ? "" : "is-not-ready"}`}
             disabled={!isReady}
             onClick={togglePlayback}
             type="button"
@@ -625,27 +780,30 @@ export function WaveformTimeline({
             <span className="hidden lg:inline">{isPlaying ? "Pause" : "Play"}</span>
           </button>
           <button
-            className="step-button hidden rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:text-[var(--muted)] lg:inline-flex"
-            disabled={!isReady}
-            onClick={() =>
-              jumpTo((waveSurferRef.current?.getCurrentTime() ?? currentTime) - 2)
-            }
+            aria-label="Jump to next lyric"
+            className="nav-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[13px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
+            data-dir="next"
+            disabled={!isReady || nextLyricStart === null}
+            onClick={() => jumpTo(nextLyricStart)}
+            title="Next lyric"
             type="button"
           >
-            -2s
+            <span aria-hidden>⇥</span>
           </button>
           <button
-            className="step-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[11px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface-2)] lg:px-3 lg:py-1.5 lg:text-xs"
+            aria-label={`Playback speed ${speed === 1 ? "normal" : "half"}`}
+            aria-pressed={speed !== 1}
+            className="speed-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[11px] font-semibold text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
             disabled={!isReady}
-            onClick={() =>
-              jumpTo((waveSurferRef.current?.getCurrentTime() ?? currentTime) + 2)
-            }
+            onClick={() => setSpeed((current) => (current === 1 ? 0.5 : 1))}
+            title="Toggle half-speed playback (keeps pitch)"
             type="button"
           >
-            +2s
+            {speed === 1 ? "1×" : "0.5×"}
           </button>
           {isTimingActive ? (
             <button
+              aria-label="Mark current lyric time"
               className="mark-button flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] text-sm font-bold text-[var(--on-accent)] shadow-[0_8px_24px_rgba(251,191,36,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:flex-none lg:border lg:border-[var(--accent)] lg:bg-[var(--surface-active)] lg:px-4 lg:py-1.5 lg:text-xs lg:font-semibold lg:uppercase lg:tracking-[0.18em] lg:text-[var(--accent)] lg:shadow-none lg:hover:bg-[var(--surface-hover)]"
               disabled={!canMark}
               onClick={onMark}
@@ -660,15 +818,10 @@ export function WaveformTimeline({
           ) : null}
         </div>
 
-        <div className="transport-time flex items-center gap-3 text-[11px] font-medium text-[var(--muted)]">
-          <span className="font-mono text-[var(--muted)] lg:hidden">
-            {formatTenths(sectionDuration)}
+        <div className="transport-time">
+          <span className="transport-time-readout font-mono">
+            {formatClock(currentSectionTime, true)} / {formatClock(sectionDuration)}
           </span>
-          <div className="hidden items-center gap-4 lg:flex">
-            <span className="font-mono text-[var(--muted)]">
-              {formatTenths(currentSectionTime)} / {formatTime(sectionDuration)}
-            </span>
-          </div>
         </div>
       </div>
       </div>

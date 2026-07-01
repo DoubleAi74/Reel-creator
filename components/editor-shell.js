@@ -4075,6 +4075,42 @@ export function EditorShell({ debugProbe = null, project }) {
     }
   };
 
+  const handleWaveformPeaks = (waveformPeaks) => {
+    if (!waveformPeaks?.assetId) {
+      return;
+    }
+
+    setAudioUpload((currentUpload) => {
+      const currentAsset = currentUpload.asset;
+
+      if (!currentAsset || currentAsset.assetId !== waveformPeaks.assetId) {
+        return currentUpload;
+      }
+
+      const currentPeaks = currentAsset.waveformPeaks;
+
+      if (
+        currentPeaks?.version === waveformPeaks.version &&
+        currentPeaks?.assetId === waveformPeaks.assetId &&
+        currentPeaks?.durationSec === waveformPeaks.durationSec &&
+        currentPeaks?.channels === waveformPeaks.channels &&
+        currentPeaks?.maxLength === waveformPeaks.maxLength &&
+        currentPeaks?.precision === waveformPeaks.precision &&
+        currentPeaks?.data?.length === waveformPeaks.data.length
+      ) {
+        return currentUpload;
+      }
+
+      return {
+        ...currentUpload,
+        asset: {
+          ...currentAsset,
+          waveformPeaks,
+        },
+      };
+    });
+  };
+
   const renderTrackUploadTab = () => (
     <div className="grid gap-4">
       <div
@@ -5824,7 +5860,12 @@ export function EditorShell({ debugProbe = null, project }) {
           <WaveformTimeline
             activeLineId={activeTimingLineId}
             audio={projectState.audio}
+            audioAssetDurationSec={
+              audioUpload.asset?.durationSec ?? projectState.audio.duration
+            }
+            audioAssetId={audioUpload.asset?.assetId ?? ""}
             audioSrc={audioObjectUrl}
+            cachedWaveformPeaks={audioUpload.asset?.waveformPeaks ?? null}
             currentTime={currentAudioTime}
             isAudioRestoring={isAudioRestoring}
             isPlaying={isTransportPlaying}
@@ -5834,6 +5875,7 @@ export function EditorShell({ debugProbe = null, project }) {
             onMark={handleMarkCurrentLine}
             onPlayingChange={setIsTransportPlaying}
             onTimeChange={setCurrentAudioTime}
+            onWaveformPeaks={handleWaveformPeaks}
           />
         </section>
 
