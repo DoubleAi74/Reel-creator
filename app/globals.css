@@ -1,36 +1,13 @@
 @import "tailwindcss";
 
-/* Light "warm-paper / green-accent" design system, ported from the prototype's
- * styles.css :root tokens. The phone preview + Word Board carry their own
- * surface colors; this drives the app chrome. */
+/* Light "warm-paper / green-accent" design system. All palette colours live in
+ * app/app_colours.css (the single source of truth, imported before this file);
+ * this file re-exports them to Tailwind (below) and drives the app chrome. Only
+ * fonts + color-scheme are declared here. The phone preview + Word Board carry
+ * their own surface colours (also defined in app_colours.css). */
 :root {
   color-scheme: light;
 
-  --page: hsl(58 16% 93%);
-  --shell: hsl(58 10% 99%);
-  --panel: hsl(58 14% 88%);
-  --surface: hsl(58 7% 100%);
-  --surface-2: hsl(58 12% 96%);
-  --border: hsl(58 12% 84%);
-  --text: hsl(28 1% 20%);
-  --muted: hsl(28 1% 45%);
-  --accent: hsl(124 56% 38%);
-  --accent-soft: hsl(124 21% 88%);
-  --accent-2: hsl(348 23% 38%);
-  --on-accent: #fffdf8;
-  --surface-hover: hsl(58 13% 94%);
-  --surface-active: hsl(124 24% 91%);
-  --border-strong: hsl(58 10% 74%);
-  --focus-ring: hsl(124 56% 38% / 0.28);
-  --danger: hsl(348 36% 39%);
-  --danger-soft: hsl(348 26% 93%);
-  --warning: hsl(38 42% 42%);
-  --warning-soft: hsl(44 45% 91%);
-  --shadow-soft: 0 10px 28px hsl(28 1% 20% / 0.07);
-  --shadow-panel: 0 18px 54px hsl(28 1% 20% / 0.1);
-
-  --background: var(--page);
-  --foreground: var(--text);
   --font-ui-sans:
     "Noto Sans",
     "Noto Sans Devanagari",
@@ -250,7 +227,7 @@ textarea:focus-visible {
 }
 
 .top-action-primary:hover {
-  background: hsl(124 56% 33%) !important;
+  background: var(--accent-strong) !important;
   color: var(--on-accent) !important;
 }
 
@@ -374,12 +351,10 @@ textarea:focus-visible {
   max-width: 100%;
   flex: 0 0 auto;
   overflow: hidden;
-  border: 1px solid hsl(124 22% 72%) !important;
+  border: 1px solid var(--preview-border) !important;
   border-radius: 12px !important;
-  background:
-    radial-gradient(circle at 0 100%, rgba(31, 18, 59, 0.48), transparent 45%),
-    linear-gradient(122deg, #111329, #020312 70%) !important;
-  box-shadow: 0 20px 44px hsl(124 28% 24% / 0.16) !important;
+  background: var(--preview-bg) !important;
+  box-shadow: var(--preview-shadow) !important;
 }
 
 .preview-under-actions {
@@ -690,7 +665,7 @@ textarea:focus-visible {
   width: 100vw !important;
   height: 100vh !important;
   max-height: none !important;
-  background: hsl(58 16% 93% / 0.78) !important;
+  background: var(--scrim) !important;
   backdrop-filter: blur(14px) !important;
   padding: 0 !important;
 }
@@ -832,7 +807,7 @@ textarea:focus-visible {
 .transport .mark-button {
   order: 7;
   min-height: 35px;
-  border: 1px solid hsl(124 32% 75%) !important;
+  border: 1px solid var(--mark-border) !important;
   background: var(--accent-soft) !important;
   color: var(--accent) !important;
   box-shadow: none !important;

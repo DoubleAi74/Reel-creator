@@ -1,0 +1,46 @@
+read Temp_prototype_parts/Credit_dash_prototype_part/plan.md and progress.md and build
+
+You're the build agent for the credit dashboard prototype. plan.md is the
+authoritative spec; progress.md is your task ledger — work it top to bottom.
+All paths are relative to the project root (where you're running). Read both
+docs in full before touching any code.
+
+Ground rules:
+- Build in the prototype's own folder as a self-contained Next.js app; do NOT
+  wire it into or modify the main reel-creator app. This is a standalone
+  prototype that gets merged later (see plan.md §13 Merge notes).
+- Follow the stages in progress.md in order: Stage 1 (look & feel with
+  placeholder data, T01–T06), then Stage 2 (database, T07–T11), then Stage 3
+  (live SumUp payments, T12–T19). Don't jump ahead to plumbing before the
+  look & feel works.
+- Work one task at a time. Mark it in_progress, implement only what it needs,
+  validate it (run the app / the changed feature; run lint; add Vitest unit
+  tests for money/verification logic), then mark it done and update
+  "Current State" in progress.md before moving on. Don't ask for per-task
+  sign-off unless you're genuinely blocked.
+- Keep progress.md accurate at all times — it's the resume point if the
+  session ends.
+
+Non-negotiables (from plan.md and the SumUp guide, which is authoritative for
+payments — Current .md docs/sumup-payments-api-hosted-checkout-integration-guide.md):
+- Money is integer PENCE everywhere; convert to major units only at the SumUp
+  boundary. The fire button subtracts exactly 2p and never lets the balance go
+  below 0.
+- Payment amounts are SERVER-authoritative; re-validate the custom top-up
+  against £1–£100 on the server. Never trust a browser-supplied price.
+- Credit the balance ONLY after authoritative server-side checkout retrieval
+  confirms PAID — never on a bare browser redirect or an unverified webhook
+  body. Crediting must be exactly-once (balanceCredited flag + unique indexes).
+- Never put secret values in code, tests, fixtures, logs, or git. Env vars by
+  name/purpose only; generate a .env.example (names only). Never log secrets or
+  card data.
+- Sandbox only — no live mode.
+
+Keys/accounts (ask me when you reach the task that needs them, per progress.md):
+- MongoDB Atlas URI — before Stage 2 (T07). I have this ready.
+- SumUp sandbox merchant code + secret API key (sk_test_…) — before Stage 3
+  (T12+). plan.md §8 has the step-by-step setup if I still need to create them.
+- A public HTTPS webhook URL (cloudflared/ngrok tunnel) — before the webhook
+  tasks (T16/T19). Tell me exactly what to run when you need it.
+
+Start at T01. Briefly tell me the tier, stack, and the first task, then begin.

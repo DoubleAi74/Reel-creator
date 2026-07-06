@@ -29,7 +29,10 @@ import {
   decodeAutosave,
   encodeAutosave,
 } from "@/lib/autosave";
-import { mergeMeaningWordsWithTiming } from "@/lib/word-meanings";
+import {
+  applyWordMeaningsToLines,
+  mergeMeaningWordsWithTiming,
+} from "@/lib/word-meanings";
 import {
   DEFAULT_TEXT_LAYER_MODE,
   getTextLayerFormat,
@@ -56,6 +59,13 @@ import {
   formatSectionRelativeTime,
   isBackgroundMediaType,
 } from "@/lib/editor-format";
+import {
+  LYRIC_PIPELINE_PRESETS,
+  getLyricPipelineCanRun,
+  getLyricPipelineSelectionForPreset,
+  getSelectedLyricPipelinePhases,
+  hasLyricPipelineDownstreamData,
+} from "@/lib/staged-lyrics";
 import { VIDEO_FPS } from "@/remotion/constants";
 
 // Bundled demo assets. The MP3 is copied into /public/samples so it can be
@@ -63,6 +73,8 @@ import { VIDEO_FPS } from "@/remotion/constants";
 // is loaded on demand via dynamic import.
 const SAMPLE_AUDIO_NAME = "Aaj-Se-Teri-Lyrical-Padman-Aksha.mp3";
 const SAMPLE_AUDIO_URL = `/samples/${SAMPLE_AUDIO_NAME}`;
+const LYRIC_REBUILD_CONFIRM_MESSAGE =
+  "This rebuilds your lyric set and clears the translation and timing below. Continue?";
 
 // Mobile-only bottom-sheet snap heights (ignored at lg+, where the editor fills its grid column).
 const SHEET_SNAPS = [
@@ -348,6 +360,22 @@ function createIdleAutoTimingState() {
   };
 }
 
+function getEnrichedLineCount(lines) {
+  return lines.filter((line) => {
+    const hasLineText =
+      typeof line?.translation === "string" && line.translation.trim();
+    const hasRomanization =
+      typeof line?.romanization === "string" && line.romanization.trim();
+    const hasWordMeanings = (Array.isArray(line?.words) ? line.words : []).some(
+      (word) =>
+        (typeof word?.gloss === "string" && word.gloss.trim()) ||
+        (typeof word?.roman === "string" && word.roman.trim()),
+    );
+
+    return hasLineText || hasRomanization || hasWordMeanings;
+  }).length;
+}
+
 function normalizeLineWords(rawWords) {
   return (Array.isArray(rawWords) ? rawWords : [])
     .map((word) => ({
@@ -547,12 +575,19 @@ export function EditorShell({ debugProbe = null, project }) {
     createIdleAutoTimingState,
   );
   // Pointer to the background transcription/timing job that the poll effect
-  // drives: { jobId, mode: "lyrics" | "timing", status: "running" | "done"
-  // | "error", appliedJobId }. Survives sleep/reload via autosave so a job can
-  // be resumed (or its finished result recovered) after the editor remounts.
+  // drives: { jobId, phase: "full" | "transcribe" | "enrich" | "time",
+  // status: "running" | "done" | "error", appliedJobId }. Survives
+  // sleep/reload via autosave so a job can be resumed (or its finished result
+  // recovered) after the editor remounts.
   const [transcription, setTranscription] = useState(null);
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [otherSourceLanguage, setOtherSourceLanguage] = useState("");
+  const [lyricPipelinePreset, setLyricPipelinePreset] = useState(
+    LYRIC_PIPELINE_PRESETS.all,
+  );
+  const [lyricPipelineSelection, setLyricPipelineSelection] = useState(() =>
+    getLyricPipelineSelectionForPreset(LYRIC_PIPELINE_PRESETS.all),
+  );
   const [timingControlsOpen, setTimingControlsOpen] = useState(false);
   const [editingLineId, setEditingLineId] = useState(null);
   const [textDisplayOpen, setTextDisplayOpen] = useState(true);
@@ -565,6 +600,7 @@ export function EditorShell({ debugProbe = null, project }) {
   const [showWordBoard, setShowWordBoard] = useState(true);
   const [isNarrowWorkspace, setIsNarrowWorkspace] = useState(false);
   const [projectState, setProjectState] = useState(() => cloneProject(project));
+  const projectStateRef = useRef(projectState);
   const [selectedTimingLineId, setSelectedTimingLineId] = useState(() =>
     getDefaultTimingLineId(project.lines),
   );
@@ -580,6 +616,8 @@ export function EditorShell({ debugProbe = null, project }) {
   // Guards against importing a completed transcription result more than once
   // across repeated polls or remounts (mirrors the persisted appliedJobId).
   const appliedTranscribeJobIdRef = useRef(null);
+  const transcriptionWaitersRef = useRef(new Map());
+  const pipelineRunInFlightRef = useRef(false);
   // Stays false until autosave recovery has run, so the initial blank project
   // cannot overwrite saved state before it is restored on mount.
   const autosaveHydratedRef = useRef(false);
@@ -701,6 +739,9 @@ export function EditorShell({ debugProbe = null, project }) {
   const editorActions = editor.actions;
   const heardLineId = heardLine?.id ?? null;
   useEffect(() => {
+    projectStateRef.current = projectState;
+  }, [projectState]);
+  useEffect(() => {
     editorActions.setLines(projectState.lines);
   }, [editorActions, projectState.lines]);
   // Publish only the low-frequency signals the board needs (active line + play
@@ -790,7 +831,7 @@ export function EditorShell({ debugProbe = null, project }) {
   const otherSourceLanguageRequired =
     sourceLanguage === "other" && otherSourceLanguage.trim().length === 0;
   const autoLyricsLanguageRequirementMessage = sourceLanguageRequired
-    ? "Select a source language before generating and timing."
+    ? "Select a source language before running the lyric pipeline."
     : otherSourceLanguageRequired
       ? "Type the source language to use Other."
       : "";
@@ -801,6 +842,132 @@ export function EditorShell({ debugProbe = null, project }) {
     !autoTimingBusy &&
     !sourceLanguageRequired &&
     !otherSourceLanguageRequired;
+  const lyricPipelineCanRun = getLyricPipelineCanRun({
+    hasAudio:
+      audioUpload.status === "success" && Boolean(audioUpload.asset?.assetId),
+    lines: projectState.lines,
+  });
+  const selectedLyricPipelinePhases = getSelectedLyricPipelinePhases(
+    lyricPipelineSelection,
+    lyricPipelineCanRun,
+  );
+  const transcriptionPhase =
+    typeof transcription?.phase === "string" ? transcription.phase : "";
+  const transcriptionRunningPhase =
+    transcription?.status === "running" ? transcriptionPhase : "";
+  const transcriptionFailedPhase =
+    transcription?.status === "error" ? transcriptionPhase : "";
+  const enrichedLineCount = getEnrichedLineCount(projectState.lines);
+  const lyricPipelineStatusByPhase = {
+    enrich:
+      transcriptionRunningPhase === "enrich"
+        ? {
+            message:
+              autoLyricsState.detail ||
+              autoLyricsState.message ||
+              "Adding translations and word meanings.",
+            status: "running",
+            title: autoLyricsState.title || "Part 2 running",
+          }
+        : transcriptionFailedPhase === "enrich"
+          ? {
+              message: autoLyricsState.message || "Part 2 failed.",
+              status: "error",
+              title: autoLyricsState.title || "Part 2 failed",
+            }
+          : enrichedLineCount > 0
+            ? {
+                message: `${enrichedLineCount} lyric line${
+                  enrichedLineCount === 1 ? "" : "s"
+                } enriched.`,
+                status: "success",
+                title: "Ready",
+              }
+            : {
+                message:
+                  lineCount > 0
+                    ? "Ready to translate and enrich current lyrics."
+                    : "Run Part 1 or add lyric lines first.",
+                status: lineCount > 0 ? "ready" : "idle",
+                title: lineCount > 0 ? "Ready" : "Waiting",
+              },
+    time:
+      transcriptionRunningPhase === "time"
+        ? {
+            message:
+              autoTimingState.detail ||
+              autoTimingState.message ||
+              "Aligning current lyrics to the audio.",
+            status: "running",
+            title: autoTimingState.title || "Part 3 running",
+          }
+        : transcriptionFailedPhase === "time"
+          ? {
+              message: autoTimingState.message || "Part 3 failed.",
+              status: "error",
+              title: autoTimingState.title || "Part 3 failed",
+            }
+          : timedLineCount > 0
+            ? {
+                message: `${timedLineCount} of ${lineCount} lyric line${
+                  lineCount === 1 ? "" : "s"
+                } timed.`,
+                status: "success",
+                title: "Ready",
+              }
+            : {
+                message:
+                  lineCount > 0
+                    ? "Ready to time current lyrics."
+                    : "Run Part 1 or add lyric lines first.",
+                status: lineCount > 0 ? "ready" : "idle",
+                title: lineCount > 0 ? "Ready" : "Waiting",
+              },
+    transcribe:
+      transcriptionRunningPhase === "transcribe" ||
+      transcriptionRunningPhase === "full"
+        ? {
+            message:
+              autoLyricsState.detail ||
+              autoLyricsState.message ||
+              "Creating editable lyric lines.",
+            status: "running",
+            title: autoLyricsState.title || "Part 1 running",
+          }
+        : transcriptionFailedPhase === "transcribe" ||
+            transcriptionFailedPhase === "full"
+          ? {
+              message: autoLyricsState.message || "Part 1 failed.",
+              status: "error",
+              title: autoLyricsState.title || "Part 1 failed",
+            }
+          : lineCount > 0
+            ? {
+                message: `${lineCount} lyric line${
+                  lineCount === 1 ? "" : "s"
+                } ready.`,
+                status: "success",
+                title: "Ready",
+              }
+            : {
+                message: lyricPipelineCanRun.transcribe
+                  ? "Ready to transcribe the uploaded MP3."
+                  : "Upload an MP3 first.",
+                status: lyricPipelineCanRun.transcribe ? "ready" : "idle",
+                title: lyricPipelineCanRun.transcribe ? "Ready" : "Waiting",
+              },
+  };
+  const handleLyricPipelinePreset = (preset) => {
+    setLyricPipelinePreset(preset);
+    setLyricPipelineSelection(getLyricPipelineSelectionForPreset(preset));
+  };
+  const handleLyricPipelineToggle = (phase) => {
+    setLyricPipelinePreset(LYRIC_PIPELINE_PRESETS.custom);
+    setLyricPipelineSelection((currentSelection) => ({
+      ...currentSelection,
+      [phase]: !currentSelection?.[phase],
+    }));
+  };
   const clearProgrammaticScrollGuard = () => {
     if (programmaticScrollTimeoutRef.current) {
       window.clearTimeout(programmaticScrollTimeoutRef.current);
@@ -904,7 +1071,19 @@ export function EditorShell({ debugProbe = null, project }) {
     }));
   };
 
+  const confirmLyricRebuildIfNeeded = () => {
+    if (!hasLyricPipelineDownstreamData(projectStateRef.current.lines)) {
+      return true;
+    }
+
+    return window.confirm(LYRIC_REBUILD_CONFIRM_MESSAGE);
+  };
+
   const moveLine = (lineId, direction) => {
+    if (!confirmLyricRebuildIfNeeded()) {
+      return;
+    }
+
     setProjectState((currentProject) => {
       const currentIndex = currentProject.lines.findIndex((line) => line.id === lineId);
 
@@ -930,6 +1109,10 @@ export function EditorShell({ debugProbe = null, project }) {
   };
 
   const deleteLine = (lineId) => {
+    if (!confirmLyricRebuildIfNeeded()) {
+      return;
+    }
+
     setProjectState((currentProject) => ({
       ...currentProject,
       lines: currentProject.lines.filter((line) => line.id !== lineId),
@@ -937,6 +1120,10 @@ export function EditorShell({ debugProbe = null, project }) {
   };
 
   const addLine = () => {
+    if (!confirmLyricRebuildIfNeeded()) {
+      return;
+    }
+
     const nextLineId = crypto.randomUUID();
 
     setProjectState((currentProject) => ({
@@ -1965,10 +2152,26 @@ export function EditorShell({ debugProbe = null, project }) {
     return payload.jobId;
   };
 
-  const beginTranscriptionTracking = (jobId, mode) => {
+  const beginTranscriptionTracking = (jobId, phase) => {
     // Fresh job: clear the idempotency guard so its result applies exactly once.
     appliedTranscribeJobIdRef.current = null;
-    setTranscription({ appliedJobId: null, jobId, mode, status: "running" });
+    setTranscription({ appliedJobId: null, jobId, phase, status: "running" });
+  };
+
+  const waitForTranscriptionJob = (jobId, phase) =>
+    new Promise((resolve) => {
+      transcriptionWaitersRef.current.set(jobId, { phase, resolve });
+    });
+
+  const resolveTranscriptionWaiter = (jobId, outcome) => {
+    const waiter = transcriptionWaitersRef.current.get(jobId);
+
+    if (!waiter || waiter.phase !== outcome.phase) {
+      return;
+    }
+
+    transcriptionWaitersRef.current.delete(jobId);
+    window.setTimeout(() => waiter.resolve(outcome), 0);
   };
 
   // Apply a completed auto-lyrics result by replacing all lines with the
@@ -1990,6 +2193,7 @@ export function EditorShell({ debugProbe = null, project }) {
       createLine({
         confidence: String(line?.confidence ?? ""),
         end: Number.isFinite(line?.end) ? line.end : null,
+        id: typeof line?.id === "string" && line.id ? line.id : undefined,
         matchRatio: Number.isFinite(line?.matchRatio) ? line.matchRatio : 0,
         original: String(line?.original ?? "").trim(),
         quality: line?.quality,
@@ -2007,10 +2211,15 @@ export function EditorShell({ debugProbe = null, project }) {
       nextLines.length,
     );
 
-    setProjectState((currentProject) => ({
-      ...currentProject,
-      lines: nextLines,
-    }));
+    setProjectState((currentProject) => {
+      const nextProject = {
+        ...currentProject,
+        lines: nextLines,
+      };
+
+      projectStateRef.current = nextProject;
+      return nextProject;
+    });
     setSelectedTimingLineId(getDefaultTimingLineId(nextLines));
     setTimingDrafts({});
     setTimingNotice({
@@ -2033,55 +2242,186 @@ export function EditorShell({ debugProbe = null, project }) {
     });
   });
 
-  const handleGenerateAutoLyrics = async () => {
-    if (!audioUpload.asset?.assetId || autoLyricsBusy || autoTimingBusy) {
-      return;
-    }
-
-    if (autoLyricsLanguageRequirementMessage) {
+  const applyEnrichResult = useEffectEvent((payload) => {
+    if (!Array.isArray(payload?.lines) || payload.lines.length === 0) {
       setAutoLyricsState({
         detail: "",
         lineCount: 0,
-        message: autoLyricsLanguageRequirementMessage,
+        message: "Translate & enrich finished without any lyric line results.",
         status: "error",
-        title: "Auto-lyrics unavailable",
+        title: "Lyrics enrich failed",
       });
       return;
     }
 
-    setAutoLyricsState({
-      detail: "Preparing the uploaded MP3 for transcription.",
-      lineCount: 0,
-      message: "",
-      status: "running",
-      title: "Starting auto-lyrics",
+    const returnedLinesById = new Map(
+      payload.lines
+        .filter((line) => typeof line?.id === "string" && line.id)
+        .map((line) => [line.id, line]),
+    );
+
+    setProjectState((currentProject) => {
+      const meaningEntries = currentProject.lines
+        .map((line, index) => {
+          const enrichedLine = returnedLinesById.get(line.id);
+
+          return enrichedLine
+            ? { line_number: index + 1, words: enrichedLine.words }
+            : null;
+        })
+        .filter(Boolean);
+      const linesWithText = currentProject.lines.map((line) => {
+        const enrichedLine = returnedLinesById.get(line.id);
+
+        if (!enrichedLine) {
+          return line;
+        }
+
+        return {
+          ...line,
+          romanization: String(enrichedLine?.romanization ?? "").trim(),
+          translation: String(enrichedLine?.translation ?? "").trim(),
+        };
+      });
+
+      const nextProject = {
+        ...currentProject,
+        lines: applyWordMeaningsToLines(linesWithText, meaningEntries),
+      };
+
+      projectStateRef.current = nextProject;
+      return nextProject;
     });
 
-    try {
-      // Romanize automatically except for languages already written in Latin
-      // script, where a romanization would just duplicate the original.
-      const includeRomanization =
-        sourceLanguage !== "es" && sourceLanguage !== "fr";
-      const jobId = await startTranscriptionJob({
-        audio: projectState.audio,
-        audioAssetId: audioUpload.asset.assetId,
-        includeRomanization,
-        otherLanguage: otherSourceLanguage.trim(),
-        sourceLanguage,
-      });
+    setAutoLyricsState({
+      detail: "Translations and word meanings were merged into the current lyric lines.",
+      lineCount: returnedLinesById.size,
+      message: `${returnedLinesById.size} lyric line${
+        returnedLinesById.size === 1 ? "" : "s"
+      } enriched. Timing was preserved.`,
+      status: "success",
+      title: "Lyrics enriched",
+    });
+  });
 
-      beginTranscriptionTracking(jobId, "lyrics");
-    } catch (error) {
+  const handleRunPipeline = async () => {
+    if (
+      pipelineRunInFlightRef.current ||
+      !audioUpload.asset?.assetId ||
+      autoLyricsBusy ||
+      autoTimingBusy ||
+      autoLyricsLanguageRequirementMessage
+    ) {
+      return;
+    }
+
+    const phasesToRun = selectedLyricPipelinePhases;
+
+    if (phasesToRun.length === 0) {
       setAutoLyricsState({
         detail: "",
         lineCount: 0,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Auto-lyrics generation failed unexpectedly.",
+        message: "Select at least one runnable lyric pipeline part.",
         status: "error",
-        title: "Auto-lyrics failed",
+        title: "Pipeline unavailable",
       });
+      return;
+    }
+
+    if (phasesToRun.includes("transcribe") && !confirmLyricRebuildIfNeeded()) {
+      return;
+    }
+
+    pipelineRunInFlightRef.current = true;
+    let runningPhase = null;
+
+    try {
+      for (const phase of phasesToRun) {
+        runningPhase = phase;
+        const currentProject = projectStateRef.current;
+        const currentCanRun = getLyricPipelineCanRun({
+          hasAudio: Boolean(audioUpload.asset?.assetId),
+          lines: currentProject.lines,
+        });
+
+        if (!currentCanRun[phase]) {
+          throw new Error(
+            phase === "transcribe"
+              ? "Upload an MP3 before transcribing lyrics."
+              : "Add lyric lines before running the next lyric pipeline part.",
+          );
+        }
+
+        if (phase === "time") {
+          setAutoTimingState({
+            detail: "Preparing the current lyric lines for timing.",
+            lineCount: currentProject.lines.length,
+            message: "",
+            status: "running",
+            title: "Starting auto-time",
+          });
+        } else {
+          setAutoLyricsState({
+            detail:
+              phase === "enrich"
+                ? "Preparing the current lyric lines for translation and word meanings."
+                : "Preparing the uploaded MP3 for transcription.",
+            lineCount: currentProject.lines.length,
+            message: "",
+            status: "running",
+            title:
+              phase === "enrich"
+                ? "Starting lyric enrichment"
+                : "Starting auto-lyrics",
+          });
+        }
+
+        const includeRomanization =
+          sourceLanguage !== "es" && sourceLanguage !== "fr";
+        const jobId = await startTranscriptionJob({
+          audio: currentProject.audio,
+          audioAssetId: audioUpload.asset.assetId,
+          includeRomanization,
+          lines: currentProject.lines,
+          otherLanguage: otherSourceLanguage.trim(),
+          phase,
+          sourceLanguage,
+        });
+
+        beginTranscriptionTracking(jobId, phase);
+
+        const outcome = await waitForTranscriptionJob(jobId, phase);
+
+        if (outcome.status !== "done") {
+          break;
+        }
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Lyric pipeline failed unexpectedly.";
+
+      if (runningPhase === "time") {
+        setAutoTimingState((currentState) => ({
+          ...currentState,
+          detail: "",
+          message,
+          status: "error",
+          title: "Pipeline failed",
+        }));
+        setTimingNotice({ message, status: "danger" });
+      } else {
+        setAutoLyricsState((currentState) => ({
+          ...currentState,
+          detail: "",
+          message,
+          status: "error",
+          title: "Pipeline failed",
+        }));
+      }
+    } finally {
+      pipelineRunInFlightRef.current = false;
     }
   };
 
@@ -2110,9 +2450,8 @@ export function EditorShell({ debugProbe = null, project }) {
         .map((line) => [line.id, line]),
     );
 
-    setProjectState((currentProject) => ({
-      ...currentProject,
-      lines: currentProject.lines.map((line) => {
+    setProjectState((currentProject) => {
+      const nextLines = currentProject.lines.map((line) => {
         const timedLine = returnedLinesById.get(line.id);
 
         if (!timedLine) {
@@ -2138,8 +2477,15 @@ export function EditorShell({ debugProbe = null, project }) {
             ? mergeMeaningWordsWithTiming(timedLine?.words, line.words)
             : normalizeLineWords(timedLine?.words),
         };
-      }),
-    }));
+      });
+      const nextProject = {
+        ...currentProject,
+        lines: nextLines,
+      };
+
+      projectStateRef.current = nextProject;
+      return nextProject;
+    });
     setTimingDrafts((currentDrafts) => {
       const nextDrafts = { ...currentDrafts };
 
@@ -2383,8 +2729,8 @@ export function EditorShell({ debugProbe = null, project }) {
     };
   }, [audioObjectUrl]);
 
-  const setTranscriptionProgress = useEffectEvent((mode, payload) => {
-    const setState = mode === "timing" ? setAutoTimingState : setAutoLyricsState;
+  const setTranscriptionProgress = useEffectEvent((phase, payload) => {
+    const setState = phase === "time" ? setAutoTimingState : setAutoLyricsState;
 
     setState((currentState) => ({
       ...currentState,
@@ -2399,10 +2745,10 @@ export function EditorShell({ debugProbe = null, project }) {
     }));
   });
 
-  const failTranscription = useEffectEvent((mode, message) => {
+  const failTranscription = useEffectEvent((phase, message) => {
     const resolved = message || "Transcription failed unexpectedly.";
 
-    if (mode === "timing") {
+    if (phase === "time") {
       setAutoTimingState((currentState) => ({
         ...currentState,
         detail: "",
@@ -2439,7 +2785,7 @@ export function EditorShell({ debugProbe = null, project }) {
     let ignore = false;
     let timeoutId = 0;
     let consecutiveFailures = 0;
-    const { jobId, mode } = transcription;
+    const { jobId, phase } = transcription;
 
     const schedulePoll = (delayMs) => {
       timeoutId = window.setTimeout(runPoll, delayMs);
@@ -2468,11 +2814,12 @@ export function EditorShell({ debugProbe = null, project }) {
         if (!response.ok) {
           if (response.status === 404) {
             failTranscription(
-              mode,
+              phase,
               payload.error ??
                 "That transcription is no longer available. Start it again.",
             );
             settle({ status: "error" });
+            resolveTranscriptionWaiter(jobId, { phase, status: "error" });
             return;
           }
 
@@ -2488,25 +2835,29 @@ export function EditorShell({ debugProbe = null, project }) {
           if (appliedTranscribeJobIdRef.current !== jobId) {
             appliedTranscribeJobIdRef.current = jobId;
 
-            if (mode === "timing") {
+            if (phase === "time") {
               applyAutoTimingResult(payload.result);
+            } else if (phase === "enrich") {
+              applyEnrichResult(payload.result);
             } else {
               applyAutoLyricsResult(payload.result);
             }
           }
 
           settle({ appliedJobId: jobId, status: "done" });
+          resolveTranscriptionWaiter(jobId, { phase, status: "done" });
           return;
         }
 
         if (payload.status === "error") {
-          failTranscription(mode, payload.error);
+          failTranscription(phase, payload.error);
           settle({ status: "error" });
+          resolveTranscriptionWaiter(jobId, { phase, status: "error" });
           return;
         }
 
         consecutiveFailures = 0;
-        setTranscriptionProgress(mode, payload);
+        setTranscriptionProgress(phase, payload);
         schedulePoll(getRenderPollDelayMs(0));
       } catch (error) {
         if (ignore) {
@@ -2519,12 +2870,13 @@ export function EditorShell({ debugProbe = null, project }) {
         // a just-woken laptop's first requests) with backoff before giving up.
         if (consecutiveFailures > 6) {
           failTranscription(
-            mode,
+            phase,
             error instanceof Error
               ? error.message
               : "Transcription status could not be refreshed.",
           );
           settle({ status: "error" });
+          resolveTranscriptionWaiter(jobId, { phase, status: "error" });
           return;
         }
 
@@ -2603,13 +2955,13 @@ export function EditorShell({ debugProbe = null, project }) {
       }
 
       if (restored.transcription?.jobId) {
-        const { appliedJobId, jobId, mode } = restored.transcription;
+        const { appliedJobId, jobId, phase } = restored.transcription;
 
         appliedTranscribeJobIdRef.current = appliedJobId ?? null;
 
         if (appliedJobId && appliedJobId === jobId) {
           // Already applied before the remount — keep it settled, no re-poll.
-          setTranscription({ appliedJobId, jobId, mode, status: "done" });
+          setTranscription({ appliedJobId, jobId, phase, status: "done" });
         } else {
           // Re-confirm with the server: the poll effect resumes, recovers a
           // completed result, or surfaces that the job failed/expired.
@@ -2618,10 +2970,11 @@ export function EditorShell({ debugProbe = null, project }) {
             lineCount: 0,
             message: "",
             status: "running",
-            title: mode === "timing" ? "Auto-timing lyrics" : "Starting auto-lyrics",
+            title:
+              phase === "time" ? "Auto-timing lyrics" : "Starting auto-lyrics",
           };
 
-          if (mode === "timing") {
+          if (phase === "time") {
             setAutoTimingState(resumeState);
           } else {
             setAutoLyricsState(resumeState);
@@ -2630,7 +2983,7 @@ export function EditorShell({ debugProbe = null, project }) {
           setTranscription({
             appliedJobId: appliedJobId ?? null,
             jobId,
-            mode,
+            phase,
             status: "running",
           });
         }
@@ -3237,10 +3590,21 @@ export function EditorShell({ debugProbe = null, project }) {
             lyricsSource={{
               auto: autoLyricsState,
               autoLyricsBusy,
+              autoTiming: autoTimingState,
               autoTimingBusy,
               sourceLanguage,
               otherSourceLanguage,
               canGenerate: canGenerateAutoLyrics,
+              pipeline: {
+                canRun: lyricPipelineCanRun,
+                onPreset: handleLyricPipelinePreset,
+                onRun: handleRunPipeline,
+                onToggle: handleLyricPipelineToggle,
+                preset: lyricPipelinePreset,
+                selectedPhases: selectedLyricPipelinePhases,
+                selection: lyricPipelineSelection,
+                statusByPhase: lyricPipelineStatusByPhase,
+              },
               languageRequirementMessage: autoLyricsLanguageRequirementMessage,
               onSourceLanguage: (value) => {
                 setSourceLanguage(value);
@@ -3268,7 +3632,6 @@ export function EditorShell({ debugProbe = null, project }) {
                     : currentState,
                 );
               },
-              onGenerate: handleGenerateAutoLyrics,
               onImportJson: openJsonImport,
               onExportJson: handleProjectExport,
               onClearLyrics: handleClearLyrics,

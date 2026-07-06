@@ -20,7 +20,7 @@ import { createDefaultProject } from "@/lib/project";
  * NOTE: the real, app-wide implementations of these concepts already live
  * elsewhere and are unaffected:
  *   - `tokenize`        -> lib/word-board.js
- *   - per-word meanings -> /api/ai/word-meanings (no hard-coded dictionary)
+ *   - per-word meanings -> staged lyric enrichment (no hard-coded dictionary)
  * ----------------------------------------------------------------------------
  *
  * // --- tokenize -------------------------------------------------------------

@@ -53,7 +53,7 @@ export function PreviewStage({
           }`}
         >
           <div
-            className={`preview-screen relative overflow-hidden bg-[linear-gradient(180deg,#1a1a2e_0%,#13102a_52%,#0a0816_100%)] ${
+            className={`preview-screen relative overflow-hidden bg-(--preview-bg) ${
               isPreviewFullscreen
                 ? "aspect-[9/16] h-full max-h-full w-auto max-w-full rounded-[1.75rem] border border-white/12 shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
                 : "h-full w-full lg:aspect-[9/16] lg:h-full lg:max-h-full lg:w-auto lg:max-w-full lg:rounded-[2rem] lg:border lg:border-white/12 lg:shadow-[0_30px_70px_rgba(0,0,0,0.5)]"

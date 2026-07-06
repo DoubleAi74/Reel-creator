@@ -1,0 +1,86 @@
+/*
+ * app_colours.css — SINGLE SOURCE OF TRUTH for the app's colour palette.
+ *
+ * Every brand/theme colour the app renders is declared here as a CSS custom
+ * property, grouped by purpose. Edit a value here and it changes everywhere.
+ *
+ * How the pieces connect:
+ *   - Imported first in app/layout.js (before globals.css) so these tokens are
+ *     available document-wide on :root.
+ *   - app/globals.css re-exports them to Tailwind via its `@theme inline` block
+ *     (e.g. --color-page -> var(--page)) and consumes them in its chrome rules.
+ *   - components consume them as `bg-[var(--surface)]`, `text-[var(--muted)]`, etc.
+ *   - The Word Board (components/word-board/word-board.css) pulls its top-level
+ *     tokens from the --wb-* group below via var(..., <fallback>). Its deep
+ *     per-tile detail colours stay inline in that file BY DESIGN — it is a
+ *     verbatim prototype port marked "do not rewrite" (drift risk), so only its
+ *     10 semantic tokens are centralised here.
+ *
+ * Not centralised here (intentionally): neutral micro-detail shades that are not
+ * part of the brand palette — near-white button inset highlights, waveform
+ * skeleton/marker greys, scrollbar thumbs (remain inline in globals.css), and
+ * the plain white/black overlay utilities in preview-stage.js.
+ */
+:root {
+  /* ── Surfaces (app chrome) ─────────────────────────────────────────────── */
+  --page: #f0f0ea; /* page background */
+  --shell: #fdfdfc; /* top frame */
+  --panel: #e5e4dc; /* side / workspace / transport panels */
+  --surface: #ffffff; /* raised controls */
+  --surface-2: #f6f6f4; /* recessed / secondary controls */
+  --surface-hover: #f2f2ee;
+  --surface-active: #e3eee3;
+
+  /* ── Text ──────────────────────────────────────────────────────────────── */
+  --text: #343332;
+  --muted: #747372;
+  --on-accent: #fffdf8; /* text/icons on an accent fill */
+
+  /* ── Accents ───────────────────────────────────────────────────────────── */
+  --accent: #2b9732; /* primary green */
+  --accent-strong: #25832b; /* accent, darkened (hover) */
+  --accent-soft: #dae7db; /* tinted accent background */
+  --accent-2: #774b54; /* secondary mauve */
+
+  /* ── Borders & focus ───────────────────────────────────────────────────── */
+  --border: #dbdbd1;
+  --border-strong: #c3c3b6;
+  --focus-ring: #2b973247;
+
+  /* ── State ─────────────────────────────────────────────────────────────── */
+  --danger: #87404e;
+  --danger-soft: #f2e9ea;
+  --warning: #98773e;
+  --warning-soft: #f2edde;
+
+  /* ── Shadows ───────────────────────────────────────────────────────────── */
+  --shadow-soft: 0 10px 28px #34333212;
+  --shadow-panel: 0 18px 54px #3433321a;
+
+  /* ── Phone preview screen ──────────────────────────────────────────────── */
+  --preview-bg:
+    radial-gradient(circle at 0 100%, #1f123b7a, transparent 45%),
+    linear-gradient(122deg, #111329, #020312 70%);
+  --preview-border: #a8c7aa;
+  --preview-shadow: 0 20px 44px #2c4e2e29;
+
+  /* ── Misc controls ─────────────────────────────────────────────────────── */
+  --mark-border: #abd4ae; /* transport "mark" button border */
+  --scrim: #f0f0eac7; /* fullscreen preview backdrop (page @ .78) */
+
+  /* ── Word Board (semantic tokens; see word-board.css) ──────────────────── */
+  --wb-control-button-bg: #fffaf1;
+  --wb-control-button-bg-hover: #f3ecdf;
+  --wb-control-button-bg-active: #ece2d3;
+  --wb-control-button-stroke: #c8c1b6;
+  --wb-control-button-stroke-hover: #b3aa9d;
+  --wb-control-button-text: #2c2924;
+  --wb-follow-line-bg: #fffcf294;
+  --wb-follow-current-bg: #dcecff;
+  --wb-follow-passed-bg: #cfe1f2;
+  --wb-follow-tile-text: #27313f;
+
+  /* ── Aliases (consumed by globals.css @theme inline) ───────────────────── */
+  --background: var(--page);
+  --foreground: var(--text);
+}

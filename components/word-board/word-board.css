@@ -27,16 +27,21 @@
         --tile-shadow-roman-y: calc(1px * var(--tile-size-ratio));
         --tile-shadow-active-x: calc(1px * var(--tile-size-ratio));
         --tile-shadow-active-y: calc(2px * var(--tile-size-ratio));
-        --control-button-bg: #fffaf1;
-        --control-button-bg-hover: #f3ecdf;
-        --control-button-bg-active: #ece2d3;
-        --control-button-stroke: #c8c1b6;
-        --control-button-stroke-hover: #b3aa9d;
-        --control-button-text: #2c2924;
-        --follow-line-bg: rgba(255, 252, 242, 0.58);
-        --follow-current-bg: #dcecff;
-        --follow-passed-bg: #cfe1f2;
-        --follow-tile-text: #27313f;
+        /* Semantic board colours are pulled from the app-wide single source
+         * (app/app_colours.css). Fallbacks equal the original literals, so the
+         * board renders identically even if that file is absent. Only these
+         * top-level tokens are centralised — the deep per-tile detail colours
+         * below stay inline (verbatim port; do not rewrite). */
+        --control-button-bg: var(--wb-control-button-bg, #fffaf1);
+        --control-button-bg-hover: var(--wb-control-button-bg-hover, #f3ecdf);
+        --control-button-bg-active: var(--wb-control-button-bg-active, #ece2d3);
+        --control-button-stroke: var(--wb-control-button-stroke, #c8c1b6);
+        --control-button-stroke-hover: var(--wb-control-button-stroke-hover, #b3aa9d);
+        --control-button-text: var(--wb-control-button-text, #2c2924);
+        --follow-line-bg: var(--wb-follow-line-bg, rgba(255, 252, 242, 0.58));
+        --follow-current-bg: var(--wb-follow-current-bg, #dcecff);
+        --follow-passed-bg: var(--wb-follow-passed-bg, #cfe1f2);
+        --follow-tile-text: var(--wb-follow-tile-text, #27313f);
       }
 .version-sketch.show-inline-roman {
         --word-row-step: calc(72px * var(--tile-layout-scale));

@@ -1,0 +1,8 @@
+read Temp_prototype_parts/Credit_dash_prototype_part/planning_process.md and begin
+
+You're the planning agent for the credit dashboard prototype. Follow that file
+exactly. All its paths are relative to the project root (where you're running).
+Ask me your clarifying questions FIRST — in batches — and wait for my answers.
+Don't write plan.md/progress.md until I've answered, write them into
+Temp_prototype_parts/Credit_dash_prototype_part/ (not the root), and don't write
+any code. Stop once both docs are approved.

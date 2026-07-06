@@ -8,7 +8,10 @@ import {
   touchSessionAndSweep,
 } from "@/lib/files";
 import { normalizeSourceLanguage } from "@/lib/ai/openai-lyrics";
-import { runTranscribeJob } from "@/lib/ai/transcribe-job";
+import {
+  normalizeTranscribePhase,
+  runTranscribeJob,
+} from "@/lib/ai/transcribe-job";
 import {
   createTranscribeJob,
   enqueueTranscribeJob,
@@ -108,6 +111,16 @@ export async function POST(request) {
   }
 
   const includeRomanization = payload?.includeRomanization === true;
+  let phase;
+
+  try {
+    phase = normalizeTranscribePhase(payload?.phase);
+  } catch (error) {
+    return NextResponse.json(
+      { error: getPublicErrorMessage(error) },
+      { status: 400 },
+    );
+  }
 
   let sourceLanguage;
 
@@ -167,6 +180,7 @@ export async function POST(request) {
       includeRomanization,
       jobId: job.jobId,
       lines: normalizeLines(payload?.lines),
+      phase,
       sessionId,
       sourceLanguage,
     }),

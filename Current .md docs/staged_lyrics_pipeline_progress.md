@@ -50,9 +50,11 @@ as you go and fill the **Notes / deviations** section at the bottom.
       → NOTE: `alignLyricLinesToWordTimings`, `summarizeLyricTimingMatches`,
       `tokenizeForTiming` are **imported from `../lyric-timing`** (not defined in
       openai-lyrics.js). `applyWordMeaningsToLines` is imported from `../word-meanings`.
-- [ ] Confirm the manual smoke path works today: `npm run dev`, upload an MP3, pick a
+- [x] Confirm the manual smoke path works today: `npm run dev`, upload an MP3, pick a
       source language, run the single button, watch it complete. This is your reference.
-      (Not done in the prior session — do this before Phase 1.)
+      → **VERIFIED 2026-07-01:** existing dev server on `localhost:3000`, bundled sample
+      MP3, Hindi source language, single button completed to "Lyrics ready"; console
+      errors **0**.
 - [x] **CHECK:** baseline green. → PASS (test/lint/build). Manual smoke still owed (above).
 
 ## Phase 1 — Server: decompose the monolith (pure refactor, no behaviour change)
@@ -87,135 +89,206 @@ existing full run**. This is the highest-risk phase; keep tests green after each
 > Record this as deviation #1 in the notes. Verify the staged functions via their **own**
 > new tests (incl. the "2 then 3" / "3 then 2" merge-order test), not via the full-run test.
 
-- [ ] **`transcribeAndCleanLyrics(...)`** ← extract from `buildCanonicalLyricSet`
+- [x] **`transcribeAndCleanLyrics(...)`** ← extract from `buildCanonicalLyricSet`
       *everything except* the final `requestLyricTranslations` call. It returns
       `{ lines: [{ id, original }], sourceRepairSummary, source }`. Assign stable line
       `id`s here (grep how ids are created elsewhere, e.g. `createLine`/`crypto.randomUUID`).
       Keep the locked-lines early-return behaviour.
-- [ ] **`enrichLyricLines({ lines, sourceLanguage, includeRomanization, onProgress })`**
+      → Added exported server function; generated and locked lines now receive server ids.
+- [x] **`enrichLyricLines({ lines, sourceLanguage, includeRomanization, onProgress })`**
       ← compose `requestLyricTranslations` + `polishCanonicalLyricSet` + word-meanings
       (`generateWordMeanings`/`attachWordMeaningsCoverage`). Returns per-line
       `{ id, translation, romanization, words:[{text,gloss,roman}] }`. **Do not** do timing.
       (Polish scoping / D2 is applied in Phase 6 — for now keep polish as-is to preserve
       behaviour; note the TODO.)
-- [ ] **`timeLyricLinesFromAudio({ lines, fileBuffer, fileName, contentType, audio, sourceLanguage, onProgress })`**
+      → Added exported standalone enrichment slice; returns translation/romanization/gloss
+      only and does not return timing fields.
+- [x] **`timeLyricLinesFromAudio({ lines, fileBuffer, fileName, contentType, audio, sourceLanguage, onProgress })`**
       ← extract the timing tail: `requestTimestampedTranscriptionFromChunks` →
       `alignLyricLinesToWordTimings` → `fillTimingGaps` → `runQualityAudit`. Returns the
       per-line timing slice + `{ duration, words, language }`. Takes already-canonical
       lines; must **not** re-transcribe content or translate.
-- [ ] **Do NOT recompose `runLyricTimingPipeline` in Phase 1** (see the CRITICAL CAVEAT
+      → Added exported standalone timing slice; only Whisper/timing/audit primitives are used.
+- [x] **Do NOT recompose `runLyricTimingPipeline` in Phase 1** (see the CRITICAL CAVEAT
       above). Only step 1 touches it *indirectly* — via `buildCanonicalLyricSet` now
       delegating its transcribe+clean block to `transcribeAndCleanLyrics`. Confirm
       `runLyricTimingPipeline`'s output is byte-equivalent (existing tests prove it). Its
       result keys must stay: `lines`, `words`, `duration`, `timingSummary`, `qualitySummary`,
       `sourceRepairSummary`, `lyricPolishSummary`, `wordMeaningsSummary`, etc. Full-path
       consolidation is deferred to Phase 7.
-- [ ] Add/extend unit tests for the three new functions (mirror existing patterns in
+      → Full-run body left in current order; existing full-run tests remain green.
+- [x] Add/extend unit tests for the three new functions (mirror existing patterns in
       [lib/ai/openai-lyrics.test.js](../lib/ai/openai-lyrics.test.js)). Include a
       **"2 then 3" and "3 then 2"** word-merge ordering test (design §8).
-- [ ] **CHECK (phase close):** `npm run test` (incl. existing openai-lyrics + word-meanings
+      → Added direct tests for all three exports plus explicit word merge order tests.
+- [x] **CHECK (phase close):** `npm run test` (incl. existing openai-lyrics + word-meanings
       suites) + `npm run lint` + `npm run build` all green. `runLyricTimingPipeline` output
       unchanged (existing tests prove it). No route/client files touched yet.
+      → PASS: test **191/191 (19 files)**, lint clean, build compiled.
 
 ## Phase 2 — Server: phase-aware job + route (backward compatible)
-- [ ] **`runTranscribeJob`** ([lib/ai/transcribe-job.js](../lib/ai/transcribe-job.js)):
+- [x] **`runTranscribeJob`** ([lib/ai/transcribe-job.js](../lib/ai/transcribe-job.js)):
       accept a `phase` param and dispatch — `"transcribe"` → `transcribeAndCleanLyrics`,
       `"enrich"` → `enrichLyricLines`, `"time"` → `timeLyricLinesFromAudio`,
       absent/`"full"` → `runLyricTimingPipeline` (today's behaviour, unchanged default).
       Reuse the existing `markTranscribeJob*` progress plumbing.
-- [ ] **Route** ([app/api/ai/transcribe/route.js](../app/api/ai/transcribe/route.js)):
+      → Added shared phase normalizer and dispatch switch; absent phase remains full.
+- [x] **Route** ([app/api/ai/transcribe/route.js](../app/api/ai/transcribe/route.js)):
       read `payload.phase` and `payload.lines` (validate like `normalizeLines`
       elsewhere); thread them into `runTranscribeJob`. Absent `phase` = full run (existing
       callers keep working). Keep the 409 in-flight adoption + session recovery intact.
-- [ ] The `[jobId]` status route + `toTranscribeJobResponse` need **no change** (they already
+      → Route validates `payload.phase`, passes normalized phase + normalized lines into
+      the existing queued job path, and leaves in-flight adoption unchanged.
+- [x] The `[jobId]` status route + `toTranscribeJobResponse` need **no change** (they already
       return `result` on done; per-phase result shape differs, applied client-side).
-- [ ] Tests for the route/job dispatch per phase (mirror
+      → Confirmed no status route/store response changes needed.
+- [x] Tests for the route/job dispatch per phase (mirror
       [lib/ai/transcribe-store.test.js](../lib/ai/transcribe-store.test.js) style if a job
       test exists; otherwise a focused unit test on the dispatch).
-- [ ] **CHECK (phase close):** green table. Manually re-run the single button end-to-end
+      → Added focused `transcribe-job.test.js` coverage for phase normalization and full,
+      transcribe, enrich, and time dispatch.
+- [x] **CHECK (phase close):** green table. Manually re-run the single button end-to-end
       (`npm run dev`) — still identical (it sends no `phase`, hits the full-run default).
+      → PASS: test **196/196 (20 files)**, lint clean, build compiled. Browser/headless
+      upload did not attach an audio asset during this checkpoint, so verified the same
+      no-`phase` default via `/api/upload` → `/api/ai/transcribe` → poll: full pipeline
+      completed with **50 lines** and word meanings **ok**.
 
 ## Phase 3 — Client: phase-aware tracking + enrich apply path (still single-button UX)
 No visible UX change yet — the single button still works. This wires the three apply
 paths behind the scenes.
 
-- [ ] **Generalise the job pointer:** rename `transcription.mode` → `transcription.phase`
+- [x] **Generalise the job pointer:** rename `transcription.mode` → `transcription.phase`
       across [components/editor-shell.js](../components/editor-shell.js) (grep
       `transcription.mode`, `mode: "lyrics"`, `mode === "timing"`, `beginTranscriptionTracking`).
       Values: `"transcribe" | "enrich" | "time" | "full"`.
-- [ ] **Autosave:** update `normalizeTranscription`
+      → Client pointer now stores `phase`; polling, recovery, progress, and failure routing
+      use `full`/`transcribe`/`enrich`/`time`.
+- [x] **Autosave:** update `normalizeTranscription`
       ([lib/autosave.js](../lib/autosave.js)) to accept the phase values (map legacy
       `"lyrics"`→`"transcribe"`, `"timing"`→`"time"`). Prefer bumping `AUTOSAVE_VERSION`
       (design §10.3) over a fragile tolerant decoder. Update
       [lib/autosave.test.js](../lib/autosave.test.js).
-- [ ] **`startTranscriptionJob`**: add a `phase` (and `lines` for enrich/time) to the POST
+      → Bumped `AUTOSAVE_VERSION` to 2, persisted `phase`, and added legacy mode mapping tests.
+- [x] **`startTranscriptionJob`**: add a `phase` (and `lines` for enrich/time) to the POST
       body (grep `fetch("/api/ai/transcribe"`).
-- [ ] **Apply paths** — in the poll effect (grep `payload.status === "done"`):
+      → Generic body path already accepts staged payloads; existing button now sends
+      `phase: "full"` explicitly.
+- [x] **Apply paths** — in the poll effect (grep `payload.status === "done"`):
       - `transcribe` → `applyAutoLyricsResult` (existing; replaces lines).
       - `enrich` → **new `applyEnrichResult`**: merge `translation`/`romanization` by id +
         fold gloss via `applyWordMeaningsToLines`; must NOT touch `start`/`end`.
       - `time` → `applyAutoTimingResult` (existing).
-- [ ] **CHECK (phase close):** green table. Manual: temporarily invoke each phase (e.g. a
+      → Added enrich apply path and preserved server line ids during lyrics apply.
+- [x] **CHECK (phase close):** green table. Manual: temporarily invoke each phase (e.g. a
       scratch dev-only call, or wire the existing button to `phase:"full"`) and confirm the
       full run still applies correctly. Remove any scratch wiring before closing.
+      → PASS: test **197/197 (20 files)**, lint clean, build compiled. No scratch wiring
+      added; existing button now explicitly sends `phase:"full"`. Per-phase server dispatch
+      is covered by Phase 2 tests; visible phase invocation is deferred to Phase 5 UI.
 
 ## Phase 4 — Client: selection state + Run orchestration + gating (logic only)
-- [ ] Add transient selection state (not persisted): toggled parts `{1,2,3}` + active preset.
-- [ ] Derive `canRun` per part from line data (design §5): Part 1 ⇔ audio uploaded; Parts
+- [x] Add transient selection state (not persisted): toggled parts `{1,2,3}` + active preset.
+      → Added transient preset + phase selection state in the shell, threaded through the
+      Audio-tab prop group for Phase 5 rendering.
+- [x] Derive `canRun` per part from line data (design §5): Part 1 ⇔ audio uploaded; Parts
       2 & 3 ⇔ lines with `original` exist.
-- [ ] **`handleRunPipeline`**: run the selected parts **sequentially** — for each selected
+      → Added tested `staged-lyrics` helpers for preset mapping, availability, and ordered
+      selected phases (including downstream phases satisfied by Part 1).
+- [x] **`handleRunPipeline`**: run the selected parts **sequentially** — for each selected
       part in order 1→2→3: `startTranscriptionJob({ phase, lines: projectState.lines, ... })`
       → `beginTranscriptionTracking(jobId, phase)` → await the poll effect to reach
       `done`/`error` → on done the apply path has run → proceed to next part reading the
       *updated* `projectState.lines`. Stop the chain on error. (Await pattern: resolve when
       `transcription.phase === phase && status === "done"`; reuse existing refs/guards.)
-- [ ] Presets set the toggles (All three=1,2,3 · First two=1,2 · First one=1).
-- [ ] **CHECK (phase close):** green table. Unit-test the gating derivation + preset→toggle
+      → Added sequential runner, waiter bridge from the poll effect, and a project-state ref
+      updated by apply paths before the next phase starts.
+- [x] Presets set the toggles (All three=1,2,3 · First two=1,2 · First one=1).
+      → Preset helper maps All three / First two / First one to phase selections.
+- [x] **CHECK (phase close):** green table. Unit-test the gating derivation + preset→toggle
       mapping where practical.
+      → PASS: test **200/200 (21 files)**, lint clean, build compiled. Added helper tests
+      for gating, presets, and ordered selected phases.
 
 ## Phase 5 — UI: toggles + presets + Run in the Audio tab  *(the visible switch)*
-- [ ] Replace the single **"Generate & time lyrics"** control (grep `onGenerate` /
+- [x] Replace the single **"Generate & time lyrics"** control (grep `onGenerate` /
       "Generate & time lyrics" in [components/tabs/audio-tab.js](../components/tabs/audio-tab.js))
       with: preset chips (All three / First two / First one), three part toggles
       (disabled when `canRun` is false), and one **Run** button (label reflects the
       selection; disabled when nothing selected or a job is in flight).
-- [ ] Per-part **status readout**. Decide the shape (design §10.2): recommended single
+      → Replaced the single button with All three / First two / First one preset chips,
+      three checkbox toggles, and one staged Run button. Downstream toggles remain
+      selectable when selected Part 1 will create the required lines.
+- [x] Per-part **status readout**. Decide the shape (design §10.2): recommended single
       `pipelineState` with a sub-status per part. Reuse the existing status-badge styling.
       Preserve the language selector + requirement message behaviour (grep
       `autoLyricsLanguageRequirementMessage`, `sourceLanguage`).
-- [ ] Thread new props through the shell's `lyricsSource` group (grep `lyricsSource={{`)
+      → Added shell-derived `pipeline.statusByPhase` for Part 1 / Part 2 / Part 3,
+      using existing auto-lyrics and auto-timing state plus current line data.
+- [x] Thread new props through the shell's `lyricsSource` group (grep `lyricsSource={{`)
       — follow the existing grouped-prop convention (no new prop-drilling beyond the group).
+      → Threaded `autoTiming` and `pipeline.statusByPhase` through the existing
+      `lyricsSource` group. Removed the old client `onGenerate` hook from the Audio tab.
 - [ ] **CHECK (phase close):** green table + manual matrix (`npm run dev`):
       - Upload MP3 → run **First one** → review lyrics → edit a line → run **Part 2 only**
         → review translations → run **Part 3 only** → timing appears, gloss preserved.
       - **All three** in one go → intermediate results appear as each part lands.
       - `1 + 3` (manual, skip 2) → timing works without translations.
       - Reload mid-job → the in-flight part resumes (autosave recovery).
+      → PARTIAL: code gate PASS on 2026-07-01 — lint clean, test **200/200 (21 files)**,
+      build compiled. Browser DOM + screenshot verification confirmed preset chips,
+      three toggles, Run button, and no old "Generate & time lyrics" text. Full AI-backed
+      manual matrix remains owed; the in-app sample upload did not transition to ready in
+      the browser tool during this checkpoint (console errors: 0), matching Deviation #2.
 
 ## Phase 6 — Re-run policy: confirm + polish scoping (design §6)
-- [ ] **Part-1 confirm:** before running when Part 1 is selected AND downstream data exists
+- [x] **Part-1 confirm:** before running when Part 1 is selected AND downstream data exists
       (derive: any line has `translation` or finite `start`), show one confirm — *"This
       rebuilds your lyric set and clears the translation and timing below. Continue?"* Treat
       **line add/delete/reorder** as a Part-1-level structural change for this gate.
-- [ ] Parts 2 and 3 re-run **silently** (no dialog, no badge). Manual edits stay silent.
-- [ ] **D2 polish scoping:** make the standalone Part 2 (`enrichLyricLines`) polish **not
+      → Added a shared downstream-data helper and used it before selected Part 1 runs and
+      structural line add/delete/reorder actions. Plain text edits remain silent.
+- [x] Parts 2 and 3 re-run **silently** (no dialog, no badge). Manual edits stay silent.
+      → The confirm only fires for selected `transcribe` runs or structural line changes;
+      `enrich` and `time` reruns proceed without a dialog.
+- [x] **D2 polish scoping:** make the standalone Part 2 (`enrichLyricLines`) polish **not
       rewrite `original`** (grep `allowOriginalChanges` / `buildLyricPolishSchema`). The
       recomposed full-run path may keep today's behaviour. Add a test asserting Part 2 leaves
       `original` untouched (so re-running Part 2 can't invalidate Part 3 timing).
+      → Confirmed the shared polish path is already scoped with `allowOriginalChanges=false`
+      and added an adversarial standalone Part 2 test: even if the mocked polish response
+      attempts `corrected_original`, word meanings still receive the original source text.
 - [ ] **CHECK (phase close):** green table. Manual: with all three done, re-run Part 2 →
       timing survives, no dialog; re-run Part 1 → confirm appears, and on accept downstream
       clears/rebuilds.
+      → PARTIAL: code gate PASS on 2026-07-01 — lint clean, test **201/201 (21 files)**,
+      build compiled. Focused Phase 6 tests pass. Non-AI structural-confirm smoke passed
+      on `localhost:3000`: after creating a line with downstream translation data, the next
+      structural add surfaced a browser `confirm`. Full AI-backed manual matrix remains owed.
 
 ## Phase 7 — Final verification & cleanup
 - [ ] Full manual matrix (Phase 5 + 6 lists) passes with zero console errors.
-- [ ] **Dormant routes:** delete `/api/ai/auto-time`, `/api/ai/word-meanings`,
+- [x] **Dormant routes:** delete `/api/ai/auto-time`, `/api/ai/word-meanings`,
       `/api/ai/romanize` and their now-unused lib exports (design §9), unless the owner
       defers. Grep to confirm nothing references them. Assess `/api/ai/word-timings`
       separately.
-- [ ] Remove any scratch/dev-only wiring and now-unused imports (TS-server diagnostics catch
+      → Deleted `/api/ai/auto-time`, `/api/ai/word-meanings`, `/api/ai/romanize`, and
+      `/api/ai/word-timings` after confirming no app/client callers. Removed the now-unused
+      `autoTimeLyricLinesFromAudio`, `getWordTimingsFromAudio`, and standalone romanization
+      exports/helpers. Active AI routes are now only `/api/ai/transcribe` and
+      `/api/ai/transcribe/[jobId]`.
+- [x] Remove any scratch/dev-only wiring and now-unused imports (TS-server diagnostics catch
       unused imports; eslint here does not).
+      → Grep is clean for deleted route paths and removed helper/export names. Updated stale
+      comments that still pointed to `/api/ai/word-meanings`. `npm run lint` and
+      `npm run build` pass after cleanup.
 - [ ] **Final CHECK:** `npm run test` ✅ `npm run lint` ✅ `npm run build` ✅ + full manual
       click-through. Report: files changed, new functions/routes, tests added, deviations.
+      → CODE PASS on 2026-07-02 — focused Phase 7 suites pass, full `npm run test` passes
+      **201/201 (21 files)**, lint clean, and build compiled. Local Playwright smoke on
+      `localhost:3000` confirmed staged controls visible, old "Generate & time lyrics" text
+      absent, deleted AI routes return 404, structural rebuild confirm message matches, and
+      console warnings/errors are 0. Full live AI-backed manual matrix remains owed.
 
 ---
 
@@ -245,4 +318,25 @@ incrementally.
   leave `runLyricTimingPipeline`'s body untouched until Phase 7 consolidation. Confirmed by
   reading the real function bodies (`buildCanonicalLyricSet`, `runLyricTimingPipeline`,
   `fillTimingGaps`, `attachWordMeaningsCoverage`, `requestLyricTranslations`).
+- **Deviation #2 (Validation) — headless UI upload fallback.** During Phase 2/3 validation,
+  in-app/headless browser attempts did not attach an audio asset through the Audio-tab upload
+  controls, despite no console errors. Used an equivalent backend smoke (`/api/upload` →
+  no-`phase` `/api/ai/transcribe` → poll) to confirm the full default route completed with
+  50 lines and word meanings ok. Full visible UI matrix remains owed in Phase 5+.
+- **Deviation #3 (Phase 5 validation) — visual UI verified, full matrix still owed.**
+  The Phase 5 UI itself was verified in the in-app browser: the Audio tab rendered preset
+  chips, three toggles, per-part status rows, a staged Run button, and no old
+  "Generate & time lyrics" text. The same browser-surface sample upload flakiness from
+  Deviation #2 prevented closing the full visible AI manual matrix in this checkpoint.
+- **Deviation #4 (Phase 6 validation) — use `localhost`, not `127.0.0.1`, for dev UI.**
+  `127.0.0.1:3000` loaded the page but Next blocked dev resources for that origin, and the
+  tab-switch smoke did not hydrate correctly. Retrying on `localhost:3000` reached the
+  Lyrics panel and surfaced the expected structural-change `confirm`. The browser tool then
+  timed out while dismissing the test dialog, so the full AI-backed Phase 6 matrix remains
+  owed.
+- **Deviation #5 (Phase 7 validation) — cleanup complete, live AI matrix still owed.**
+  Dormant sync AI routes and route-only helper exports were removed, and the local UI smoke
+  is clean on `localhost:3000`. The final full Phase 5/6 manual matrix was not marked
+  complete because it requires live AI runs against an uploaded MP3; the verified browser
+  smoke covered the visible staged controls, route deletion, and rebuild-confirm guard only.
 - _(record further departures here as you go)_

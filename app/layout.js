@@ -10,6 +10,7 @@ import "@fontsource/noto-sans-jp/400.css";
 import "@fontsource/noto-sans-jp/500.css";
 import "@fontsource/noto-sans-kr/400.css";
 import "@fontsource/noto-sans-kr/500.css";
+import "./app_colours.css";
 import "./globals.css";
 
 export const metadata = {

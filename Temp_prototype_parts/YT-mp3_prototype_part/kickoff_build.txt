@@ -1,0 +1,30 @@
+read Temp_prototype_parts/YT-mp3_prototype_part/plan.md and progress.md and build
+
+You're the build agent for the YouTube→MP3 segment prototype. Those two files are
+your complete, self-contained spec — read BOTH in full before writing any code.
+All paths in them are relative to the project root (where you're running). The
+integration guide at `Current .md docs/rapidapi-youtube-mp3-segment-integration-guide.md`
+is authoritative for the backend; where it and the plan disagree on backend
+behavior, the guide wins.
+
+How to work:
+- Build in order, one task at a time, starting at T01. Do Stage 1 (T01–T07, look &
+  feel with placeholder data — no API key needed) completely before Stage 2.
+- Keep progress.md accurate as you go: mark each task in_progress → done with its
+  "done when…" signal actually met. Never mark a task done you haven't verified.
+- Stack is fixed: Next.js App Router, JavaScript (NOT TypeScript). Route handlers
+  under app/api/* keep the RapidAPI key server-side — the key must never reach the
+  browser, appear in client bundles, logs, fixtures, or git.
+- Do NOT hard-code the provider's response schema. T09 (manual API test) must run
+  first and confirm the real /download and /status field names before you narrow
+  the parser (plan §6, §10).
+- Env vars by name only; never commit secrets. Add .env.example (names only) and
+  git-ignore .env.local.
+
+Before Stage 2, STOP and tell me: you'll need a RapidAPI account subscribed to the
+"YouTube to mp3" API, and its key in .env.local (setup steps are in plan §7). Stage
+1 needs no key, so build straight through it; pause for the key at T09.
+
+Ask me a clarifying question only if something needed to build is genuinely missing
+from plan.md/progress.md — otherwise proceed without pausing for per-task sign-off.
+Begin at T01.
