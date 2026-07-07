@@ -153,7 +153,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
   return (
     <div className="grid gap-4">
       <div
-        className="rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
+        className="upload-card rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
         onDragOver={(event) => {
           event.preventDefault();
         }}
@@ -162,24 +162,24 @@ export function AudioTab({ audio, lyricsSource, project }) {
           onFile(event.dataTransfer.files?.[0] ?? null);
         }}
       >
-        <p className="text-sm font-medium text-[var(--text)]">
+        <h2 className="text-sm font-medium text-[var(--text)]">
           Drag an MP3 here or choose one from your computer
-        </p>
+        </h2>
         <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
           Up to 25 MB. The uploaded track drives the persistent waveform dock,
           timing workflow, and later export.
         </p>
 
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+        <div className="button-row mt-5 flex flex-wrap items-center justify-center gap-3">
           <button
-            className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
+            className="pill primary rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
             onClick={() => onPickFile()}
             type="button"
           >
             Choose MP3
           </button>
           <button
-            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isLoadingSample}
             onClick={() => {
               void onLoadSample();
@@ -189,6 +189,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
             {isLoadingSample ? "Loading sample…" : "Load sample"}
           </button>
           <StatusBadge
+            className="status-badge"
             tone={
               upload.status === "success"
                 ? "success"
@@ -203,7 +204,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
       </div>
 
       <p
-        className={`truncate rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
+        className={`track-status truncate rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
           upload.status === "error"
             ? "text-[var(--danger)]"
             : "text-[var(--muted)]"
@@ -223,8 +224,8 @@ export function AudioTab({ audio, lyricsSource, project }) {
         </span>
       </p>
 
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="auto-card rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
+        <div className="auto-top flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-[var(--muted)]">Auto-lyrics</p>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
@@ -233,6 +234,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
             </p>
           </div>
           <StatusBadge
+            className="status-badge"
             tone={
               visibleStatus === "running"
                 ? "accent"
@@ -247,9 +249,9 @@ export function AudioTab({ audio, lyricsSource, project }) {
           </StatusBadge>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="auto-grid mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div className="grid gap-3">
-            <label className="block">
+            <label className="field-label block">
               <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
                 Source language
               </span>
@@ -288,7 +290,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
           </div>
 
           <button
-            className="min-w-[8.5rem] rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+            className="run-button min-w-[8.5rem] rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
             disabled={!canRunSelectedPipeline}
             onClick={() => {
               void pipeline?.onRun?.();
@@ -300,15 +302,15 @@ export function AudioTab({ audio, lyricsSource, project }) {
           </button>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline presets">
+        <div className="phase-row mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline presets">
           {PIPELINE_PRESET_OPTIONS.map((option) => {
             const active = pipeline?.preset === option.preset;
 
             return (
               <button
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                className={`phase-chip rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
                   active
-                    ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
+                    ? "is-active border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
                     : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
                 }`}
                 disabled={pipelineBusy}

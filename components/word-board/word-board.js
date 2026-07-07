@@ -6,7 +6,8 @@
 // gloss is missing (P1/P3). Selection can be controlled (editor context, P6) or
 // internal (standalone demo / tests).
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import "./word-board.css";
 import { useWordBoard } from "./use-word-board";
@@ -193,12 +194,47 @@ function BoardControls({
   );
 }
 
+function BoardToolsStrip({
+  className,
+  ready,
+  selectedWord,
+  showRoman,
+  followAudioEnabled,
+  canFollowAudio,
+  canDecreaseSize,
+  canIncreaseSize,
+  tileStep,
+  onToggleRoman,
+  onToggleFollowAudio,
+  onStepSize,
+}) {
+  return (
+    <div className={className}>
+      {/* Empty (outline-only) until measured so the translation box shows
+          in the initial skeleton; populates once the words are revealed. */}
+      <SelectionPanel word={ready ? selectedWord : null} />
+      <BoardControls
+        showRoman={showRoman}
+        followAudioEnabled={followAudioEnabled}
+        canFollowAudio={canFollowAudio}
+        canDecreaseSize={canDecreaseSize}
+        canIncreaseSize={canIncreaseSize}
+        tileStep={tileStep}
+        onToggleRoman={onToggleRoman}
+        onToggleFollowAudio={onToggleFollowAudio}
+        onStepSize={onStepSize}
+      />
+    </div>
+  );
+}
+
 export function WordBoard({
   lines,
   selectedWordId,
   onSelectWord,
   currentTime = 0,
   followAudioResetKey = null,
+  boardToolsPortalSelector = null,
 }) {
   const board = useWordBoard(lines, {
     currentTime,
@@ -256,6 +292,34 @@ export function WordBoard({
 
   const selectedWord = activeSelectedId ? wordsById.get(activeSelectedId) ?? null : null;
   const selectedLineId = selectedWord?.lineId ?? null;
+  const [boardToolsPortalTarget, setBoardToolsPortalTarget] = useState(null);
+
+  useEffect(() => {
+    if (!boardToolsPortalSelector || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const updatePortalTarget = () => {
+      const nextTarget = document.querySelector(boardToolsPortalSelector);
+      // This state mirrors whether the shell's Words card is mounted.
+      setBoardToolsPortalTarget((currentTarget) =>
+        currentTarget === nextTarget ? currentTarget : nextTarget,
+      );
+    };
+
+    updatePortalTarget();
+
+    if (typeof MutationObserver !== "function") {
+      return undefined;
+    }
+
+    const observer = new MutationObserver(updatePortalTarget);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [boardToolsPortalSelector]);
 
   const handleSelect = (word) => {
     // Toggle: clicking the selected word clears it (prototype behavior).
@@ -266,9 +330,44 @@ export function WordBoard({
       setInternalSelectedId(nextId);
     }
   };
+  const boardToolsStrip = (
+    <BoardToolsStrip
+      className="pager-strip"
+      ready={ready}
+      selectedWord={selectedWord}
+      showRoman={showRoman}
+      followAudioEnabled={followAudioEnabled}
+      canFollowAudio={canFollowAudio}
+      canDecreaseSize={canDecreaseSize}
+      canIncreaseSize={canIncreaseSize}
+      tileStep={tileStep}
+      onToggleRoman={toggleRoman}
+      onToggleFollowAudio={toggleFollowAudio}
+      onStepSize={stepTileScale}
+    />
+  );
 
   return (
     <div className="wb" ref={hostRef}>
+      {boardToolsPortalTarget
+        ? createPortal(
+            <BoardToolsStrip
+              className="board-tools-layout"
+              ready={ready}
+              selectedWord={selectedWord}
+              showRoman={showRoman}
+              followAudioEnabled={followAudioEnabled}
+              canFollowAudio={canFollowAudio}
+              canDecreaseSize={canDecreaseSize}
+              canIncreaseSize={canIncreaseSize}
+              tileStep={tileStep}
+              onToggleRoman={toggleRoman}
+              onToggleFollowAudio={toggleFollowAudio}
+              onStepSize={stepTileScale}
+            />,
+            boardToolsPortalTarget,
+          )
+        : null}
       {/* The frame is contain-fit by CSS and can paint immediately. The
           scale-sensitive lyric rows stay hidden until the client measurement
           pass lands, so the first visible words already have their final size. */}
@@ -318,22 +417,7 @@ export function WordBoard({
               ))}
             </div>
           </div>
-          <div className="pager-strip">
-            {/* Empty (outline-only) until measured so the translation box shows
-                in the initial skeleton; populates once the words are revealed. */}
-            <SelectionPanel word={ready ? selectedWord : null} />
-            <BoardControls
-              showRoman={showRoman}
-              followAudioEnabled={followAudioEnabled}
-              canFollowAudio={canFollowAudio}
-              canDecreaseSize={canDecreaseSize}
-              canIncreaseSize={canIncreaseSize}
-              tileStep={tileStep}
-              onToggleRoman={toggleRoman}
-              onToggleFollowAudio={toggleFollowAudio}
-              onStepSize={stepTileScale}
-            />
-          </div>
+          {boardToolsStrip}
         </div>
       </section>
     </div>

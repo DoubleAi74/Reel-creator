@@ -114,6 +114,7 @@ export function PreviewStage({
             onSelectWord={handleSelectWord}
             currentTime={currentAudioTime}
             followAudioResetKey={wordBoardFollowAudioResetKey}
+            boardToolsPortalSelector="[data-board-tools-card]"
           />
         </section>
       ) : null}

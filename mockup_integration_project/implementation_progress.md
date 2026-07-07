@@ -1,7 +1,7 @@
 # Implementation Progress
 
 - Plan: implementation_plan.md   | Branch: mockup-integration-mobile
-- Current phase: P2              | Current task: P2 complete
+- Current phase: P3              | Current task: P3 complete
 
 ## Completed tasks
 - [x] P0-T01 - Created branch `mockup-integration-mobile` from `main` at baseline commit `6ac31470bbca4d7764cfa8bdbb8889742e5ca7a1`.
@@ -28,6 +28,11 @@
 - [x] P2-T01 - Added narrow transport preview/board toggle wired to the existing pane handlers (D003/D007).
 - [x] P2-T02 - Suppressed `.top-frame` on narrow and removed mobile absolute/gradient header treatment while preserving desktop header layout (D003).
 - [x] P2-T03 - Added `layout-notices` offset below the fixed transport and verified it clears the dock (D003).
+- [x] P3-T01 - Verified desktop against mockup/P0 evidence and fixed the confirmed desktop preview ratio delta to the mockup 9:16 geometry (D006).
+- [x] P3-T02 - Increased section tab metrics to 36px/15px with mockup padding while keeping active `--accent` / `--on-accent` (D007).
+- [x] P3-T03 - Added low-risk mobile audio card chrome hooks/styles for upload, track status, auto card, primary button, run button, and phase chips (D008).
+- [x] P3-T04 - Confirmed desktop transport metrics remain play 130x52, rewind 104x45, nav/speed 35h, and time pill 35h (D009).
+- [x] P3-T05 - Filled the Words card with the live WordBoard selection/control strip via a scoped WordBoard JS extraction/portal; narrow Words mode shows exactly one visible board control surface, desktop in-board controls remain unchanged (D002/D007).
 
 ## Files changed this session
 - `mockup_integration_project/screenshots/baseline_pre/` - added app baseline captures for P0-T04.
@@ -60,6 +65,17 @@
 - `components/editor-shell.js` - passed preview/board handlers/state to the transport and added `layout-notices`.
 - `components/editor-header.js` - removed mobile absolute/gradient root treatment while restoring desktop flex layout.
 - `mockup_integration_project/screenshots/p2/` - P2 mobile and desktop captures.
+- `app/globals.css` - P3 desktop preview 9:16 geometry fix, section tab metrics, board-tools card chrome, narrow duplicate-strip suppression, and mobile audio card chrome.
+- `components/editor-tab-bar.js` - added the `tab-row` hook used by the P3 tab metrics.
+- `components/editor-shell.js` - added the `data-board-tools-card` Words-card portal target.
+- `components/preview-stage.js` - passed the Words-card portal selector only to the standard in-workspace WordBoard instance.
+- `components/word-board/word-board.js` - scoped extraction of the existing selection/control strip into `BoardToolsStrip` and portal rendering into the Words card; no `word-board.css`, tile rendering, selection, layout, or board behaviour changes.
+- `components/tabs/audio-tab.js` - added mockup-aligned class hooks for upload/track/auto card chrome without restructuring the audio pipeline.
+- `components/ui/status-badge.js` - accepted an optional class hook for card-local status badge chrome.
+- `mockup_integration_project/measurements/app_390_p3_default.json` - P3 default mobile measurement written with explicit `--out`.
+- `mockup_integration_project/measurements/app_1440_p3_default.json` - P3 desktop default measurement written with explicit `--out`.
+- `mockup_integration_project/measurements/app_1440_p3_populated.json` - P3 desktop populated measurement written with explicit `--out`.
+- `mockup_integration_project/screenshots/p3/` - P3 mobile/desktop app captures.
 
 ## Tests / checks run
 - functional: `npm install`; `npm run dev` started successfully; `npm run lint`.
@@ -86,6 +102,16 @@
 - visual(diff): 1440 P1C desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
 - visual(diff): 1440 P1D desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
 - visual(diff): 1440 P2 desktop screenshot vs P0 baseline image changed 0.3554% of pixels over threshold after restoring desktop header flex; measured header/toggle geometry matches baseline positions.
+- structural(P3): desktop measurement vs `mockup_1440x900_default.json` now matches key rects exactly for `.top-frame`, `.work-area`, `.workspace-panel`, `.workspace-grid`, `.preview-col`, `.preview-screen`, `.wb-slot`, `.side-panel`, `.transport`, and `.transport-inner`.
+- visual(diff): 1440 P3 desktop default vs mockup desktop changed 6.0128% of pixels over threshold after geometry match; remaining mismatch is visual/content-level chrome, not topology.
+- visual(diff): 1440 P3 desktop default vs P0 baseline changed 2.6699% and populated vs P0 changed 4.9576% over threshold, driven by the intentional P3 preview 9:16 geometry/tab metric correction plus live content.
+- interaction(P3): at 390, default narrow state is `show-board words-tab-active`, `data-snap=peek`, Words card visible, sheet handle hidden, card buttons `Rm/F/-/+` present, exactly one visible `.board-control-grid`, and the original `.wb-slot .pager-strip` hidden.
+- interaction(P3): clicking the Words-card `Rm` control toggled the live `.version-sketch.show-inline-roman` state; clicking `+` changed live `--tile-scale` from `1` to `1.06`, proving shared state/handlers rather than duplicated controls. No console/page errors.
+- structural(P3): at 390, tabs render in one row with 36px height, 15px font, 12px padding in board mode; at 1440 desktop, Words tab/card are hidden and Audio/Lyrics/Style remain visible.
+- structural(P3): mobile Audio tab chrome renders upload card `r=24px p=22/20 dashed`, primary pill 40px high, track status 42px high, auto card `r=20px p=18/16`, run button 112x47, and phase chip 35px high. No audio pipeline controls were removed.
+- structural(P3): desktop transport rendered `play=130x52`, `rewind=104x45`, `prev/next=44x35`, `speed=52x35`, `time=121.2x35`, matching P3-T04 targets.
+- test(P3): `npm run lint` passed.
+- test(P3): `npm test` -> 21 files / 201 tests passed.
 - visual(capture pairs): app baseline captures only, written with `--out-dir mockup_integration_project/screenshots/baseline_pre`; no P1A screenshots required by plan.
 - visual(capture pairs): P1B app captures written with `--out-dir mockup_integration_project/screenshots/p1b`; manual top-band review against `mockup_mobile_390x844_default.png`.
 
@@ -109,18 +135,22 @@
 - `screenshots/p1e/app_mobile_428x926_default.png` (P1E) - P1 visual set.
 - `screenshots/p2/app_mobile_390x844_default.png` (P2) - transport toggle visible; mobile header suppressed.
 - `screenshots/p2/app_desktop_1440x900_default.png` (P2) - desktop non-regression spot check.
+- `screenshots/p3/app_mobile_390x844_default.png` (P3) - Words card populated with the live board controls; single visible control surface.
+- `screenshots/p3/app_mobile_390x844_populated.png` (P3) - populated mobile board with Words card controls.
+- `screenshots/p3/app_desktop_1440x900_default.png` (P3) - desktop geometry after preview 9:16 fix and tab metrics.
+- `screenshots/p3/app_desktop_1440x900_populated.png` (P3) - desktop populated non-regression evidence.
 
 ## Discrepancies resolved
 - D001 implemented in P1B for transport dock/wrapper; final integrated verification remains P1E/P4.
-- D002 sheet snap model/handle implemented in P1C and Words peek lock/handle suppression implemented in P1D; board-tools card content remains P3.
+- D002 sheet snap model/handle implemented in P1C, Words peek lock/handle suppression implemented in P1D, and board-tools card content completed in P3.
 - D003 implemented in P2; final verification remains P4.
 - D004 implemented in P1D; final integrated verification remains P1E/P4.
 - D005 implemented (P1A; final live boundary verification remains P4-T02)
-- D006 pending verification (P3)
-- D007 Words tab state implemented in P1D and transport-toggle placement implemented in P2; tab sizing/card content remain P3.
-- D008 pending (P3)
-- D009 mobile transport metrics implemented in P1B; desktop-side confirmation remains P3-T04.
-- P1 structural phase complete; final P1 regressions roll into P2/P3/P4 verification.
+- D006 verified in P3; the confirmed desktop preview ratio delta was fixed and key desktop rects now match the mockup measurement.
+- D007 Words tab state implemented in P1D, transport-toggle placement implemented in P2, and tab sizing/card content completed in P3.
+- D008 addressed in P3 with mobile card chrome polish; deeper audio pipeline restructuring remains intentionally out of scope.
+- D009 mobile transport metrics implemented in P1B; desktop-side metrics confirmed in P3-T04.
+- P1-P3 implementation complete; final integrated regressions roll into P4 verification.
 
 ## Decisions
 - U-2 (Words tab): **RESOLVED -> Path B (strict fidelity)** - state/sync/lock in P1D-T03, card content in P3-T05.
@@ -135,6 +165,7 @@
 - P1C full snap height is correct (`~624.55px`), but its top remains at the peek workspace boundary until P1D-T01 applies pane sizing from `--mobile-sheet-top`; this is an ordered dependency, not an accepted final deviation.
 - P1D preview-toggle pointer click was intercepted by the fixed transport because the old header toggle still sat under the dock; resolved by P2-T01 transport toggle.
 - P1E updated tooling intentionally manipulates app state directly for `sheet-full`/`preview-only` captures where the pre-P2 header toggle or Words handle lock would make pointer clicks unsuitable. This is evidence tooling only; app interaction is handled by P2/P3.
+- P3 desktop P0 pixel diffs increased because P3-T01 intentionally corrected the preview frame from the old app ratio to the mockup 9:16 ratio and P3-T02 changed tab metrics. Geometry now matches the mockup desktop measurement for the tracked elements.
 
 ## Next checkpoint / task
-- P3-T01
+- P4-T01

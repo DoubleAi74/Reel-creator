@@ -3783,7 +3783,13 @@ export function EditorShell({ debugProbe = null, project }) {
           />
         );
       case "words":
-        return <div aria-label="Word board controls" className="board-tools-card" />;
+        return (
+          <div
+            aria-label="Word board controls"
+            className="board-tools-card"
+            data-board-tools-card
+          />
+        );
       default:
         return null;
     }
