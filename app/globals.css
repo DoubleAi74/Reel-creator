@@ -130,6 +130,137 @@ textarea:focus-visible {
   .app-frame[data-snap="full"] {
     --mobile-sheet-top: 50dvh;
   }
+
+  .app-responsive {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-top: var(--mobile-transport-h);
+  }
+
+  .work-area {
+    overflow: visible;
+  }
+
+  .transport-slot {
+    height: 0;
+    flex-basis: 0;
+    overflow: visible;
+  }
+
+  .transport {
+    position: fixed;
+    z-index: 40;
+    inset: 0 0 auto;
+    order: -1;
+    flex: 0 0 auto;
+    height: var(--mobile-transport-h);
+    overflow: hidden;
+    border-top: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: var(--surface);
+    padding: 10px 14px;
+  }
+
+  .transport-inner {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0;
+  }
+
+  .transport-wave-wrap {
+    order: 2;
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .app-frame .transport .waveform {
+    height: 40px;
+    min-width: 0;
+    border-radius: 12px;
+  }
+
+  .transport-controls {
+    display: flex;
+    order: 1;
+    width: 100%;
+    max-width: none;
+    min-height: 40px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    border-top: 0;
+    padding: 0;
+  }
+
+  .transport-main-controls {
+    display: flex;
+    min-width: 0;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .transport-button {
+    display: inline-flex;
+    width: 34px;
+    height: 32px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .play-button {
+    order: 1;
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .prev-button {
+    order: 2;
+  }
+
+  .next-button {
+    order: 3;
+  }
+
+  .speed-button {
+    order: 4;
+  }
+
+  .play-label,
+  .rewind-button,
+  .mark-button,
+  .transport-time {
+    display: none;
+  }
+
+  @media (max-width: 420px) {
+    .transport-controls,
+    .transport-main-controls {
+      gap: 7px;
+    }
+
+    .transport-button {
+      width: 34px;
+      height: 32px;
+    }
+
+    .transport-time {
+      font-size: 15px;
+    }
+  }
 }
 
 /* =====================================================================

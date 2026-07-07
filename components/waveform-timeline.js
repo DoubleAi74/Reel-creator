@@ -682,15 +682,15 @@ export function WaveformTimeline({
     sectionDuration > 0 ? currentSectionTime / sectionDuration : 0;
 
   return (
-    <div className="transport overflow-hidden border-t border-[var(--border)] bg-[var(--surface)] lg:rounded-[1.75rem] lg:border lg:border-[var(--border)] lg:bg-[var(--surface-2)]">
+    <div className="transport lg:rounded-[1.75rem] lg:border lg:border-[var(--border)] lg:bg-[var(--surface-2)]">
       <div className="transport-inner">
-      <div className="transport-wave-wrap px-4 pb-3 pt-2.5 lg:px-4 lg:pb-2 lg:pt-3">
+      <div className="transport-wave-wrap lg:px-4 lg:pb-2 lg:pt-3">
         <div className="relative">
           <div
             aria-busy={isWaveformBusy}
             className={`waveform waveform-surface ${
               hasReadyWaveform ? "is-wave-ready" : "is-wave-loading"
-            } relative overflow-hidden rounded-xl bg-[var(--surface)] px-2.5 py-2 lg:rounded-[1rem] lg:px-3 lg:py-2.5`}
+            } lg:rounded-[1rem] lg:px-3 lg:py-2.5`}
           >
             {/* Content-box wrapper: markers (CSS %) and the wavesurfer
                 waveform/cursor share this exact coordinate space. */}
@@ -746,8 +746,8 @@ export function WaveformTimeline({
         ) : null}
       </div>
 
-      <div className="transport-controls flex items-center gap-2 border-t border-[var(--border)] px-4 pb-5 pt-3 lg:flex-wrap lg:justify-between lg:gap-4 lg:px-4 lg:py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2 lg:flex-none lg:flex-wrap">
+      <div className="transport-controls lg:flex-wrap lg:justify-between lg:gap-4 lg:px-4 lg:py-3">
+        <div className="transport-main-controls lg:flex-none lg:flex-wrap">
           <button
             aria-label="Rewind to section start"
             className="rewind-button hidden rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:inline-flex"
@@ -759,7 +759,7 @@ export function WaveformTimeline({
           </button>
           <button
             aria-label="Jump to previous lyric"
-            className="nav-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[13px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
+            className="transport-button nav-button prev-button transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
             data-dir="prev"
             disabled={!isReady || previousLyricStart === null}
             onClick={() => jumpTo(previousLyricStart)}
@@ -771,17 +771,17 @@ export function WaveformTimeline({
           <button
             aria-label={isPlaying ? "Pause" : "Play"}
             aria-pressed={isPlaying}
-            className={`play-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:w-auto lg:gap-2 lg:rounded-full lg:bg-[var(--accent)] lg:px-5 lg:py-1.5 lg:text-sm lg:font-semibold lg:text-[var(--on-accent)] lg:hover:opacity-90 ${isPlaying ? "is-playing" : ""} ${isReady ? "" : "is-not-ready"}`}
+            className={`transport-button play-button transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:w-auto lg:gap-2 lg:rounded-full lg:bg-[var(--accent)] lg:px-5 lg:py-1.5 lg:text-sm lg:font-semibold lg:text-[var(--on-accent)] ${isPlaying ? "is-playing" : ""} ${isReady ? "" : "is-not-ready"}`}
             disabled={!isReady}
             onClick={togglePlayback}
             type="button"
           >
             <span aria-hidden>{isPlaying ? "❚❚" : "▶"}</span>
-            <span className="hidden lg:inline">{isPlaying ? "Pause" : "Play"}</span>
+            <span className="play-label hidden lg:inline">{isPlaying ? "Pause" : "Play"}</span>
           </button>
           <button
             aria-label="Jump to next lyric"
-            className="nav-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[13px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
+            className="transport-button nav-button next-button transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
             data-dir="next"
             disabled={!isReady || nextLyricStart === null}
             onClick={() => jumpTo(nextLyricStart)}
@@ -793,7 +793,7 @@ export function WaveformTimeline({
           <button
             aria-label={`Playback speed ${speed === 1 ? "normal" : "half"}`}
             aria-pressed={speed !== 1}
-            className="speed-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[11px] font-semibold text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
+            className="transport-button speed-button transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
             disabled={!isReady}
             onClick={() => setSpeed((current) => (current === 1 ? 0.5 : 1))}
             title="Toggle half-speed playback (keeps pitch)"
