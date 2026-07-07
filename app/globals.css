@@ -107,6 +107,32 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
+ * App chrome — NARROW ONLY (< lg / 1024px).
+ * These unlayered rules own the mobile mockup alignment and outrank
+ * Tailwind utilities without touching the desktop block below.
+ * ===================================================================== */
+@media (max-width: 1023.98px) {
+  :root {
+    --mobile-transport-h: 108px;
+    --mobile-preview-gap: 11.2px;
+  }
+
+  .app-frame {
+    min-height: 0;
+    height: 100dvh;
+    --mobile-sheet-top: 75dvh;
+  }
+
+  .app-frame[data-snap="peek"] {
+    --mobile-sheet-top: 75dvh;
+  }
+
+  .app-frame[data-snap="full"] {
+    --mobile-sheet-top: 50dvh;
+  }
+}
+
+/* =====================================================================
  * App chrome — DESKTOP ONLY (>= lg / 1024px).
  * These rules are intentionally UNLAYERED: by CSS cascade-layer rules,
  * unlayered declarations outrank Tailwind's `utilities` layer, so they win

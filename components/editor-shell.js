@@ -78,9 +78,9 @@ const LYRIC_REBUILD_CONFIRM_MESSAGE =
 
 // Mobile-only bottom-sheet snap heights (ignored at lg+, where the editor fills its grid column).
 const SHEET_SNAPS = [
-  { height: "120px", label: "Peek · tap to expand" },
-  { height: "44vh", label: "Half · tap to expand" },
-  { height: "74vh", label: "Full · tap to collapse" },
+  { key: "peek", height: "120px", label: "Peek · tap to expand" },
+  { key: "half", height: "44vh", label: "Half · tap to expand" },
+  { key: "full", height: "74vh", label: "Full · tap to collapse" },
 ];
 
 const BACKGROUND_UPLOAD_COPY = {
@@ -774,7 +774,7 @@ export function EditorShell({ debugProbe = null, project }) {
     if (typeof window === "undefined" || !window.matchMedia) {
       return undefined;
     }
-    const query = window.matchMedia("(max-width: 999.98px)");
+    const query = window.matchMedia("(max-width: 1023.98px)");
     const update = () => setIsNarrowWorkspace(query.matches);
     update();
     query.addEventListener("change", update);
@@ -3740,10 +3740,18 @@ export function EditorShell({ debugProbe = null, project }) {
     audioUpload.status === "uploading" &&
     Boolean(audioUpload.asset?.assetId) &&
     !audioObjectUrl;
+  const appFrameClasses = [
+    "app-frame relative flex h-dvh flex-col overflow-hidden bg-[var(--page)] text-[var(--text)]",
+    showPreview ? "show-preview" : "",
+    showWordBoard ? "show-board" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const currentSheetSnap = SHEET_SNAPS[sheetSnapIndex] ?? SHEET_SNAPS[0];
 
   return (
     <EditorProvider value={editor}>
-    <div className="app-frame relative flex h-dvh flex-col overflow-hidden bg-[var(--page)] text-[var(--text)]">
+    <div className={appFrameClasses} data-snap={currentSheetSnap.key}>
       <div
         className="app-responsive mx-auto flex h-full w-full max-w-[1720px] flex-col lg:gap-3 lg:px-5 lg:py-4"
         style={
@@ -3814,7 +3822,7 @@ export function EditorShell({ debugProbe = null, project }) {
 
           <section
             className="side-panel relative z-20 -mt-[18vh] flex flex-none flex-col overflow-visible rounded-t-[1.5rem] border-t border-[var(--border)] bg-[var(--shell)] shadow-[0_-20px_60px_rgba(28,26,24,0.18)] backdrop-blur-xl lg:static lg:mt-0 lg:min-h-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:shadow-[var(--shadow-panel)] lg:backdrop-blur-none xl:w-[420px] lg:w-[420px]"
-            style={{ minHeight: SHEET_SNAPS[sheetSnapIndex].height }}
+            style={{ minHeight: currentSheetSnap.height }}
           >
             <button
               className="flex flex-none flex-col items-center gap-1 pb-1 pt-2.5 lg:hidden"
@@ -3825,7 +3833,7 @@ export function EditorShell({ debugProbe = null, project }) {
             >
               <span className="h-1 w-10 rounded-full bg-[var(--border-strong)]" />
               <span className="text-[9px] uppercase tracking-[0.3em] text-[var(--muted)]">
-                {SHEET_SNAPS[sheetSnapIndex].label}
+                {currentSheetSnap.label}
               </span>
             </button>
 
@@ -3876,7 +3884,7 @@ export function EditorShell({ debugProbe = null, project }) {
           </section>
         </main>
 
-        <section className="flex-none">
+        <section className="transport-slot flex-none">
           <WaveformTimeline
             activeLineId={activeTimingLineId}
             audio={projectState.audio}
