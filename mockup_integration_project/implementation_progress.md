@@ -1,7 +1,7 @@
 # Implementation Progress
 
 - Plan: implementation_plan.md   | Branch: mockup-integration-mobile
-- Current phase: P3              | Current task: P3 complete
+- Current phase: P4              | Current task: P4 complete
 
 ## Completed tasks
 - [x] P0-T01 - Created branch `mockup-integration-mobile` from `main` at baseline commit `6ac31470bbca4d7764cfa8bdbb8889742e5ca7a1`.
@@ -33,6 +33,10 @@
 - [x] P3-T03 - Added low-risk mobile audio card chrome hooks/styles for upload, track status, auto card, primary button, run button, and phase chips (D008).
 - [x] P3-T04 - Confirmed desktop transport metrics remain play 130x52, rewind 104x45, nav/speed 35h, and time pill 35h (D009).
 - [x] P3-T05 - Filled the Words card with the live WordBoard selection/control strip via a scoped WordBoard JS extraction/portal; narrow Words mode shows exactly one visible board control surface, desktop in-board controls remain unchanged (D002/D007).
+- [x] P4-T01 - Captured the full supported matrix for 390x844, 428x926, 768x1024, and 1440x900 across default, populated, sheet-full, and preview-only into `screenshots/p4/` (D005/all final).
+- [x] P4-T02 - Verified the 1000/1023/1024 boundary with direct rendered resize, avoiding unsupported capture presets (D005).
+- [x] P4-T03 - Re-ran final app measurements for 390 default, 390 sheet-full, and 1440 default with explicit non-audit `--out` paths.
+- [x] P4-T04 - Regenerated the standard root `screenshots/app_*` captures while leaving `mockup_*` and `baseline_pre/` intact.
 
 ## Files changed this session
 - `mockup_integration_project/screenshots/baseline_pre/` - added app baseline captures for P0-T04.
@@ -76,6 +80,12 @@
 - `mockup_integration_project/measurements/app_1440_p3_default.json` - P3 desktop default measurement written with explicit `--out`.
 - `mockup_integration_project/measurements/app_1440_p3_populated.json` - P3 desktop populated measurement written with explicit `--out`.
 - `mockup_integration_project/screenshots/p3/` - P3 mobile/desktop app captures.
+- `mockup_integration_project/playwright/capture.js` - P4 evidence fix: populated app captures switch to Audio before clicking the existing Load sample button, because Path B defaults narrow app state to Words.
+- `mockup_integration_project/screenshots/p4/` - final supported viewport/state capture matrix.
+- `mockup_integration_project/screenshots/app_*` - regenerated final app-side standard captures.
+- `mockup_integration_project/measurements/app_390_p4_default.json` - final 390 default measurement written with explicit `--out`.
+- `mockup_integration_project/measurements/app_390_p4_sheet-full.json` - final 390 sheet-full measurement written with explicit `--out`.
+- `mockup_integration_project/measurements/app_1440_p4_default.json` - final 1440 default measurement written with explicit `--out`.
 
 ## Tests / checks run
 - functional: `npm install`; `npm run dev` started successfully; `npm run lint`.
@@ -112,6 +122,19 @@
 - structural(P3): desktop transport rendered `play=130x52`, `rewind=104x45`, `prev/next=44x35`, `speed=52x35`, `time=121.2x35`, matching P3-T04 targets.
 - test(P3): `npm run lint` passed.
 - test(P3): `npm test` -> 21 files / 201 tests passed.
+- visual(capture pairs P4): captured 16 app states under `screenshots/p4/` for 390x844, 428x926, 768x1024, and 1440x900: default, populated, sheet-full, preview-only.
+- visual(diff P4): 390 default/mockup 9.4611%, 390 populated/mockup default 21.4807%, 390 sheet-full 5.8698%, 390 preview-only 4.9122%, 428 default 8.6946%, 428 populated 20.4964%, 768 default 7.2314%, 768 populated 14.4736%, 1440 default/mockup 6.0128%. Geometry/interaction checks below are the acceptance authority for live-content deltas.
+- visual(diff P4 desktop baseline): 1440 default vs P0 baseline 2.6699%, populated vs P0 baseline 4.9576%; known intentional P3 preview-ratio/tab metric change plus live content, with tracked desktop geometry matching mockup/P3 measurements.
+- structural(P4 measurements): 390 default matches mockup/app rects exactly for transport `0,0,390,108`, workspace `0,108,390,525`, side-panel `0,633,390,211`, and wb-slot `0,108,390,525`.
+- structural(P4 measurements): 390 sheet-full matches mockup/app rects exactly for transport `0,0,390,108`, workspace `0,108,390,314`, side-panel `0,422,390,624.5`, and wb-slot `0,108,390,314`.
+- structural(P4 measurements): 1440 default matches tracked mockup/app rects for top-frame, work-area, workspace-panel/grid, preview-screen, wb-slot, side-panel, and transport; position-style differences on `wb-slot`/`side-panel`/`transport` are existing implementation internals with matching rendered geometry.
+- boundary(P4): direct rendered resize at 1000 and 1023 stays narrow (`top-frame display:none`, transport fixed top `h=108`, board-only, Words active, transport toggle visible, no body scrollbar); 1024 flips to desktop (`top-frame display:flex`, both panes visible, transport static bottom, Words tab hidden, header toggle visible). Resize back to 1023 returns narrow cleanly. No console/page errors.
+- functional(P4): mobile default has no page scrollbar (`body=390x844`), Words card has exactly one visible control grid; Audio Load sample populates the board; handle cycles `peek -> full -> peek`; transport toggle switches preview-only then back to board/Words lock.
+- functional(P4): desktop Load sample populates 335 word buttons; play button is enabled and clickable; in-board controls remain the single desktop control surface; fullscreen preview opens/closes via `.preview-under-action`. No console/page errors.
+- hydration(P4): final smoke detected no hydration mismatch warnings or other console/page errors.
+- test(P4): `npm run lint` passed.
+- test(P4): `npm test` -> 21 files / 201 tests passed.
+- build(P4): `npm run build` passed.
 - visual(capture pairs): app baseline captures only, written with `--out-dir mockup_integration_project/screenshots/baseline_pre`; no P1A screenshots required by plan.
 - visual(capture pairs): P1B app captures written with `--out-dir mockup_integration_project/screenshots/p1b`; manual top-band review against `mockup_mobile_390x844_default.png`.
 
@@ -139,6 +162,8 @@
 - `screenshots/p3/app_mobile_390x844_populated.png` (P3) - populated mobile board with Words card controls.
 - `screenshots/p3/app_desktop_1440x900_default.png` (P3) - desktop geometry after preview 9:16 fix and tab metrics.
 - `screenshots/p3/app_desktop_1440x900_populated.png` (P3) - desktop populated non-regression evidence.
+- `screenshots/p4/` (P4) - final 4 viewport x 4 state app capture matrix.
+- `screenshots/app_*` (P4) - regenerated final standard app-side captures for all supported viewport/state combinations.
 
 ## Discrepancies resolved
 - D001 implemented in P1B for transport dock/wrapper; final integrated verification remains P1E/P4.
@@ -150,7 +175,7 @@
 - D007 Words tab state implemented in P1D, transport-toggle placement implemented in P2, and tab sizing/card content completed in P3.
 - D008 addressed in P3 with mobile card chrome polish; deeper audio pipeline restructuring remains intentionally out of scope.
 - D009 mobile transport metrics implemented in P1B; desktop-side metrics confirmed in P3-T04.
-- P1-P3 implementation complete; final integrated regressions roll into P4 verification.
+- P1-P4 complete. Final verification satisfied the acceptance gate with known live-content pixel deltas documented above.
 
 ## Decisions
 - U-2 (Words tab): **RESOLVED -> Path B (strict fidelity)** - state/sync/lock in P1D-T03, card content in P3-T05.
@@ -166,6 +191,8 @@
 - P1D preview-toggle pointer click was intercepted by the fixed transport because the old header toggle still sat under the dock; resolved by P2-T01 transport toggle.
 - P1E updated tooling intentionally manipulates app state directly for `sheet-full`/`preview-only` captures where the pre-P2 header toggle or Words handle lock would make pointer clicks unsuitable. This is evidence tooling only; app interaction is handled by P2/P3.
 - P3 desktop P0 pixel diffs increased because P3-T01 intentionally corrected the preview frame from the old app ratio to the mockup 9:16 ratio and P3-T02 changed tab metrics. Geometry now matches the mockup desktop measurement for the tracked elements.
+- P4 populated captures initially matched default because the app now starts in the Words tab per Path B and the helper could not see Load sample. Patched `capture.js` so populated state selects Audio before clicking the existing Load sample button; regenerated P4 and root populated captures.
+- P4 pixel diffs remain non-zero because the app renders live preview/board/waveform/audio-pipeline content while the mockup uses static placeholders/embedded sample. Geometry, controls, responsive transitions, and interactions are verified separately and pass.
 
 ## Next checkpoint / task
-- P4-T01
+- Complete

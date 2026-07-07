@@ -167,6 +167,13 @@ async function captureAppState({ browser, viewportKey, state, outDir, appUrl }) 
 
   if (state === "populated" || state === "default") {
     // Try to find and click Load sample if present (only affects default->populated)
+    if (state === "populated") {
+      const audioTab = page.getByRole("tab", { name: /audio/i }).first();
+      if (await audioTab.count() > 0) {
+        await audioTab.click();
+        await waitForStable(page, 300);
+      }
+    }
     const loadBtn = page.getByRole("button", { name: /load sample/i }).first();
     if ((state === "populated") && (await loadBtn.count() > 0)) {
       await loadBtn.click();
