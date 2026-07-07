@@ -1,0 +1,119 @@
+{
+  ".mobile-app": {
+    "x": 50,
+    "y": 134,
+    "w": 390,
+    "h": 844,
+    "display": "block",
+    "bg": "rgb(240, 240, 234)",
+    "radius": "0px"
+  },
+  ".mobile-header": {
+    "x": 51,
+    "y": 135,
+    "w": 388,
+    "h": 122,
+    "display": "block",
+    "bg": "rgba(0, 0, 0, 0)",
+    "radius": "0px"
+  },
+  ".mobile-work-area": {
+    "x": 51,
+    "y": 135,
+    "w": 388,
+    "h": 681,
+    "display": "block",
+    "bg": "rgba(0, 0, 0, 0)",
+    "radius": "0px"
+  },
+  ".mobile-canvas.preview": {
+    "x": 51,
+    "y": 135,
+    "w": 388,
+    "h": 625,
+    "display": "flex",
+    "bg": "rgba(0, 0, 0, 0)",
+    "radius": "0px"
+  },
+  ".mobile-side-panel": {
+    "x": 51,
+    "y": 608,
+    "w": 388,
+    "h": 792,
+    "display": "flex",
+    "bg": "rgb(253, 253, 252)",
+    "radius": "24px 24px 0px 0px"
+  },
+  ".mobile-transport": {
+    "x": 51,
+    "y": 816,
+    "w": 388,
+    "h": 163,
+    "display": "block",
+    "bg": "rgb(255, 255, 255)",
+    "radius": "0px"
+  },
+  ".desktop-header": {
+    "x": 61,
+    "y": 1072,
+    "w": 1160,
+    "h": 54,
+    "display": "flex",
+    "bg": "rgb(253, 253, 252)",
+    "radius": "19px"
+  },
+  ".desktop-main": {
+    "x": 61,
+    "y": 1137,
+    "w": 1160,
+    "h": 567,
+    "display": "grid",
+    "bg": "rgba(0, 0, 0, 0)",
+    "radius": "0px"
+  },
+  ".desktop-side-panel": {
+    "x": 61,
+    "y": 1137,
+    "w": 366,
+    "h": 567,
+    "display": "flex",
+    "bg": "rgb(229, 228, 220)",
+    "radius": "22px"
+  },
+  ".desktop-workspace-panel": {
+    "x": 438,
+    "y": 1137,
+    "w": 783,
+    "h": 567,
+    "display": "flex",
+    "bg": "rgb(229, 228, 220)",
+    "radius": "22px"
+  },
+  ".desktop-preview-screen": {
+    "x": 463,
+    "y": 1206,
+    "w": 199,
+    "h": 387,
+    "display": "block",
+    "bg": "rgba(0, 0, 0, 0)",
+    "radius": "12px"
+  },
+  ".desktop-board-empty": {
+    "x": 687,
+    "y": 1206,
+    "w": 509,
+    "h": 429,
+    "display": "block",
+    "bg": "rgb(255, 248, 232)",
+    "radius": "7px"
+  },
+  ".desktop-transport": {
+    "x": 61,
+    "y": 1715,
+    "w": 1160,
+    "h": 75,
+    "display": "flex",
+    "bg": "rgb(229, 228, 220)",
+    "radius": "22px"
+  }
+}

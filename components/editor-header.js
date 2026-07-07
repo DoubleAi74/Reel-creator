@@ -33,12 +33,16 @@ export function EditorHeader({
       </div>
 
       <div
-        className="mobile-view-toggle"
+        className="mobile-view-toggle inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] p-1"
         role="group"
         aria-label="Show or hide the preview and word board"
       >
         <button
-          className={showPreview ? "is-active" : ""}
+          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+            showPreview
+              ? "is-active bg-[var(--surface)] text-[var(--text)] shadow-[var(--shadow-soft)]"
+              : "text-[var(--muted)]"
+          }`}
           type="button"
           data-wsview="preview"
           aria-pressed={showPreview}
@@ -47,7 +51,11 @@ export function EditorHeader({
           Preview
         </button>
         <button
-          className={showWordBoard ? "is-active" : ""}
+          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+            showWordBoard
+              ? "is-active bg-[var(--surface)] text-[var(--text)] shadow-[var(--shadow-soft)]"
+              : "text-[var(--muted)]"
+          }`}
           type="button"
           data-wsview="board"
           aria-pressed={showWordBoard}

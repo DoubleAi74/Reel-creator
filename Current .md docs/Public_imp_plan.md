@@ -1,7 +1,3 @@
-\_
-
-DAY 1
-
 -
 -
 
@@ -17,7 +13,7 @@ Menue options panel
 - Style
   -- Current: Text display, background -->
 
-- Break down the API flow into optional parts
+<!-- - Break down the API flow into optional parts
 
 - Mp3 / YT->mp3
 - Transcribe
@@ -28,7 +24,17 @@ YT to mp3 API
 
 - youtube to mp3 api integration
 - paste a link and go
-- perhaps chose a segment of the video
+- perhaps chose a segment of the video -->
+
+- Add R2 to the credit dashboard part
+
+- Integrate the YT part
+
+- Integrate the Credit dashboard part
+
+- Fix mobile browser view
+
+- Fix colours
 
 -
 -
@@ -41,13 +47,9 @@ YT to mp3 API
 -
 -
 -
-
-DAY2
-
--
 -
 
-Backend
+<!-- Backend
 
 - basic mongo db database
 - track the number of £ credits remaining
@@ -57,7 +59,7 @@ Backend
 - public dashboard for generations
 - option to make your generations public or not
 
-- Store MP3s in cloud flare R2
+- Store MP3s in cloud flare R2 -->
 
 Mobile browser view
 

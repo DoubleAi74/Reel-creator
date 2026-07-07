@@ -1,0 +1,31 @@
+{
+  "mobilePreview": {
+    "classes": "app-frame show-preview",
+    "screen": {
+      "x": 48,
+      "y": 51,
+      "w": 294,
+      "h": 523
+    },
+    "actions": "none",
+    "playLabel": "none"
+  },
+  "below": {
+    "width": 1000,
+    "classes": "app-frame show-preview",
+    "workDisplay": "flex",
+    "headerPosition": "absolute"
+  },
+  "breakpoint": {
+    "width": 1024,
+    "classes": "app-frame show-preview show-board",
+    "workDisplay": "grid",
+    "headerPosition": "static"
+  },
+  "desktop": {
+    "actions": "flex",
+    "playLabel": "block",
+    "workDisplay": "grid",
+    "classes": "app-frame show-preview show-board"
+  }
+}

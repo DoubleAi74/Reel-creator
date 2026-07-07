@@ -56,7 +56,7 @@ export function PreviewStage({
             className={`preview-screen relative overflow-hidden bg-(--preview-bg) ${
               isPreviewFullscreen
                 ? "aspect-[9/16] h-full max-h-full w-auto max-w-full rounded-[1.75rem] border border-white/12 shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
-                : "h-full w-full lg:aspect-[9/16] lg:h-full lg:max-h-full lg:w-auto lg:max-w-full lg:rounded-[2rem] lg:border lg:border-white/12 lg:shadow-[0_30px_70px_rgba(0,0,0,0.5)]"
+                : "mx-auto aspect-[9/16] h-[62dvh] w-auto max-w-full rounded-[1.5rem] lg:aspect-[9/16] lg:h-full lg:max-h-full lg:w-auto lg:max-w-full lg:rounded-[2rem] lg:border lg:border-white/12 lg:shadow-[0_30px_70px_rgba(0,0,0,0.5)]"
             }`}
           >
             <div className="absolute inset-0">
@@ -107,7 +107,7 @@ export function PreviewStage({
       </section>
 
       {!isPreviewFullscreen ? (
-        <section className="wb-slot hidden min-h-0 flex-none flex-col overflow-hidden lg:order-2 lg:flex lg:min-h-0 lg:flex-1 lg:items-center lg:justify-center lg:rounded-2xl lg:p-2">
+        <section className="wb-slot flex min-h-[62dvh] flex-none flex-col items-center justify-center overflow-hidden p-2 lg:order-2 lg:min-h-0 lg:flex-1 lg:items-center lg:justify-center lg:rounded-2xl lg:p-2">
           <WordBoard
             lines={project.lines}
             selectedWordId={selectedWordId}

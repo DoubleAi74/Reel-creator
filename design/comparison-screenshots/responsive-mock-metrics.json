@@ -1,0 +1,78 @@
+{
+  "mobileBoardMetrics": {
+    "width": 390,
+    "appClasses": "app-frame show-board",
+    "workDisplay": "flex",
+    "headerPosition": "absolute"
+  },
+  "mobilePreviewMetrics": {
+    "width": 390,
+    "appClasses": "app-frame show-preview",
+    "previewDisplay": "flex",
+    "boardDisplay": "none"
+  },
+  "belowMetrics": {
+    "width": 1000,
+    "appClasses": "app-frame show-preview",
+    "workDisplay": "flex",
+    "headerPosition": "absolute"
+  },
+  "atBreakpointMetrics": {
+    "width": 1024,
+    "appClasses": "app-frame show-preview show-board",
+    "workDisplay": "grid",
+    "headerPosition": "static"
+  },
+  "desktopMetrics": {
+    "width": 1440,
+    "appClasses": "app-frame show-preview show-board",
+    "header": {
+      "x": 13,
+      "y": 13,
+      "w": 1414,
+      "h": 65,
+      "display": "block",
+      "position": "static"
+    },
+    "preview": {
+      "x": 495,
+      "y": 176,
+      "w": 267,
+      "h": 523,
+      "display": "flex",
+      "position": "static"
+    },
+    "board": {
+      "x": 784,
+      "y": 176,
+      "w": 621,
+      "h": 523,
+      "display": "flex",
+      "position": "static"
+    },
+    "side": {
+      "x": 13,
+      "y": 91,
+      "w": 446,
+      "h": 692,
+      "display": "flex",
+      "position": "relative"
+    },
+    "transport": {
+      "x": 13,
+      "y": 796,
+      "w": 1414,
+      "h": 91,
+      "display": "block",
+      "position": "static"
+    },
+    "work": {
+      "x": 13,
+      "y": 91,
+      "w": 1414,
+      "h": 692,
+      "display": "grid",
+      "position": "relative"
+    }
+  }
+}

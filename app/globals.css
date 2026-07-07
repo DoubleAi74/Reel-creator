@@ -96,12 +96,32 @@ textarea:focus-visible {
   min-height: 100vh;
 }
 
+/* Preview / Word Board toggle — all widths (so the mobile view toggle works too).
+   More specific than the pane's own display, so it wins without !important. */
+.workspace-grid.hide-preview .preview-col {
+  display: none;
+}
+
+.workspace-grid.hide-board .wb-slot {
+  display: none;
+}
+
+/* =====================================================================
+ * App chrome — DESKTOP ONLY (>= lg / 1024px).
+ * These rules are intentionally UNLAYERED: by CSS cascade-layer rules,
+ * unlayered declarations outrank Tailwind's `utilities` layer, so they win
+ * on desktop WITHOUT !important. Scoping them to >= 1024px hands the entire
+ * mobile range to Tailwind utilities (the single source of truth for the
+ * mobile layout / redesign). Do not demote these into a layer below
+ * utilities — that flips desktop to the JSX `lg:` utilities and regresses it.
+ * ===================================================================== */
+@media (min-width: 1024px) {
 .app-responsive {
   box-sizing: border-box;
   width: 100%;
-  max-width: none !important;
+  max-width: none;
   margin: 0 auto;
-  height: 100vh !important;
+  height: 100vh;
   max-height: 100vh;
   overflow: hidden;
   display: flex;
@@ -121,17 +141,17 @@ textarea:focus-visible {
 .side-panel,
 .workspace-panel,
 .transport {
-  border: 1px solid var(--border) !important;
-  background: var(--panel) !important;
+  border: 1px solid var(--border);
+  background: var(--panel);
   box-shadow: var(--shadow-soft);
 }
 
 .top-frame {
-  position: static !important;
+  position: static;
   flex: 0 0 auto;
-  border-radius: 19px !important;
-  background: var(--shell) !important;
-  padding: 0 !important;
+  border-radius: 19px;
+  background: var(--shell);
+  padding: 0;
 }
 
 .top-inner {
@@ -153,14 +173,14 @@ textarea:focus-visible {
 }
 
 .brand-mark {
-  display: grid !important;
-  width: 35px !important;
-  height: 35px !important;
+  display: grid;
+  width: 35px;
+  height: 35px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 11px !important;
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
+  border-radius: 11px;
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: 13px;
   font-weight: 900;
 }
@@ -178,7 +198,7 @@ textarea:focus-visible {
   color: var(--muted);
   font-size: 9px;
   font-weight: 760;
-  letter-spacing: 0.26em !important;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
 }
 
@@ -201,11 +221,11 @@ textarea:focus-visible {
 
 .top-action {
   min-height: 34px;
-  border: 1px solid var(--border) !important;
-  border-radius: 999px !important;
-  background: var(--surface) !important;
-  padding: 0 14px !important;
-  color: var(--text) !important;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 0 14px;
+  color: var(--text);
   font-size: 12px;
   font-weight: 720;
   box-shadow: 0 1px 0 hsl(58 10% 100% / 0.78) inset;
@@ -216,19 +236,19 @@ textarea:focus-visible {
 }
 
 .top-action:hover {
-  border-color: var(--border-strong) !important;
-  background: var(--surface-hover) !important;
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
 }
 
 .top-action-primary {
-  border-color: transparent !important;
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .top-action-primary:hover {
-  background: var(--accent-strong) !important;
-  color: var(--on-accent) !important;
+  background: var(--accent-strong);
+  color: var(--on-accent);
 }
 
 /* Shown at every width now: two independent on/off toggles for the preview and
@@ -264,38 +284,38 @@ textarea:focus-visible {
 .work-area {
   flex: 1 1 auto;
   min-height: 0;
-  display: grid !important;
+  display: grid;
   grid-template-columns: minmax(300px, var(--control-panel-w)) minmax(0, 1fr);
   gap: clamp(8px, 0.9vw, 14px);
-  overflow: visible !important;
+  overflow: visible;
 }
 
 .side-panel {
   grid-column: 1;
   grid-row: 1;
-  width: auto !important;
+  width: auto;
   min-height: 0 !important;
-  margin-top: 0 !important;
-  border-radius: 22px !important;
+  margin-top: 0;
+  border-radius: 22px;
   display: flex;
   flex-direction: column;
-  overflow: hidden !important;
-  background: var(--panel) !important;
-  backdrop-filter: none !important;
+  overflow: hidden;
+  background: var(--panel);
+  backdrop-filter: none;
 }
 
 .side-panel > button:first-child {
-  display: none !important;
+  display: none;
 }
 
 .workspace-panel {
   grid-column: 2;
   grid-row: 1;
   min-height: 0;
-  border-radius: 22px !important;
+  border-radius: 22px;
   /* No horizontal padding: the workspace-grid's space-evenly gutters supply the
      side margins so they equal the gap between the two panes (see below). */
-  padding: clamp(12px, 1.2vw, 20px) 0 !important;
+  padding: clamp(12px, 1.2vw, 20px) 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -317,62 +337,53 @@ textarea:focus-visible {
 .preview-col {
   height: var(--stage-h);
   max-height: 100%;
-  min-height: 0 !important;
+  min-height: 0;
   min-width: 0;
   flex: 0 0 auto;
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: clamp(9px, 1vw, 14px);
-  border: 0 !important;
-  background: transparent !important;
-  padding: 0 !important;
-  overflow: visible !important;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  overflow: visible;
 }
 
-/* Toggle visibility (works at every breakpoint). With the flex/space-evenly
-   workspace, hiding one pane leaves the other centered automatically. */
-.workspace-grid.hide-preview .preview-col {
-  display: none !important;
-}
-
-.workspace-grid.hide-board .wb-slot {
-  display: none !important;
-}
 
 .preview-screen {
   position: relative;
-  height: calc(var(--stage-h) - 48px) !important;
-  min-height: calc(var(--stage-h) - 48px) !important;
-  max-height: calc(100% - 48px) !important;
-  width: calc((var(--stage-h) - 48px) / 1.9567) !important;
-  aspect-ratio: auto !important;
+  height: calc(var(--stage-h) - 48px);
+  min-height: calc(var(--stage-h) - 48px);
+  max-height: calc(100% - 48px);
+  width: calc((var(--stage-h) - 48px) / 1.9567);
+  aspect-ratio: auto;
   max-width: 100%;
   flex: 0 0 auto;
   overflow: hidden;
-  border: 1px solid var(--preview-border) !important;
-  border-radius: 12px !important;
-  background: var(--preview-bg) !important;
-  box-shadow: var(--preview-shadow) !important;
+  border: 1px solid var(--preview-border);
+  border-radius: 12px;
+  background: var(--preview-bg);
+  box-shadow: var(--preview-shadow);
 }
 
 .preview-under-actions {
-  width: min(100%, calc((var(--stage-h) - 48px) / 1.9567)) !important;
-  display: flex !important;
+  width: min(100%, calc((var(--stage-h) - 48px) / 1.9567));
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex: 0 0 auto;
-  margin-top: 0 !important;
+  margin-top: 0;
 }
 
 .preview-under-action {
   min-height: 37px;
   min-width: min(132px, 48%);
   border-radius: 999px;
-  padding: 0 18px !important;
-  color: var(--muted) !important;
+  padding: 0 18px;
+  color: var(--muted);
   font-size: 13px;
   font-weight: 760;
   white-space: nowrap;
@@ -390,9 +401,9 @@ textarea:focus-visible {
   max-height: 100%;
   flex: 0 0 auto;
   align-self: center;
-  display: flex !important;
-  padding: 0 !important;
-  overflow: visible !important;
+  display: flex;
+  padding: 0;
+  overflow: visible;
 }
 
 .wb {
@@ -415,21 +426,21 @@ textarea:focus-visible {
 }
 
 .panel-tabs {
-  border-bottom: 1px solid var(--border) !important;
+  border-bottom: 1px solid var(--border);
   background: transparent;
 }
 
 .active-tab {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .tab-link {
-  color: var(--muted) !important;
+  color: var(--muted);
 }
 
 .section-tab {
-  border-radius: 999px !important;
+  border-radius: 999px;
   background: transparent;
   transition:
     background 150ms ease,
@@ -439,29 +450,29 @@ textarea:focus-visible {
 
 .section-tab[aria-selected="true"] {
   border-radius: 999px;
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-  padding-left: 20px !important;
-  padding-right: 20px !important;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .section-tab[aria-selected="false"] {
-  background: transparent !important;
-  color: var(--muted) !important;
+  background: transparent;
+  color: var(--muted);
 }
 
 .editor-panel-content {
   flex: 1 1 auto;
   min-height: 0;
   height: auto;
-  overflow-y: auto !important;
+  overflow-y: auto;
   scrollbar-width: thin;
 }
 
 .transport {
   flex: 0 0 auto;
-  border-radius: 22px !important;
-  background: var(--panel) !important;
+  border-radius: 22px;
+  background: var(--panel);
 }
 
 .transport-inner {
@@ -473,20 +484,23 @@ textarea:focus-visible {
 }
 
 .transport-controls {
-  display: contents !important;
+  display: contents;
 }
 
 .transport-controls > div:first-child {
-  display: contents !important;
+  display: contents;
 }
 
 .transport-wave-wrap {
   order: 10;
   flex: 1 1 auto;
   min-width: 120px;
-  padding: 0 !important;
+  padding: 0;
+}
 }
 
+/* Waveform internals — ALL widths. No Tailwind utility competitors, and mobile
+ * needs them too, so they stay unlayered and unscoped. */
 .transport .waveform {
   position: relative;
   flex: 1 1 auto;
@@ -647,6 +661,7 @@ textarea:focus-visible {
   background: var(--accent);
 }
 
+@media (min-width: 1024px) {
 .transport .play-button,
 .transport .rewind-button,
 .transport .nav-button,
@@ -654,69 +669,69 @@ textarea:focus-visible {
 .transport .mark-button {
   position: static;
   flex: 0 0 auto;
-  border-radius: 999px !important;
+  border-radius: 999px;
   box-shadow: 0 1px 0 hsl(58 10% 100% / 0.8) inset;
 }
 
 .preview-col.fixed {
-  position: fixed !important;
-  inset: 0 !important;
+  position: fixed;
+  inset: 0;
   z-index: 50;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-height: none !important;
-  background: var(--scrim) !important;
-  backdrop-filter: blur(14px) !important;
-  padding: 0 !important;
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  background: var(--scrim);
+  backdrop-filter: blur(14px);
+  padding: 0;
 }
 
 .preview-col.fixed > .relative {
-  flex: 0 1 auto !important;
-  width: auto !important;
-  height: min(78vh, 640px) !important;
+  flex: 0 1 auto;
+  width: auto;
+  height: min(78vh, 640px);
   align-items: center;
 }
 
 .preview-col.fixed .preview-screen {
-  width: min(360px, calc(78vh * 9 / 16)) !important;
-  height: min(640px, 78vh) !important;
-  min-height: 0 !important;
-  max-height: min(640px, 78vh) !important;
-  border-radius: 34px !important;
-  box-shadow: 0 42px 120px hsl(28 1% 20% / 0.24) !important;
+  width: min(360px, calc(78vh * 9 / 16));
+  height: min(640px, 78vh);
+  min-height: 0;
+  max-height: min(640px, 78vh);
+  border-radius: 34px;
+  box-shadow: 0 42px 120px hsl(28 1% 20% / 0.24);
 }
 
 .preview-col.fixed .wb-slot,
 .preview-col.fixed > .relative > .hidden {
-  display: none !important;
+  display: none;
 }
 
 .preview-col.fixed button[aria-label="Close full-screen preview"] {
-  right: 31px !important;
-  top: 31px !important;
-  width: auto !important;
-  height: 39px !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 999px !important;
-  background: var(--surface) !important;
-  color: var(--text) !important;
-  padding: 0 17px !important;
-  font-size: 12px !important;
-  font-weight: 720 !important;
+  right: 31px;
+  top: 31px;
+  width: auto;
+  height: 39px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 17px;
+  font-size: 12px;
+  font-weight: 720;
 }
 
 .transport .play-button {
   order: 3;
   min-width: 130px;
-  height: 52px !important;
-  border: 1px solid transparent !important;
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
+  height: 52px;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: 18px;
   font-weight: 800;
 }
 
-/* Decoding: the accent fill (set with !important above) otherwise makes a disabled
+/* Decoding: the accent fill (set with above) otherwise makes a disabled
    Play look ready. Dim + pulse so "not ready yet" is obvious. */
 .transport .play-button.is-not-ready {
   opacity: 0.5;
@@ -737,24 +752,24 @@ textarea:focus-visible {
 .transport .rewind-button {
   order: 1;
   min-width: 104px;
-  height: 45px !important;
+  height: 45px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border) !important;
-  background: var(--surface) !important;
-  color: var(--muted) !important;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
 }
 
 .transport .nav-button,
 .transport .speed-button {
-  display: inline-flex !important;
-  height: 35px !important;
+  display: inline-flex;
+  height: 35px;
   min-width: 44px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border) !important;
-  background: var(--surface) !important;
-  color: var(--muted) !important;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
   font-size: 13px;
 }
 
@@ -774,9 +789,9 @@ textarea:focus-visible {
 }
 
 .transport .speed-button[aria-pressed="true"] {
-  border-color: var(--accent) !important;
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .transport-time {
@@ -807,156 +822,15 @@ textarea:focus-visible {
 .transport .mark-button {
   order: 7;
   min-height: 35px;
-  border: 1px solid var(--mark-border) !important;
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-  box-shadow: none !important;
+  border: 1px solid var(--mark-border);
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: none;
 }
 
 .editor-panel-content {
   scrollbar-color: hsl(58 8% 72%) var(--panel);
 }
-
-@media (max-width: 999.98px) {
-  body {
-    overflow: auto;
-  }
-
-  .app-frame,
-  .app-responsive {
-    height: auto !important;
-    max-height: none;
-    overflow: visible;
-    min-height: 100vh;
-  }
-
-  .mobile-view-toggle {
-    display: flex;
-    gap: 8px;
-    margin: 0;
-    align-self: center;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 4px;
-  }
-
-  .mobile-view-toggle button {
-    border: 0;
-    background: transparent;
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 700;
-    padding: 7px 16px;
-    border-radius: 999px;
-    cursor: pointer;
-  }
-
-  .mobile-view-toggle button.is-active {
-    background: var(--surface);
-    color: var(--text);
-    box-shadow: var(--shadow-soft);
-  }
-
-  .top-frame .brand-lockup {
-    order: 1;
-  }
-
-  .top-frame .mobile-view-toggle {
-    order: 2;
-    margin-inline: auto;
-  }
-
-  .top-frame .top-actions {
-    order: 3;
-    margin-left: 0;
-  }
-
-  .top-actions .top-action {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    width: auto !important;
-    height: 34px !important;
-    gap: 0 !important;
-  }
-
-  .top-actions .top-action span.hidden {
-    display: inline !important;
-  }
-
-  .top-actions .top-action span[aria-hidden] {
-    display: none !important;
-  }
-
-  .work-area {
-    display: flex !important;
-    flex-direction: column;
-    gap: clamp(10px, 1.6vw, 16px);
-  }
-
-  .workspace-panel {
-    order: 1;
-  }
-
-  .side-panel {
-    order: 2;
-    height: 700px !important;
-    min-height: 700px !important;
-    max-height: 700px !important;
-    overflow: hidden !important;
-  }
-
-  .side-panel .editor-panel-content {
-    overflow-y: auto !important;
-  }
-
-  .workspace-grid {
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    height: auto;
-    max-width: 940px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  .preview-col {
-    height: auto;
-    width: 100%;
-  }
-
-  .preview-screen {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    aspect-ratio: 323 / 632 !important;
-    width: min(clamp(240px, 46vw, 320px), calc(74vh * 323 / 632)) !important;
-  }
-
-  .preview-under-actions {
-    width: min(clamp(240px, 46vw, 320px), calc(74vh * 323 / 632)) !important;
-  }
-
-  .wb-slot {
-    /* Reset the desktop fitted width: narrow uses the full single column. */
-    width: 100%;
-    min-height: min(82vh, 860px, calc(100vh - 170px));
-    max-height: none;
-    height: min(82vh, 860px, calc(100vh - 170px));
-    align-self: stretch;
-  }
-
-  .transport-inner {
-    flex-wrap: wrap;
-  }
-
-  .transport .waveform,
-  .transport-wave-wrap {
-    order: 10;
-    flex: 1 1 100%;
-    min-width: 0;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -968,39 +842,5 @@ textarea:focus-visible {
   .transport .play-button.is-not-ready {
     animation: none;
     opacity: 0.55;
-  }
-}
-
-@media (max-width: 760px) {
-  .top-frame .top-inner {
-    justify-content: center;
-  }
-
-  .top-frame .brand-lockup {
-    flex: 1 1 100%;
-  }
-
-  .top-frame .mobile-view-toggle {
-    margin-inline: 0;
-  }
-
-  .workspace-grid {
-    max-width: none;
-  }
-
-  .preview-screen {
-    width: min(clamp(200px, 62vw, 300px), calc(74vh * 323 / 632)) !important;
-  }
-
-  .preview-under-actions {
-    width: min(clamp(200px, 62vw, 300px), calc(74vh * 323 / 632)) !important;
-  }
-
-  .transport {
-    min-height: 218px;
-  }
-
-  .transport-inner {
-    min-height: 216px;
   }
 }
