@@ -1,7 +1,7 @@
 # Implementation Progress
 
 - Plan: implementation_plan.md   | Branch: mockup-integration-mobile
-- Current phase: P1B             | Current task: P1B complete
+- Current phase: P1C             | Current task: P1C complete
 
 ## Completed tasks
 - [x] P0-T01 - Created branch `mockup-integration-mobile` from `main` at baseline commit `6ac31470bbca4d7764cfa8bdbb8889742e5ca7a1`.
@@ -16,6 +16,9 @@
 - [x] P1B-T01 - Docked mobile transport fixed at top with 108px height and 40px waveform (D001/D009).
 - [x] P1B-T02 - Zeroed narrow `.transport-slot` wrapper height and verified it contributes no flow height (D001).
 - [x] P1B-T03 - Removed conflicting mobile transport utilities and added semantic mobile control classes while preserving refs/handlers and `lg:` behavior (D001/D009).
+- [x] P1C-T01 - Replaced three-state sheet snaps with deterministic two-state peek/full snap state (D002).
+- [x] P1C-T02 - Moved mobile sheet sizing/chrome into CSS via `data-snap`, with tab content scrolling inside `.editor-panel-content` (D002).
+- [x] P1C-T03 - Replaced bar+label handle with circular chevron handle and full-state rotation (D002).
 
 ## Files changed this session
 - `mockup_integration_project/screenshots/baseline_pre/` - added app baseline captures for P0-T04.
@@ -26,6 +29,11 @@
 - `components/waveform-timeline.js` - aligned transport root/control/button classes with the P1B narrow CSS selectors.
 - `mockup_integration_project/measurements/app_390_p1b_default.json` - P1B structural measurement written with explicit `--out`.
 - `mockup_integration_project/screenshots/p1b/` - P1B mobile and desktop app captures.
+- `app/globals.css` - added P1C sheet snap, chevron handle, and narrow `.editor-panel-content` scroll containment rules.
+- `components/editor-shell.js` - changed `SHEET_SNAPS` to peek/full, defaulted to peek, removed inline sheet min-height, and swapped handle markup.
+- `mockup_integration_project/measurements/app_390_p1c_peek.json` - P1C peek measurement written with explicit `--out`.
+- `mockup_integration_project/measurements/app_390_p1c_full.json` - P1C full measurement written with explicit `--out`.
+- `mockup_integration_project/screenshots/p1c/` - P1C mobile and desktop app captures.
 
 ## Tests / checks run
 - functional: `npm install`; `npm run dev` started successfully; `npm run lint`.
@@ -33,7 +41,11 @@
 - structural(DOM): Playwright check at 390x844, 1010x800, and 1440x900 confirmed `.app-frame` classes/data-snap, `transport-slot`, no console/page errors, and 1010px now matches the narrow breakpoint.
 - structural(DL-05): Playwright rendered inspection at 390x844, 428x926, 768x1024, and 1440x900 confirmed mobile `.transport` is `position: fixed`, `y=0`, `h=108`, `z-index=40`; `.transport-slot` height is 0 on narrow; `.app-frame`, `.app-responsive`, and `.transport-slot` have no transform/filter/backdrop-filter/perspective/will-change/contain trap.
 - structural(measure): `node mockup_integration_project/playwright/measure.js --target app --viewport 390x844 --state default --out mockup_integration_project/measurements/app_390_p1b_default.json`.
+- structural(measure): `node mockup_integration_project/playwright/measure.js --target app --viewport 390x844 --state default --out mockup_integration_project/measurements/app_390_p1c_peek.json`; side-panel `y=631.27`, `h=211`, `min-height=211`.
+- structural(measure): `node mockup_integration_project/playwright/measure.js --target app --viewport 390x844 --state sheet-full --out mockup_integration_project/measurements/app_390_p1c_full.json`; side-panel `h=624.55`, full top position completes in P1D when pane height becomes sheet-top-driven.
+- interaction: Playwright click check confirmed sheet handle cycles `peek -> full`, aria-label changes, chevron rotates 180deg, and `.editor-panel-content` scrolls live tab content inside the snap box.
 - visual(diff): 1440 P1B desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop transport geometry shift in rendered inspection.
+- visual(diff): 1440 P1C desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
 - visual(capture pairs): app baseline captures only, written with `--out-dir mockup_integration_project/screenshots/baseline_pre`; no P1A screenshots required by plan.
 - visual(capture pairs): P1B app captures written with `--out-dir mockup_integration_project/screenshots/p1b`; manual top-band review against `mockup_mobile_390x844_default.png`.
 
@@ -46,10 +58,12 @@
 - `screenshots/baseline_pre/app_desktop_1440x900_populated.png` (P0-T04) - baseline only.
 - `screenshots/p1b/app_mobile_390x844_default.png` (P1B) - transport dock matches top/height; lower sheet remains pre-P1C/P1D.
 - `screenshots/p1b/app_desktop_1440x900_default.png` (P1B) - desktop non-regression spot check.
+- `screenshots/p1c/app_mobile_390x844_default.png` (P1C) - peek sheet with circular chevron handle.
+- `screenshots/p1c/app_desktop_1440x900_default.png` (P1C) - desktop non-regression spot check.
 
 ## Discrepancies resolved
 - D001 implemented in P1B for transport dock/wrapper; final integrated verification remains P1E/P4.
-- D002 pending (P1C/P1D/P3)
+- D002 sheet snap model and handle implemented in P1C; Words lock remains P1D and board-tools card remains P3.
 - D003 pending (P2)
 - D004 pending (P1D)
 - D005 implemented (P1A; final live boundary verification remains P4-T02)
@@ -67,6 +81,8 @@
 - Initial plan expected HEAD `ba6d22d221a9c563a7127b5029d3ede62ee758b0` with untracked planning artifacts. Actual start after user continuation was clean `main` at `6ac31470bbca4d7764cfa8bdbb8889742e5ca7a1`, whose diff from the plan commit is only the planning/evidence package plus the documented doc move. User instructed to continue after the stop report.
 - Playwright capture emits the existing Node module-type warning for `capture.js`; captures still succeed.
 - P1B measurement notes `.side-panel` content height larger than viewport; this is expected before P1C removes the old negative-margin/inline-height sheet model.
+- P1C rendered check found the live app tab content expanded the sheet when only `min-height` was applied. Added a narrow `.editor-panel-content { flex: 1 1 0; min-height: 0; overflow-y: auto; }` override so the sheet keeps the mockup snap box and the live content scrolls internally, matching plan Section I.
+- P1C full snap height is correct (`~624.55px`), but its top remains at the peek workspace boundary until P1D-T01 applies pane sizing from `--mobile-sheet-top`; this is an ordered dependency, not an accepted final deviation.
 
 ## Next checkpoint / task
-- P1C-T01
+- P1D-T01

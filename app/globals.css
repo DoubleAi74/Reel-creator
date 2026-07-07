@@ -185,6 +185,69 @@ textarea:focus-visible {
     border-radius: 12px;
   }
 
+  .side-panel {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    flex: 0 0 auto;
+    flex-direction: column;
+    margin-top: 0;
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    background: var(--shell);
+    box-shadow: 0 -20px 60px #1c1a182e;
+  }
+
+  .app-frame[data-snap="peek"] .side-panel {
+    min-height: 25dvh;
+  }
+
+  .app-frame[data-snap="full"] .side-panel {
+    min-height: min(74dvh, calc(100dvh - 118px));
+  }
+
+  .editor-panel-content {
+    min-height: 0;
+    flex: 1 1 0;
+    overflow-y: auto;
+  }
+
+  .sheet-handle {
+    position: absolute;
+    top: 13px;
+    right: 14px;
+    z-index: 2;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    box-shadow: 0 1px 0 #ffffffcc inset;
+  }
+
+  .sheet-handle svg {
+    width: 18px;
+    height: 18px;
+    transform-origin: center;
+    transition: transform 160ms ease;
+  }
+
+  .app-frame[data-snap="full"] .sheet-handle svg {
+    transform: rotate(180deg);
+  }
+
+  .app-frame.words-tab-active .sheet-handle {
+    display: none;
+  }
+
   .transport-controls {
     display: flex;
     order: 1;

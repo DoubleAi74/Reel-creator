@@ -78,9 +78,8 @@ const LYRIC_REBUILD_CONFIRM_MESSAGE =
 
 // Mobile-only bottom-sheet snap heights (ignored at lg+, where the editor fills its grid column).
 const SHEET_SNAPS = [
-  { key: "peek", height: "120px", label: "Peek · tap to expand" },
-  { key: "half", height: "44vh", label: "Half · tap to expand" },
-  { key: "full", height: "74vh", label: "Full · tap to collapse" },
+  { key: "peek", label: "Expand settings panel" },
+  { key: "full", label: "Collapse settings panel" },
 ];
 
 const BACKGROUND_UPLOAD_COPY = {
@@ -565,7 +564,7 @@ export function EditorShell({ debugProbe = null, project }) {
     createIdleTapTimingSession,
   );
   const [autoFollowEnabled, setAutoFollowEnabled] = useState(true);
-  const [sheetSnapIndex, setSheetSnapIndex] = useState(1);
+  const [sheetSnapIndex, setSheetSnapIndex] = useState(0);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
   const [exportState, setExportState] = useState(createIdleExportState);
   const [autoLyricsState, setAutoLyricsState] = useState(
@@ -3821,20 +3820,26 @@ export function EditorShell({ debugProbe = null, project }) {
           </section>
 
           <section
-            className="side-panel relative z-20 -mt-[18vh] flex flex-none flex-col overflow-visible rounded-t-[1.5rem] border-t border-[var(--border)] bg-[var(--shell)] shadow-[0_-20px_60px_rgba(28,26,24,0.18)] backdrop-blur-xl lg:static lg:mt-0 lg:min-h-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:shadow-[var(--shadow-panel)] lg:backdrop-blur-none xl:w-[420px] lg:w-[420px]"
-            style={{ minHeight: currentSheetSnap.height }}
+            className="side-panel flex flex-none flex-col lg:static lg:mt-0 lg:min-h-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:shadow-[var(--shadow-panel)] lg:backdrop-blur-none xl:w-[420px] lg:w-[420px]"
           >
             <button
-              className="flex flex-none flex-col items-center gap-1 pb-1 pt-2.5 lg:hidden"
+              aria-label={currentSheetSnap.label}
+              className="sheet-handle lg:hidden"
               onClick={() =>
                 setSheetSnapIndex((index) => (index + 1) % SHEET_SNAPS.length)
               }
               type="button"
             >
-              <span className="h-1 w-10 rounded-full bg-[var(--border-strong)]" />
-              <span className="text-[9px] uppercase tracking-[0.3em] text-[var(--muted)]">
-                {currentSheetSnap.label}
-              </span>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path
+                  d="m6 13 6-6 6 6M6 17l6-6 6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                />
+              </svg>
             </button>
 
             <EditorTabBar
