@@ -9,7 +9,7 @@ export function EditorHeader({
   title,
 }) {
   return (
-    <header className="top-frame absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 bg-gradient-to-b from-[var(--page)] via-[var(--page)]/70 to-transparent px-4 pb-7 pt-4 lg:static lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:px-4 lg:py-2.5 lg:shadow-[var(--shadow-soft)]">
+    <header className="top-frame flex items-center justify-between gap-3 lg:static lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:px-4 lg:py-2.5 lg:shadow-[var(--shadow-soft)]">
       <div className="top-inner">
       <div className="brand-lockup flex min-w-0 items-center gap-3">
         <div className="brand-mark flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-[var(--accent)] text-xs font-bold text-[var(--on-accent)] lg:h-9 lg:w-9 lg:rounded-xl lg:text-sm">

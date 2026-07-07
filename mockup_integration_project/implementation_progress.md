@@ -1,7 +1,7 @@
 # Implementation Progress
 
 - Plan: implementation_plan.md   | Branch: mockup-integration-mobile
-- Current phase: P1E             | Current task: P1E complete
+- Current phase: P2              | Current task: P2 complete
 
 ## Completed tasks
 - [x] P0-T01 - Created branch `mockup-integration-mobile` from `main` at baseline commit `6ac31470bbca4d7764cfa8bdbb8889742e5ca7a1`.
@@ -25,6 +25,9 @@
 - [x] P1E-T01 - Ran P1 functional/regression smoke checks on narrow and desktop.
 - [x] P1E-T02 - Updated app `sheet-full` capture/measure tooling to direct-set the two-state full snap.
 - [x] P1E-T03 - Captured the P1 visual set into `screenshots/p1e/`.
+- [x] P2-T01 - Added narrow transport preview/board toggle wired to the existing pane handlers (D003/D007).
+- [x] P2-T02 - Suppressed `.top-frame` on narrow and removed mobile absolute/gradient header treatment while preserving desktop header layout (D003).
+- [x] P2-T03 - Added `layout-notices` offset below the fixed transport and verified it clears the dock (D003).
 
 ## Files changed this session
 - `mockup_integration_project/screenshots/baseline_pre/` - added app baseline captures for P0-T04.
@@ -52,6 +55,11 @@
 - `mockup_integration_project/playwright/measure.js` - updated app sheet states to set `data-snap="full"` directly.
 - `mockup_integration_project/measurements/app_390_p1e_sheet-full.json` - P1E sheet-full measurement written with explicit `--out`.
 - `mockup_integration_project/screenshots/p1e/` - P1E default/sheet-full/preview-only/428 captures.
+- `app/globals.css` - added P2 narrow header suppression, transport view-toggle styling, and notice offset.
+- `components/waveform-timeline.js` - rendered the transport view-toggle with existing preview/board handlers and state.
+- `components/editor-shell.js` - passed preview/board handlers/state to the transport and added `layout-notices`.
+- `components/editor-header.js` - removed mobile absolute/gradient root treatment while restoring desktop flex layout.
+- `mockup_integration_project/screenshots/p2/` - P2 mobile and desktop captures.
 
 ## Tests / checks run
 - functional: `npm install`; `npm run dev` started successfully; `npm run lint`.
@@ -71,9 +79,13 @@
 - functional(P1E): desktop fullscreen preview opened and closed cleanly with no console/page errors.
 - test: `npm test` -> 21 files / 201 tests passed.
 - tooling(P1E): patched `capture.js` and `measure.js`; verified `measure.js --target app --viewport 390x844 --state sheet-full --out mockup_integration_project/measurements/app_390_p1e_sheet-full.json` gives workspace `h=314`, side-panel `y=422 h=624.55`; verified `capture.js --state sheet-full --out-dir mockup_integration_project/screenshots/p1e` writes the full-state capture.
+- functional(P2): Playwright pointer-clicked the transport Preview and Word board buttons at 390; state toggled exclusively, Words sync/lock re-engaged on board, and `aria-pressed` values stayed in sync. No console/page errors.
+- functional(P2): at 1440, `.top-frame` remains visible with header toggle present; `.transport-view-toggle` is hidden.
+- structural(P2): `.top-frame` display is `none` at 390; `.transport-view-toggle` is visible at `x=297 y=10 w=79 h=40`; notice probe with `layout-notices` computes `top=116px`, clearing the 108px transport.
 - visual(diff): 1440 P1B desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop transport geometry shift in rendered inspection.
 - visual(diff): 1440 P1C desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
 - visual(diff): 1440 P1D desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
+- visual(diff): 1440 P2 desktop screenshot vs P0 baseline image changed 0.3554% of pixels over threshold after restoring desktop header flex; measured header/toggle geometry matches baseline positions.
 - visual(capture pairs): app baseline captures only, written with `--out-dir mockup_integration_project/screenshots/baseline_pre`; no P1A screenshots required by plan.
 - visual(capture pairs): P1B app captures written with `--out-dir mockup_integration_project/screenshots/p1b`; manual top-band review against `mockup_mobile_390x844_default.png`.
 
@@ -95,15 +107,17 @@
 - `screenshots/p1e/app_mobile_390x844_sheet-full.png` (P1E) - P1 visual set via patched tooling.
 - `screenshots/p1e/app_mobile_390x844_preview-only.png` (P1E) - P1 visual set via patched tooling.
 - `screenshots/p1e/app_mobile_428x926_default.png` (P1E) - P1 visual set.
+- `screenshots/p2/app_mobile_390x844_default.png` (P2) - transport toggle visible; mobile header suppressed.
+- `screenshots/p2/app_desktop_1440x900_default.png` (P2) - desktop non-regression spot check.
 
 ## Discrepancies resolved
 - D001 implemented in P1B for transport dock/wrapper; final integrated verification remains P1E/P4.
 - D002 sheet snap model/handle implemented in P1C and Words peek lock/handle suppression implemented in P1D; board-tools card content remains P3.
-- D003 pending (P2)
+- D003 implemented in P2; final verification remains P4.
 - D004 implemented in P1D; final integrated verification remains P1E/P4.
 - D005 implemented (P1A; final live boundary verification remains P4-T02)
 - D006 pending verification (P3)
-- D007 Words tab state implemented in P1D; transport-toggle placement remains P2 and tab sizing/card content remain P3.
+- D007 Words tab state implemented in P1D and transport-toggle placement implemented in P2; tab sizing/card content remain P3.
 - D008 pending (P3)
 - D009 mobile transport metrics implemented in P1B; desktop-side confirmation remains P3-T04.
 - P1 structural phase complete; final P1 regressions roll into P2/P3/P4 verification.
@@ -119,8 +133,8 @@
 - P1B measurement notes `.side-panel` content height larger than viewport; this is expected before P1C removes the old negative-margin/inline-height sheet model.
 - P1C rendered check found the live app tab content expanded the sheet when only `min-height` was applied. Added a narrow `.editor-panel-content { flex: 1 1 0; min-height: 0; overflow-y: auto; }` override so the sheet keeps the mockup snap box and the live content scrolls internally, matching plan Section I.
 - P1C full snap height is correct (`~624.55px`), but its top remains at the peek workspace boundary until P1D-T01 applies pane sizing from `--mobile-sheet-top`; this is an ordered dependency, not an accepted final deviation.
-- P1D preview-toggle pointer click is intercepted by the fixed transport because the old header toggle still sits under the dock. P1D verified the existing handler via DOM click; P2-T01 is the planned fix that relocates this control into the transport before header suppression.
+- P1D preview-toggle pointer click was intercepted by the fixed transport because the old header toggle still sat under the dock; resolved by P2-T01 transport toggle.
 - P1E updated tooling intentionally manipulates app state directly for `sheet-full`/`preview-only` captures where the pre-P2 header toggle or Words handle lock would make pointer clicks unsuitable. This is evidence tooling only; app interaction is handled by P2/P3.
 
 ## Next checkpoint / task
-- P2-T01
+- P3-T01

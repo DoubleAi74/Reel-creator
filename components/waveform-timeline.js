@@ -189,9 +189,13 @@ export function WaveformTimeline({
   lines,
   onDurationChange,
   onMark,
+  onTogglePreview,
+  onToggleWordBoard,
   onPlayingChange,
   onTimeChange,
   onWaveformPeaks,
+  showPreview = false,
+  showWordBoard = false,
 }) {
   const containerRef = useRef(null);
   const waveSurferRef = useRef(null);
@@ -816,6 +820,54 @@ export function WaveformTimeline({
               </span>
             </button>
           ) : null}
+        </div>
+
+        <div
+          className="transport-view-toggle hidden"
+          role="group"
+          aria-label="Show or hide the preview and word board"
+        >
+          <button
+            aria-label="Preview"
+            aria-pressed={showPreview}
+            className={showPreview ? "is-active" : ""}
+            data-view="preview"
+            data-wsview="preview"
+            onClick={onTogglePreview}
+            type="button"
+          >
+            <svg className="view-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <rect
+                x="6.5"
+                y="3"
+                width="11"
+                height="18"
+                rx="2.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path d="M11 9.2v5.6l4.4-2.8z" fill="currentColor" />
+            </svg>
+            <span className="view-label">Preview</span>
+          </button>
+          <button
+            aria-label="Word board"
+            aria-pressed={showWordBoard}
+            className={showWordBoard ? "is-active" : ""}
+            data-view="board"
+            data-wsview="board"
+            onClick={onToggleWordBoard}
+            type="button"
+          >
+            <svg className="view-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <rect x="4" y="5" width="7" height="5" rx="1.5" fill="currentColor" />
+              <rect x="13" y="5" width="7" height="5" rx="1.5" fill="currentColor" />
+              <rect x="4" y="14" width="7" height="5" rx="1.5" fill="currentColor" />
+              <rect x="13" y="14" width="7" height="5" rx="1.5" fill="currentColor" />
+            </svg>
+            <span className="view-label">Word board</span>
+          </button>
         </div>
 
         <div className="transport-time">

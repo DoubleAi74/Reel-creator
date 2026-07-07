@@ -3831,7 +3831,7 @@ export function EditorShell({ debugProbe = null, project }) {
         />
 
         {!sectionWithinLimit || showGlobalJsonNotice ? (
-        <div className="absolute inset-x-3 top-[4.25rem] z-30 space-y-2 lg:static lg:inset-auto lg:space-y-3">
+        <div className="layout-notices absolute inset-x-3 top-[4.25rem] z-30 space-y-2 lg:static lg:inset-auto lg:space-y-3">
           {!sectionWithinLimit ? (
             <div className="rounded-2xl border border-[var(--danger)]/35 bg-[var(--danger-soft)] px-4 py-2.5 text-sm text-[var(--danger)]">
               Export stays blocked: the selected section is{" "}
@@ -3972,9 +3972,13 @@ export function EditorShell({ debugProbe = null, project }) {
             lines={projectState.lines}
             onDurationChange={handleWaveformDuration}
             onMark={handleMarkCurrentLine}
+            onTogglePreview={handleTogglePreview}
+            onToggleWordBoard={handleToggleWordBoard}
             onPlayingChange={setIsTransportPlaying}
             onTimeChange={setCurrentAudioTime}
             onWaveformPeaks={handleWaveformPeaks}
+            showPreview={showPreview}
+            showWordBoard={showWordBoard}
           />
         </section>
 
