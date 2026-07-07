@@ -15,7 +15,7 @@ export function EditorTabBar({ activeSection, onSelectSection }) {
                 selected
                   ? "active-tab bg-[var(--accent)] text-[var(--on-accent)]"
                   : "tab-link text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-              }`}
+              } ${section.id === "words" ? "board-tools-tab hidden" : ""}`}
               aria-selected={selected}
               key={section.id}
               onClick={() => onSelectSection(section.id)}

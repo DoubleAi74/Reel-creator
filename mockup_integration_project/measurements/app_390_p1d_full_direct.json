@@ -1,0 +1,173 @@
+{
+  "target": "app",
+  "viewport": "390x844",
+  "uiState": "sheet-full-direct-p1d",
+  "note": "Direct data-snap=full check because Words mode hides the handle until P2/P3 flow; written to non-audit path.",
+  "timestamp": "2026-07-07T15:54:33.112Z",
+  "snap": "full",
+  "activeTab": "Words",
+  "selectors": {
+    ".app-frame": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "styles": {
+        "display": "flex",
+        "position": "relative",
+        "height": "844px",
+        "minHeight": "0px",
+        "overflow": "hidden",
+        "zIndex": "auto",
+        "borderRadius": "0px"
+      }
+    },
+    ".app-responsive": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "styles": {
+        "display": "flex",
+        "position": "static",
+        "height": "844px",
+        "minHeight": "auto",
+        "overflow": "hidden auto",
+        "zIndex": "auto",
+        "borderRadius": "0px"
+      }
+    },
+    ".work-area": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 108,
+        "width": 390,
+        "height": 736
+      },
+      "styles": {
+        "display": "flex",
+        "position": "relative",
+        "height": "736px",
+        "minHeight": "0px",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "borderRadius": "0px"
+      }
+    },
+    ".workspace-panel": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 108,
+        "width": 390,
+        "height": 314
+      },
+      "styles": {
+        "display": "block",
+        "position": "static",
+        "height": "314px",
+        "minHeight": "auto",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "borderRadius": "0px"
+      }
+    },
+    ".workspace-grid": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 108,
+        "width": 390,
+        "height": 314
+      },
+      "styles": {
+        "display": "block",
+        "position": "static",
+        "height": "314px",
+        "minHeight": "0px",
+        "overflow": "visible",
+        "zIndex": "auto",
+        "borderRadius": "0px"
+      }
+    },
+    ".preview-col": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "styles": {
+        "display": "none",
+        "position": "relative",
+        "height": "314px",
+        "minHeight": "0px",
+        "overflow": "hidden",
+        "zIndex": "0",
+        "borderRadius": "0px"
+      }
+    },
+    ".wb-slot": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 108,
+        "width": 390,
+        "height": 314
+      },
+      "styles": {
+        "display": "flex",
+        "position": "static",
+        "height": "314px",
+        "minHeight": "0px",
+        "overflow": "hidden",
+        "zIndex": "auto",
+        "borderRadius": "0px"
+      }
+    },
+    ".side-panel": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 422,
+        "width": 390,
+        "height": 624.546875
+      },
+      "styles": {
+        "display": "flex",
+        "position": "relative",
+        "height": "624.547px",
+        "minHeight": "624.56px",
+        "overflow": "hidden",
+        "zIndex": "20",
+        "borderRadius": "24px 24px 0px 0px"
+      }
+    },
+    ".transport": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 108
+      },
+      "styles": {
+        "display": "block",
+        "position": "fixed",
+        "height": "108px",
+        "minHeight": "0px",
+        "overflow": "hidden",
+        "zIndex": "40",
+        "borderRadius": "0px"
+      }
+    }
+  }
+}

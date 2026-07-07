@@ -598,6 +598,7 @@ export function EditorShell({ debugProbe = null, project }) {
   const [showPreview, setShowPreview] = useState(true);
   const [showWordBoard, setShowWordBoard] = useState(true);
   const [isNarrowWorkspace, setIsNarrowWorkspace] = useState(false);
+  const previousNarrowWorkspaceRef = useRef(false);
   const [projectState, setProjectState] = useState(() => cloneProject(project));
   const projectStateRef = useRef(projectState);
   const [selectedTimingLineId, setSelectedTimingLineId] = useState(() =>
@@ -785,23 +786,81 @@ export function EditorShell({ debugProbe = null, project }) {
   useEffect(() => {
     if (isNarrowWorkspace && showPreview && showWordBoard) {
       setShowPreview(false);
+      setActiveSection("words");
+      setSheetSnapIndex(0);
     }
   }, [isNarrowWorkspace, showPreview, showWordBoard]);
+
+  useEffect(() => {
+    const wasNarrow = previousNarrowWorkspaceRef.current;
+    if (wasNarrow === isNarrowWorkspace) {
+      return;
+    }
+    previousNarrowWorkspaceRef.current = isNarrowWorkspace;
+
+    if (isNarrowWorkspace) {
+      if (showWordBoard && !showPreview) {
+        setActiveSection("words");
+        setSheetSnapIndex(0);
+      }
+      return;
+    }
+
+    setShowPreview(true);
+    setShowWordBoard(true);
+    setActiveSection((section) => (section === "words" ? "audio" : section));
+  }, [isNarrowWorkspace, showPreview, showWordBoard]);
+
+  useEffect(() => {
+    if (isNarrowWorkspace && activeSection === "words") {
+      setSheetSnapIndex(0);
+    }
+  }, [activeSection, isNarrowWorkspace]);
+
+  const syncMobileTabForViewTransition = (wasBoardOnly, willBoardOnly) => {
+    if (!wasBoardOnly && willBoardOnly) {
+      setActiveSection("words");
+      setSheetSnapIndex(0);
+      return;
+    }
+
+    if (wasBoardOnly && !willBoardOnly) {
+      setActiveSection((section) => (section === "words" ? "audio" : section));
+    }
+  };
 
   // Each pane toggles independently on wide desktop; on narrow, turning one on
   // turns the other off (and turning the only-on one off shows neither).
   const handleTogglePreview = () => {
-    const next = !showPreview;
-    setShowPreview(next);
-    if (next && isNarrowWorkspace) {
+    const wasBoardOnly = isNarrowWorkspace && showWordBoard && !showPreview;
+    const nextPreview = !showPreview;
+    const nextWordBoard =
+      nextPreview && isNarrowWorkspace ? false : showWordBoard;
+    const willBoardOnly = isNarrowWorkspace && nextWordBoard && !nextPreview;
+
+    setShowPreview(nextPreview);
+    if (nextPreview && isNarrowWorkspace) {
       setShowWordBoard(false);
     }
+    syncMobileTabForViewTransition(wasBoardOnly, willBoardOnly);
   };
   const handleToggleWordBoard = () => {
-    const next = !showWordBoard;
-    setShowWordBoard(next);
-    if (next && isNarrowWorkspace) {
+    const wasBoardOnly = isNarrowWorkspace && showWordBoard && !showPreview;
+    const nextWordBoard = !showWordBoard;
+    const nextPreview =
+      nextWordBoard && isNarrowWorkspace ? false : showPreview;
+    const willBoardOnly = isNarrowWorkspace && nextWordBoard && !nextPreview;
+
+    setShowWordBoard(nextWordBoard);
+    if (nextWordBoard && isNarrowWorkspace) {
       setShowPreview(false);
+    }
+    syncMobileTabForViewTransition(wasBoardOnly, willBoardOnly);
+  };
+  const handleSelectSection = (sectionId) => {
+    setActiveSection(sectionId);
+    if (sectionId === "words" && isNarrowWorkspace) {
+      setSheetSnapIndex(0);
     }
   };
 
@@ -3723,6 +3782,8 @@ export function EditorShell({ debugProbe = null, project }) {
             }}
           />
         );
+      case "words":
+        return <div aria-label="Word board controls" className="board-tools-card" />;
       default:
         return null;
     }
@@ -3743,6 +3804,7 @@ export function EditorShell({ debugProbe = null, project }) {
     "app-frame relative flex h-dvh flex-col overflow-hidden bg-[var(--page)] text-[var(--text)]",
     showPreview ? "show-preview" : "",
     showWordBoard ? "show-board" : "",
+    activeSection === "words" ? "words-tab-active" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -3825,9 +3887,12 @@ export function EditorShell({ debugProbe = null, project }) {
             <button
               aria-label={currentSheetSnap.label}
               className="sheet-handle lg:hidden"
-              onClick={() =>
-                setSheetSnapIndex((index) => (index + 1) % SHEET_SNAPS.length)
-              }
+              onClick={() => {
+                if (activeSection === "words" && isNarrowWorkspace) {
+                  return;
+                }
+                setSheetSnapIndex((index) => (index + 1) % SHEET_SNAPS.length);
+              }}
               type="button"
             >
               <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -3844,7 +3909,7 @@ export function EditorShell({ debugProbe = null, project }) {
 
             <EditorTabBar
               activeSection={activeSection}
-              onSelectSection={setActiveSection}
+              onSelectSection={handleSelectSection}
             />
 
             <input
@@ -3880,6 +3945,7 @@ export function EditorShell({ debugProbe = null, project }) {
 
             <div
               className="editor-panel-content overflow-x-hidden px-4 pb-4 pt-3 lg:no-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-3.5 lg:py-4"
+              data-active-tab={activeSection}
               onTouchMove={handleManualTimingScroll}
               onWheel={handleManualTimingScroll}
               ref={editorScrollRef}

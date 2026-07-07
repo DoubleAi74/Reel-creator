@@ -1,7 +1,7 @@
 # Implementation Progress
 
 - Plan: implementation_plan.md   | Branch: mockup-integration-mobile
-- Current phase: P1C             | Current task: P1C complete
+- Current phase: P1D             | Current task: P1D complete
 
 ## Completed tasks
 - [x] P0-T01 - Created branch `mockup-integration-mobile` from `main` at baseline commit `6ac31470bbca4d7764cfa8bdbb8889742e5ca7a1`.
@@ -19,6 +19,9 @@
 - [x] P1C-T01 - Replaced three-state sheet snaps with deterministic two-state peek/full snap state (D002).
 - [x] P1C-T02 - Moved mobile sheet sizing/chrome into CSS via `data-snap`, with tab content scrolling inside `.editor-panel-content` (D002).
 - [x] P1C-T03 - Replaced bar+label handle with circular chevron handle and full-state rotation (D002).
+- [x] P1D-T01 - Added narrow pane calc sizing/exclusivity and removed conflicting mobile `dvh` utilities from `PreviewStage` (D004).
+- [x] P1D-T02 - Verified hydration-safe board-only narrow default: early CSS hides preview while SSR/client markup starts with both classes (D004).
+- [x] P1D-T03 - Added Words tab state, edge-triggered board-only sync, peek lock, handle suppression, and board-tools card shell (D002/D007).
 
 ## Files changed this session
 - `mockup_integration_project/screenshots/baseline_pre/` - added app baseline captures for P0-T04.
@@ -34,6 +37,14 @@
 - `mockup_integration_project/measurements/app_390_p1c_peek.json` - P1C peek measurement written with explicit `--out`.
 - `mockup_integration_project/measurements/app_390_p1c_full.json` - P1C full measurement written with explicit `--out`.
 - `mockup_integration_project/screenshots/p1c/` - P1C mobile and desktop app captures.
+- `app/globals.css` - added P1D pane sizing/exclusivity, preview/board frame overrides, Words tab reveal, and board-tools card shell.
+- `components/preview-stage.js` - removed mobile `dvh`/radius/padding utilities now owned by the narrow CSS block.
+- `lib/editor-format.js` - added `words` section.
+- `components/editor-tab-bar.js` - added `board-tools-tab` hook for the Words tab.
+- `components/editor-shell.js` - added Words sync/lock state, `words-tab-active`, active-tab data hook, handle early-return, desktop reset, and board-tools card shell render.
+- `mockup_integration_project/measurements/app_390_p1d_default.json` - P1D default measurement written with explicit `--out`.
+- `mockup_integration_project/measurements/app_390_p1d_full_direct.json` - P1D direct full-snap rendered measurement written to non-audit path.
+- `mockup_integration_project/screenshots/p1d/` - P1D mobile default, preview-only, and desktop captures.
 
 ## Tests / checks run
 - functional: `npm install`; `npm run dev` started successfully; `npm run lint`.
@@ -44,8 +55,14 @@
 - structural(measure): `node mockup_integration_project/playwright/measure.js --target app --viewport 390x844 --state default --out mockup_integration_project/measurements/app_390_p1c_peek.json`; side-panel `y=631.27`, `h=211`, `min-height=211`.
 - structural(measure): `node mockup_integration_project/playwright/measure.js --target app --viewport 390x844 --state sheet-full --out mockup_integration_project/measurements/app_390_p1c_full.json`; side-panel `h=624.55`, full top position completes in P1D when pane height becomes sheet-top-driven.
 - interaction: Playwright click check confirmed sheet handle cycles `peek -> full`, aria-label changes, chevron rotates 180deg, and `.editor-panel-content` scrolls live tab content inside the snap box.
+- structural(measure): `node mockup_integration_project/playwright/measure.js --target app --viewport 390x844 --state default --out mockup_integration_project/measurements/app_390_p1d_default.json`; transport `y=0 h=108`, workspace `y=108 h=525`, side-panel `y=633 h=211`, board visible, preview hidden.
+- structural(measure): direct full-snap rendered check written to `app_390_p1d_full_direct.json`; workspace `y=108 h=314`, side-panel `y=422 h=624.55`.
+- interaction: P1D Playwright check confirmed default narrow `show-board words-tab-active`, active tab `Words`, `data-snap=peek`, handle hidden; preview transition returns to `Audio` and shows handle; desktop resize restores both panes and hides Words.
+- hydration: three hard reload checks at 390 showed early `.show-preview.show-board` markup with preview `display:none` and board `display:flex`, then hydrated `.show-board.words-tab-active` / Words active; no hydration warnings.
+- sync guard: selecting `Lyrics` while still board-only remains Lyrics and does not get forced back to Words; handle returns because only Words locks it.
 - visual(diff): 1440 P1B desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop transport geometry shift in rendered inspection.
 - visual(diff): 1440 P1C desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
+- visual(diff): 1440 P1D desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
 - visual(capture pairs): app baseline captures only, written with `--out-dir mockup_integration_project/screenshots/baseline_pre`; no P1A screenshots required by plan.
 - visual(capture pairs): P1B app captures written with `--out-dir mockup_integration_project/screenshots/p1b`; manual top-band review against `mockup_mobile_390x844_default.png`.
 
@@ -60,15 +77,18 @@
 - `screenshots/p1b/app_desktop_1440x900_default.png` (P1B) - desktop non-regression spot check.
 - `screenshots/p1c/app_mobile_390x844_default.png` (P1C) - peek sheet with circular chevron handle.
 - `screenshots/p1c/app_desktop_1440x900_default.png` (P1C) - desktop non-regression spot check.
+- `screenshots/p1d/app_mobile_390x844_default.png` (P1D) - board-only + Words + peek lock.
+- `screenshots/p1d/app_mobile_390x844_preview-only.png` (P1D) - preview-only + Audio.
+- `screenshots/p1d/app_desktop_1440x900_default.png` (P1D) - desktop non-regression spot check.
 
 ## Discrepancies resolved
 - D001 implemented in P1B for transport dock/wrapper; final integrated verification remains P1E/P4.
-- D002 sheet snap model and handle implemented in P1C; Words lock remains P1D and board-tools card remains P3.
+- D002 sheet snap model/handle implemented in P1C and Words peek lock/handle suppression implemented in P1D; board-tools card content remains P3.
 - D003 pending (P2)
-- D004 pending (P1D)
+- D004 implemented in P1D; final integrated verification remains P1E/P4.
 - D005 implemented (P1A; final live boundary verification remains P4-T02)
 - D006 pending verification (P3)
-- D007 pending (P1D/P2/P3)
+- D007 Words tab state implemented in P1D; transport-toggle placement remains P2 and tab sizing/card content remain P3.
 - D008 pending (P3)
 - D009 mobile transport metrics implemented in P1B; desktop-side confirmation remains P3-T04.
 
@@ -83,6 +103,7 @@
 - P1B measurement notes `.side-panel` content height larger than viewport; this is expected before P1C removes the old negative-margin/inline-height sheet model.
 - P1C rendered check found the live app tab content expanded the sheet when only `min-height` was applied. Added a narrow `.editor-panel-content { flex: 1 1 0; min-height: 0; overflow-y: auto; }` override so the sheet keeps the mockup snap box and the live content scrolls internally, matching plan Section I.
 - P1C full snap height is correct (`~624.55px`), but its top remains at the peek workspace boundary until P1D-T01 applies pane sizing from `--mobile-sheet-top`; this is an ordered dependency, not an accepted final deviation.
+- P1D preview-toggle pointer click is intercepted by the fixed transport because the old header toggle still sits under the dock. P1D verified the existing handler via DOM click; P2-T01 is the planned fix that relocates this control into the transport before header suppression.
 
 ## Next checkpoint / task
-- P1D-T01
+- P1E-T01

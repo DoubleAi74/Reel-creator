@@ -217,6 +217,18 @@ textarea:focus-visible {
     overflow-y: auto;
   }
 
+  .app-frame.show-board .board-tools-tab {
+    display: inline-flex;
+  }
+
+  .board-tools-card {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface-2);
+    padding: 16px;
+  }
+
   .sheet-handle {
     position: absolute;
     top: 13px;
@@ -246,6 +258,54 @@ textarea:focus-visible {
 
   .app-frame.words-tab-active .sheet-handle {
     display: none;
+  }
+
+  .preview-col,
+  .wb-slot {
+    display: none;
+    min-width: 0;
+    flex: 0 0 auto;
+    height: max(96px, calc(var(--mobile-sheet-top) - var(--mobile-transport-h)));
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .preview-col {
+    padding-block: var(--mobile-preview-gap);
+  }
+
+  .wb-slot {
+    padding: var(--mobile-preview-gap) 15px;
+  }
+
+  .app-frame.show-preview .preview-col,
+  .app-frame.show-board .wb-slot {
+    display: flex;
+  }
+
+  .app-frame.show-preview.show-board .preview-col {
+    display: none;
+  }
+
+  .preview-screen {
+    aspect-ratio: 9 / 16;
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 1.2%;
+    background: var(--preview-bg);
+    overflow: hidden;
+  }
+
+  .preview-under-actions {
+    display: none;
+  }
+
+  .wb {
+    width: calc(100vw - 30px);
+    height: 100%;
   }
 
   .transport-controls {
