@@ -1,7 +1,7 @@
 # Implementation Progress
 
 - Plan: implementation_plan.md   | Branch: mockup-integration-mobile
-- Current phase: P1D             | Current task: P1D complete
+- Current phase: P1E             | Current task: P1E complete
 
 ## Completed tasks
 - [x] P0-T01 - Created branch `mockup-integration-mobile` from `main` at baseline commit `6ac31470bbca4d7764cfa8bdbb8889742e5ca7a1`.
@@ -22,6 +22,9 @@
 - [x] P1D-T01 - Added narrow pane calc sizing/exclusivity and removed conflicting mobile `dvh` utilities from `PreviewStage` (D004).
 - [x] P1D-T02 - Verified hydration-safe board-only narrow default: early CSS hides preview while SSR/client markup starts with both classes (D004).
 - [x] P1D-T03 - Added Words tab state, edge-triggered board-only sync, peek lock, handle suppression, and board-tools card shell (D002/D007).
+- [x] P1E-T01 - Ran P1 functional/regression smoke checks on narrow and desktop.
+- [x] P1E-T02 - Updated app `sheet-full` capture/measure tooling to direct-set the two-state full snap.
+- [x] P1E-T03 - Captured the P1 visual set into `screenshots/p1e/`.
 
 ## Files changed this session
 - `mockup_integration_project/screenshots/baseline_pre/` - added app baseline captures for P0-T04.
@@ -45,6 +48,10 @@
 - `mockup_integration_project/measurements/app_390_p1d_default.json` - P1D default measurement written with explicit `--out`.
 - `mockup_integration_project/measurements/app_390_p1d_full_direct.json` - P1D direct full-snap rendered measurement written to non-audit path.
 - `mockup_integration_project/screenshots/p1d/` - P1D mobile default, preview-only, and desktop captures.
+- `mockup_integration_project/playwright/capture.js` - updated app `sheet-full` to set `data-snap="full"` directly and app `preview-only` to use the existing DOM handler.
+- `mockup_integration_project/playwright/measure.js` - updated app sheet states to set `data-snap="full"` directly.
+- `mockup_integration_project/measurements/app_390_p1e_sheet-full.json` - P1E sheet-full measurement written with explicit `--out`.
+- `mockup_integration_project/screenshots/p1e/` - P1E default/sheet-full/preview-only/428 captures.
 
 ## Tests / checks run
 - functional: `npm install`; `npm run dev` started successfully; `npm run lint`.
@@ -60,6 +67,10 @@
 - interaction: P1D Playwright check confirmed default narrow `show-board words-tab-active`, active tab `Words`, `data-snap=peek`, handle hidden; preview transition returns to `Audio` and shows handle; desktop resize restores both panes and hides Words.
 - hydration: three hard reload checks at 390 showed early `.show-preview.show-board` markup with preview `display:none` and board `display:flex`, then hydrated `.show-board.words-tab-active` / Words active; no hydration warnings.
 - sync guard: selecting `Lyrics` while still board-only remains Lyrics and does not get forced back to Words; handle returns because only Words locks it.
+- functional(P1E): mobile smoke loaded sample, switched tabs, dispatched manual timing wheel event, cycled sheet peek/full on Audio, switched preview/board via existing handlers, and verified populated board text; desktop smoke loaded sample, play/pause button was enabled and clickable, header pane toggle worked, and populated board text rendered. No console/page errors.
+- functional(P1E): desktop fullscreen preview opened and closed cleanly with no console/page errors.
+- test: `npm test` -> 21 files / 201 tests passed.
+- tooling(P1E): patched `capture.js` and `measure.js`; verified `measure.js --target app --viewport 390x844 --state sheet-full --out mockup_integration_project/measurements/app_390_p1e_sheet-full.json` gives workspace `h=314`, side-panel `y=422 h=624.55`; verified `capture.js --state sheet-full --out-dir mockup_integration_project/screenshots/p1e` writes the full-state capture.
 - visual(diff): 1440 P1B desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop transport geometry shift in rendered inspection.
 - visual(diff): 1440 P1C desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
 - visual(diff): 1440 P1D desktop screenshot vs P0 baseline image changed 0.0493% of pixels over threshold; no observable desktop shift.
@@ -80,6 +91,10 @@
 - `screenshots/p1d/app_mobile_390x844_default.png` (P1D) - board-only + Words + peek lock.
 - `screenshots/p1d/app_mobile_390x844_preview-only.png` (P1D) - preview-only + Audio.
 - `screenshots/p1d/app_desktop_1440x900_default.png` (P1D) - desktop non-regression spot check.
+- `screenshots/p1e/app_mobile_390x844_default.png` (P1E) - P1 visual set.
+- `screenshots/p1e/app_mobile_390x844_sheet-full.png` (P1E) - P1 visual set via patched tooling.
+- `screenshots/p1e/app_mobile_390x844_preview-only.png` (P1E) - P1 visual set via patched tooling.
+- `screenshots/p1e/app_mobile_428x926_default.png` (P1E) - P1 visual set.
 
 ## Discrepancies resolved
 - D001 implemented in P1B for transport dock/wrapper; final integrated verification remains P1E/P4.
@@ -91,6 +106,7 @@
 - D007 Words tab state implemented in P1D; transport-toggle placement remains P2 and tab sizing/card content remain P3.
 - D008 pending (P3)
 - D009 mobile transport metrics implemented in P1B; desktop-side confirmation remains P3-T04.
+- P1 structural phase complete; final P1 regressions roll into P2/P3/P4 verification.
 
 ## Decisions
 - U-2 (Words tab): **RESOLVED -> Path B (strict fidelity)** - state/sync/lock in P1D-T03, card content in P3-T05.
@@ -104,6 +120,7 @@
 - P1C rendered check found the live app tab content expanded the sheet when only `min-height` was applied. Added a narrow `.editor-panel-content { flex: 1 1 0; min-height: 0; overflow-y: auto; }` override so the sheet keeps the mockup snap box and the live content scrolls internally, matching plan Section I.
 - P1C full snap height is correct (`~624.55px`), but its top remains at the peek workspace boundary until P1D-T01 applies pane sizing from `--mobile-sheet-top`; this is an ordered dependency, not an accepted final deviation.
 - P1D preview-toggle pointer click is intercepted by the fixed transport because the old header toggle still sits under the dock. P1D verified the existing handler via DOM click; P2-T01 is the planned fix that relocates this control into the transport before header suppression.
+- P1E updated tooling intentionally manipulates app state directly for `sheet-full`/`preview-only` captures where the pre-P2 header toggle or Words handle lock would make pointer clicks unsuitable. This is evidence tooling only; app interaction is handled by P2/P3.
 
 ## Next checkpoint / task
-- P1E-T01
+- P2-T01

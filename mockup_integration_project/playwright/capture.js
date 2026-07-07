@@ -176,27 +176,20 @@ async function captureAppState({ browser, viewportKey, state, outDir, appUrl }) 
   }
 
   if (state === "sheet-expanded" || state === "sheet-full") {
-    // The sheet handle button on mobile (lg:hidden)
-    const handle = page.locator(".side-panel > button").first();
-    if (await handle.count() > 0) {
-      await handle.click();
-      await waitForStable(page, 500);
-      // click again for full if 3-state
-      if (state === "sheet-full") {
-        await handle.click();
-        await waitForStable(page, 500);
-      }
-    }
+    await page.evaluate(() => {
+      const app = document.querySelector(".app-frame");
+      if (app) app.dataset.snap = "full";
+      const handle = document.querySelector(".sheet-handle");
+      if (handle) handle.setAttribute("aria-label", "Collapse settings panel");
+    });
+    await waitForStable(page, 600);
   }
 
   if (state === "preview-only") {
-    // Toggle off board if controls present
-    const boardToggle = page.locator('[data-wsview="board"], button:has-text("Word board")').first();
-    if (await boardToggle.count() > 0) {
-      const isActive = await boardToggle.evaluate((el) => el.classList.contains("is-active") || el.getAttribute("aria-pressed") === "true");
-      if (isActive) await boardToggle.click();
-      await waitForStable(page, 400);
-    }
+    await page.evaluate(() => {
+      document.querySelector('[data-wsview="preview"]')?.click();
+    });
+    await waitForStable(page, 400);
   }
 
   const filename = `app_${vp.name}_${state}.png`;
