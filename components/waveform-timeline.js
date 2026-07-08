@@ -343,9 +343,6 @@ export function WaveformTimeline({
       // rebuffer-free seeks, so the preview (which is slaved to this clock)
       // stays locked to the music after mid-song seeks and ±2s jumps.
       backend: "WebAudio",
-      barGap: 2,
-      barRadius: 999,
-      barWidth: 2,
       container: containerRef.current,
       cursorColor: "#2C9B3F",
       dragToSeek: true,
@@ -354,8 +351,10 @@ export function WaveformTimeline({
       // it below centre. "auto" also adapts to the per-breakpoint padding.
       height: "auto",
       normalize: true,
-      progressColor: "rgba(44, 155, 63, 0.85)",
-      waveColor: "rgba(99, 91, 77, 0.32)",
+      // barHeight still scales amplitude for the continuous filled waveform.
+      barHeight: 0.7,
+      progressColor: "rgba(44, 155, 63, 0.72)",
+      waveColor: "rgba(99, 91, 77, 0.22)",
       url: audioSrc,
       ...(cachedWaveform
         ? {
@@ -753,15 +752,6 @@ export function WaveformTimeline({
       <div className="transport-controls lg:flex-wrap lg:justify-between lg:gap-4 lg:px-4 lg:py-3">
         <div className="transport-main-controls lg:flex-none lg:flex-wrap">
           <button
-            aria-label="Rewind to section start"
-            className="rewind-button hidden rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:inline-flex"
-            disabled={!isReady}
-            onClick={() => jumpTo(startOffset)}
-            type="button"
-          >
-            ⏮ Rewind
-          </button>
-          <button
             aria-label="Jump to previous lyric"
             className="transport-button nav-button prev-button transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
             data-dir="prev"
@@ -808,7 +798,7 @@ export function WaveformTimeline({
           {isTimingActive ? (
             <button
               aria-label="Mark current lyric time"
-              className="mark-button flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] text-sm font-bold text-[var(--on-accent)] shadow-[0_8px_24px_rgba(251,191,36,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:flex-none lg:border lg:border-[var(--accent)] lg:bg-[var(--surface-active)] lg:px-4 lg:py-1.5 lg:text-xs lg:font-semibold lg:uppercase lg:tracking-[0.18em] lg:text-[var(--accent)] lg:shadow-none lg:hover:bg-[var(--surface-hover)]"
+              className="mark-button flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] text-sm font-bold text-[var(--on-accent)] shadow-[0_8px_24px_rgba(251,191,36,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:hidden lg:h-auto lg:flex-none lg:border lg:border-[var(--accent)] lg:bg-[var(--surface-active)] lg:px-4 lg:py-1.5 lg:text-xs lg:font-semibold lg:uppercase lg:tracking-[0.18em] lg:text-[var(--accent)] lg:shadow-none lg:hover:bg-[var(--surface-hover)]"
               disabled={!canMark}
               onClick={onMark}
               type="button"

@@ -1336,7 +1336,7 @@ textarea:focus-visible {
 .transport .waveform-canvas {
   flex: 1 1 auto;
   width: 100%;
-  height: 100%;
+  height: 51%;
   min-width: 0;
 }
 
@@ -1406,8 +1406,8 @@ textarea:focus-visible {
 
 .transport .waveform-marker-line {
   position: absolute;
-  top: 7px;
-  bottom: 5px;
+  top: 12%;
+  bottom: 12%;
   left: 50%;
   width: 1.5px;
   transform: translateX(-50%);
@@ -1416,7 +1416,7 @@ textarea:focus-visible {
 
 .transport .waveform-marker-cap {
   position: absolute;
-  top: 1px;
+  top: calc(12% - 3px);
   left: 50%;
   width: 5px;
   height: 5px;
@@ -1426,11 +1426,11 @@ textarea:focus-visible {
 }
 
 .transport .waveform-marker--idle .waveform-marker-line {
-  background: hsl(28 8% 34% / 0.45);
+  background: hsl(28 8% 34% / 0.30);
 }
 
 .transport .waveform-marker--idle .waveform-marker-cap {
-  background: hsl(28 8% 34% / 0.7);
+  display: none;
 }
 
 .transport .waveform-marker--heard .waveform-marker-line {
@@ -1439,6 +1439,7 @@ textarea:focus-visible {
 }
 
 .transport .waveform-marker--heard .waveform-marker-cap {
+  top: calc(12% - 3px);
   width: 6px;
   height: 6px;
   background: var(--accent-2);
@@ -1450,6 +1451,7 @@ textarea:focus-visible {
 }
 
 .transport .waveform-marker--active .waveform-marker-cap {
+  top: calc(12% - 3.5px);
   width: 7px;
   height: 7px;
   background: var(--accent);
@@ -1457,7 +1459,6 @@ textarea:focus-visible {
 
 @media (min-width: 1024px) {
 .transport .play-button,
-.transport .rewind-button,
 .transport .nav-button,
 .transport .speed-button,
 .transport .mark-button {
@@ -1515,7 +1516,7 @@ textarea:focus-visible {
 }
 
 .transport .play-button {
-  order: 3;
+  order: 1;
   min-width: 130px;
   height: 52px;
   border: 1px solid transparent;
@@ -1543,17 +1544,6 @@ textarea:focus-visible {
   }
 }
 
-.transport .rewind-button {
-  order: 1;
-  min-width: 104px;
-  height: 45px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--muted);
-}
-
 .transport .nav-button,
 .transport .speed-button {
   display: inline-flex;
@@ -1572,11 +1562,11 @@ textarea:focus-visible {
 }
 
 .transport .nav-button[data-dir="next"] {
-  order: 4;
+  order: 3;
 }
 
 .transport .speed-button {
-  order: 5;
+  order: 4;
   min-width: 52px;
   font-size: 12px;
   font-weight: 600;
@@ -1589,7 +1579,7 @@ textarea:focus-visible {
 }
 
 .transport-time {
-  order: 6;
+  order: 5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1614,12 +1604,51 @@ textarea:focus-visible {
 }
 
 .transport .mark-button {
-  order: 7;
-  min-height: 35px;
-  border: 1px solid var(--mark-border);
-  background: var(--accent-soft);
-  color: var(--accent);
-  box-shadow: none;
+  display: none;
+}
+
+.top-inner {
+  min-height: 63px;
+}
+
+.transport .waveform {
+  height: 63px;
+}
+
+.transport .waveform-canvas {
+  height: 90%;
+}
+
+.transport .waveform-marker-line {
+  top: 3%;
+  bottom: 3%;
+  width: 2px;
+}
+
+.transport .waveform-marker--heard .waveform-marker-line,
+.transport .waveform-marker--active .waveform-marker-line {
+  width: 3px;
+}
+
+.transport .waveform-marker-cap {
+  top: calc(3% - 3px);
+  width: 6px;
+  height: 6px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.transport .waveform-marker--heard .waveform-marker-cap {
+  top: calc(3% - 3px);
+  width: 7px;
+  height: 7px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.transport .waveform-marker--active .waveform-marker-cap {
+  top: calc(3% - 3.5px);
+  width: 8px;
+  height: 8px;
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 .editor-panel-content {

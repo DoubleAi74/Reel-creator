@@ -531,6 +531,7 @@ function getLineNumber(lines = [], lineId) {
 
 export function EditorShell({ debugProbe = null, project }) {
   const [activeSection, setActiveSection] = useState("audio");
+  const previousActiveSectionRef = useRef(activeSection);
   const [audioUpload, setAudioUpload] = useState({
     asset: null,
     message: "Upload an MP3 to replace the sample track metadata.",
@@ -601,9 +602,7 @@ export function EditorShell({ debugProbe = null, project }) {
   const previousNarrowWorkspaceRef = useRef(false);
   const [projectState, setProjectState] = useState(() => cloneProject(project));
   const projectStateRef = useRef(projectState);
-  const [selectedTimingLineId, setSelectedTimingLineId] = useState(() =>
-    getDefaultTimingLineId(project.lines),
-  );
+  const [selectedTimingLineId, setSelectedTimingLineId] = useState(null);
   const audioInputRef = useRef(null);
   const backgroundImageInputRef = useRef(null);
   const backgroundVideoInputRef = useRef(null);
@@ -683,7 +682,7 @@ export function EditorShell({ debugProbe = null, project }) {
     selectedTimingLineId &&
     projectState.lines.some((line) => line.id === selectedTimingLineId)
       ? selectedTimingLineId
-      : getDefaultTimingLineId(projectState.lines);
+      : null;
   const selectedTimingLine =
     projectState.lines.find((line) => line.id === resolvedSelectedTimingLineId) ?? null;
   const tapTimingStartLineId = getTapTimingStartLineId(
@@ -720,7 +719,7 @@ export function EditorShell({ debugProbe = null, project }) {
   const activeTimingLineId =
     tapTimingSession.active && tapTimingCursorLine
       ? tapTimingCursorLine.id
-      : resolvedSelectedTimingLineId;
+      : (activeSection === "lyrics" ? resolvedSelectedTimingLineId : null);
   const heardLineNumber = getLineNumber(projectState.lines, heardLine?.id);
   // While the audio plays, follow the currently-heard line so the list scrolls
   // in sync with playback (works for already-timed lines being reviewed too);
@@ -816,6 +815,14 @@ export function EditorShell({ debugProbe = null, project }) {
       setSheetSnapIndex(0);
     }
   }, [activeSection, isNarrowWorkspace]);
+
+  useEffect(() => {
+    const prev = previousActiveSectionRef.current;
+    if (prev === "lyrics" && activeSection !== "lyrics") {
+      setSelectedTimingLineId(null);
+    }
+    previousActiveSectionRef.current = activeSection;
+  }, [activeSection]);
 
   const syncMobileTabForViewTransition = (wasBoardOnly, willBoardOnly) => {
     if (!wasBoardOnly && willBoardOnly) {
@@ -1587,7 +1594,7 @@ export function EditorShell({ debugProbe = null, project }) {
     const maxMarkMs = Math.max(...debugProbe.autoMarkAtMs);
 
     setProjectState(cloneProject(debugProbe.project));
-    setSelectedTimingLineId(getDefaultTimingLineId(debugProbe.project.lines));
+    setSelectedTimingLineId(null);
     setCurrentAudioTime(startOffset);
     setIsTransportPlaying(false);
     setDebugMarkEvents([]);
@@ -1631,7 +1638,10 @@ export function EditorShell({ debugProbe = null, project }) {
   };
 
   const handleTimingLineSelect = (line) => {
-    setSelectedTimingLineId(line.id);
+    const isDeselect = selectedTimingLineId === line.id;
+    const nextId = isDeselect ? null : line.id;
+
+    setSelectedTimingLineId(nextId);
     setEditingLineId((currentLineId) =>
       currentLineId && currentLineId !== line.id ? null : currentLineId,
     );
@@ -1639,7 +1649,7 @@ export function EditorShell({ debugProbe = null, project }) {
       currentSession.active
         ? {
             ...currentSession,
-            cursorLineId: line.id,
+            cursorLineId: nextId,
           }
         : currentSession,
     );
@@ -1648,7 +1658,8 @@ export function EditorShell({ debugProbe = null, project }) {
       status: "idle",
     });
 
-    if (Number.isFinite(line.start)) {
+    // Only seek to the line's start time when selecting (not when deselecting)
+    if (!isDeselect && Number.isFinite(line.start)) {
       setCurrentAudioTime(clampTimeToSection(line.start, projectState.audio));
     }
   };
@@ -1820,7 +1831,7 @@ export function EditorShell({ debugProbe = null, project }) {
       setBackgroundUpload(createBackgroundUploadState(importedProject.background));
       setCurrentAudioTime(getInitialTransportTime(importedProject));
       setIsTransportPlaying(false);
-      setSelectedTimingLineId(getDefaultTimingLineId(importedProject.lines));
+      setSelectedTimingLineId(null);
       setTimingDrafts({});
       setAutoFollowEnabled(true);
       setTimingNotice({
@@ -1865,7 +1876,7 @@ export function EditorShell({ debugProbe = null, project }) {
     setBackgroundUpload(createBackgroundUploadState(blankProject.background));
     setCurrentAudioTime(getInitialTransportTime(blankProject));
     setIsTransportPlaying(false);
-    setSelectedTimingLineId(getDefaultTimingLineId(blankProject.lines));
+    setSelectedTimingLineId(null);
     setTimingDrafts({});
     setTranscription(null);
     setAutoFollowEnabled(true);
@@ -1915,7 +1926,7 @@ export function EditorShell({ debugProbe = null, project }) {
       lines: [],
     }));
     editorActions.clearSelectedWord();
-    setSelectedTimingLineId(getDefaultTimingLineId([]));
+    setSelectedTimingLineId(null);
     setTimingDrafts({});
     setAutoLyricsState(createIdleAutoLyricsState());
     setTimingNotice({ message: "", status: "idle" });
@@ -2007,7 +2018,7 @@ export function EditorShell({ debugProbe = null, project }) {
       setBackgroundUpload(createBackgroundUploadState(nextProject.background));
       setCurrentAudioTime(getInitialTransportTime(nextProject));
       setIsTransportPlaying(false);
-      setSelectedTimingLineId(getDefaultTimingLineId(nextProject.lines));
+      setSelectedTimingLineId(null);
       setTimingDrafts({});
       setTranscription(null);
       setAutoFollowEnabled(true);
@@ -2278,7 +2289,7 @@ export function EditorShell({ debugProbe = null, project }) {
       projectStateRef.current = nextProject;
       return nextProject;
     });
-    setSelectedTimingLineId(getDefaultTimingLineId(nextLines));
+    setSelectedTimingLineId(null);
     setTimingDrafts({});
     setTimingNotice({
       message: timingSummary.timedCount > 0 ? timingSummary.message : "",
@@ -2973,7 +2984,7 @@ export function EditorShell({ debugProbe = null, project }) {
       const restoredProject = cloneProject(restored.project);
 
       setProjectState(restoredProject);
-      setSelectedTimingLineId(getDefaultTimingLineId(restoredProject.lines));
+      setSelectedTimingLineId(null);
       setCurrentAudioTime(getInitialTransportTime(restoredProject));
 
       if (restored.audioAsset?.assetId) {
@@ -3298,7 +3309,7 @@ export function EditorShell({ debugProbe = null, project }) {
     setBackgroundUpload(createBackgroundUploadState(debugProbe.project.background));
     setCurrentAudioTime(getInitialTransportTime(debugProbe.project));
     setIsTransportPlaying(false);
-    setSelectedTimingLineId(getDefaultTimingLineId(debugProbe.project.lines));
+    setSelectedTimingLineId(null);
     setDebugMarkEvents([]);
     setDebugProbeRunStatus("idle");
     setDebugWaveSurferOnsets(null);
@@ -3358,7 +3369,7 @@ export function EditorShell({ debugProbe = null, project }) {
       setBackgroundUpload(createBackgroundUploadState(importedProject.background));
       setCurrentAudioTime(getInitialTransportTime(importedProject));
       setIsTransportPlaying(false);
-      setSelectedTimingLineId(getDefaultTimingLineId(importedProject.lines));
+      setSelectedTimingLineId(null);
       setActiveSection("lyrics");
       setTimingDrafts({});
       setAutoFollowEnabled(true);
