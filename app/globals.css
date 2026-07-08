@@ -402,7 +402,7 @@ textarea:focus-visible {
     font-size: 20px;
   }
 
-  .app-frame.show-board.words-tab-active .wb-slot .pager-strip {
+  .app-frame.show-board .wb-slot .pager-strip {
     display: none;
   }
 
@@ -667,6 +667,85 @@ textarea:focus-visible {
   .wb {
     width: calc(100vw - 30px);
     height: 100%;
+  }
+
+  .wb-slot .prototype-shell.version-sketch {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .wb-slot .version-sketch .board-frame {
+    --word-board-page-button-extra-height: 8px;
+    height: calc(100% + var(--word-board-page-button-extra-height));
+    grid-template-rows: minmax(0, 1fr);
+    padding-bottom: calc(26px + var(--word-board-page-button-extra-height));
+    box-shadow: none;
+  }
+
+  .app-frame.show-board .wb-slot .version-sketch.is-page-mode .stage {
+    overflow: hidden;
+  }
+
+  .board-page-nav {
+    position: absolute;
+    z-index: 3;
+    right: 12px;
+    bottom: 5px;
+    left: 12px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+    pointer-events: none;
+  }
+
+  .app-frame.show-board .wb-slot .board-page-nav {
+    display: flex;
+  }
+
+  .board-page-button {
+    display: grid;
+    width: auto;
+    height: calc(17px + var(--word-board-page-button-extra-height, 8px));
+    min-width: 0;
+    flex: 0 0 29%;
+    place-items: center;
+    border: 1px solid #2c2924;
+    border-radius: 4px;
+    background: #fffaf1;
+    color: #2c2924;
+    pointer-events: auto;
+    box-shadow: none;
+  }
+
+  .board-page-refollow-button {
+    display: grid;
+    height: calc(17px + var(--word-board-page-button-extra-height, 8px));
+    min-width: 74px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid #2c2924;
+    border-radius: 4px;
+    background: #fffaf1;
+    color: #2c2924;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: 760;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: auto;
+    box-shadow: none;
+  }
+
+  .board-page-button svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .board-page-button:disabled {
+    opacity: 0.34;
+    pointer-events: none;
   }
 
   .transport-controls {
@@ -1139,6 +1218,10 @@ textarea:focus-visible {
 .tab-row .board-tools-tab,
 .board-tools-card {
   display: none !important;
+}
+
+.board-page-nav {
+  display: none;
 }
 
 .active-tab {

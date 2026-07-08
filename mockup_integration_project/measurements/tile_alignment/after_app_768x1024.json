@@ -1,0 +1,89 @@
+{
+  "viewport": "768x1024",
+  "timestamp": "2026-07-08T06:17:02.794Z",
+  "data": {
+    "rootClass": "prototype-shell version-sketch is-page-mode",
+    "tileScale": "0.82",
+    "tileLayoutScale": "0.82",
+    "wordRowStep": "calc(54px * 0.82)",
+    "stageContentHeight": 568,
+    "buttonRect": {
+      "width": 45,
+      "height": 34.4375
+    },
+    "buttonStyles": {
+      "width": "45px",
+      "height": "34.4375px",
+      "fontSize": "18.86px",
+      "fontWeight": "800",
+      "lineHeight": "20.746px"
+    },
+    "groupStyles": {
+      "gap": "3.28px",
+      "flexWrap": "nowrap"
+    },
+    "lines": [
+      {
+        "lineNumber": "1",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "2",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "3",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "4",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "5",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "6",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "7",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "8",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "9",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "10",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "11",
+        "minHeight": "44px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "12",
+        "minHeight": "44px",
+        "visualRows": 1
+      }
+    ],
+    "consoleErrors": []
+  }
+}

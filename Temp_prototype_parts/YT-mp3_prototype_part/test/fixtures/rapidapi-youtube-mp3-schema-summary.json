@@ -1,0 +1,24 @@
+{
+  "startedAt": "2026-07-02T08:53:03.368Z",
+  "request": {
+    "host": "youtube-to-mp315.p.rapidapi.com",
+    "transport": "POST /download query parameters",
+    "format": "mp3",
+    "startTime": 30,
+    "endTime": 35
+  },
+  "startResponse": {
+    "jobIdField": "id"
+  },
+  "processingResponse": {
+    "observed": false
+  },
+  "completeResponse": {
+    "attempt": 1,
+    "statusField": "status",
+    "statusValue": "CONVERTING",
+    "downloadUrlField": "downloadUrl",
+    "downloadUrlHost": "45.76.15.135"
+  },
+  "finalStatus": null
+}

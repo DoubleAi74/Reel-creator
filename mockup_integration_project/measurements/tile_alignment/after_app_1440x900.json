@@ -1,0 +1,279 @@
+{
+  "viewport": "1440x900",
+  "timestamp": "2026-07-08T06:17:05.511Z",
+  "data": {
+    "rootClass": "prototype-shell version-sketch is-scroll-mode",
+    "tileScale": "1",
+    "tileLayoutScale": "0.62",
+    "wordRowStep": "calc(60px * 0.62)",
+    "stageContentHeight": 346,
+    "buttonRect": {
+      "width": 42,
+      "height": 24.796875
+    },
+    "buttonStyles": {
+      "width": "42px",
+      "height": "24.7969px",
+      "fontSize": "12.4px",
+      "fontWeight": "760",
+      "lineHeight": "13.64px"
+    },
+    "groupStyles": {
+      "gap": "0px 3.1px",
+      "flexWrap": "nowrap"
+    },
+    "lines": [
+      {
+        "lineNumber": "1",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "2",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "3",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "4",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "5",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "6",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "7",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "8",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "9",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "10",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "11",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "12",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "13",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "14",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "15",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "16",
+        "minHeight": "68px",
+        "visualRows": 2
+      },
+      {
+        "lineNumber": "17",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "18",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "19",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "20",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "21",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "22",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "23",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "24",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "25",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "26",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "27",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "28",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "29",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "30",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "31",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "32",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "33",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "34",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "35",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "36",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "37",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "38",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "39",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "40",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "41",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "42",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "43",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "44",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "45",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "46",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "47",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "48",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "49",
+        "minHeight": "37px",
+        "visualRows": 1
+      },
+      {
+        "lineNumber": "50",
+        "minHeight": "37px",
+        "visualRows": 1
+      }
+    ],
+    "consoleErrors": []
+  }
+}

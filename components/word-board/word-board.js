@@ -66,6 +66,7 @@ function LineRow({
       }`}
       style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
       data-line-id={line.id}
+      data-source-line-id={line.sourceId ?? undefined}
       data-line-number={line.number}
       onPointerOver={() => onHover(line.id)}
       onPointerOut={() => onHover(null)}
@@ -228,6 +229,69 @@ function BoardToolsStrip({
   );
 }
 
+function BoardPageNav({
+  canPage,
+  currentPage,
+  pageCount,
+  showRefollowButton,
+  onPreviousPage,
+  onRefollow,
+  onNextPage,
+}) {
+  return (
+    <div className="board-page-nav" aria-label="Word board page controls">
+      <button
+        className="board-page-button"
+        type="button"
+        data-board-page="prev"
+        aria-label={`Previous word page (${currentPage + 1} of ${pageCount})`}
+        disabled={!canPage}
+        onClick={onPreviousPage}
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="m15 6-6 6 6 6"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.4"
+          />
+        </svg>
+      </button>
+      {showRefollowButton ? (
+        <button
+          className="board-page-refollow-button"
+          type="button"
+          aria-label="Re-follow current audio line"
+          onClick={onRefollow}
+        >
+          Re-follow
+        </button>
+      ) : null}
+      <button
+        className="board-page-button"
+        type="button"
+        data-board-page="next"
+        aria-label={`Next word page (${currentPage + 1} of ${pageCount})`}
+        disabled={!canPage}
+        onClick={onNextPage}
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="m9 6 6 6-6 6"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.4"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export function WordBoard({
   lines,
   selectedWordId,
@@ -249,9 +313,14 @@ export function WordBoard({
     getWordRows,
     getLineMinHeight,
     visibleLines,
+    isPagedMode,
+    currentPage,
+    pageCount,
+    canPage,
     hoveredLineId,
     setHoveredLineId,
     activeDisplayLineId,
+    activeSourceLineId,
     canFollowAudio,
     followAudioEnabled,
     followScrollPaused,
@@ -265,6 +334,8 @@ export function WordBoard({
     toggleRoman,
     toggleFollowAudio,
     handleRefollow,
+    goToPreviousPage,
+    goToNextPage,
     handleStageScroll,
   } = board;
 
@@ -330,6 +401,27 @@ export function WordBoard({
       setInternalSelectedId(nextId);
     }
   };
+  const clearSelection = () => {
+    if (controlled) {
+      onSelectWord(null);
+    } else {
+      setInternalSelectedId(null);
+    }
+  };
+  const handlePreviousPage = () => {
+    if (!canPage) {
+      return;
+    }
+    clearSelection();
+    goToPreviousPage();
+  };
+  const handleNextPage = () => {
+    if (!canPage) {
+      return;
+    }
+    clearSelection();
+    goToNextPage();
+  };
   const boardToolsStrip = (
     <BoardToolsStrip
       className="pager-strip"
@@ -372,7 +464,9 @@ export function WordBoard({
           scale-sensitive lyric rows stay hidden until the client measurement
           pass lands, so the first visible words already have their final size. */}
       <section
-        className={`prototype-shell version-sketch is-scroll-mode${
+        className={`prototype-shell version-sketch ${
+          isPagedMode ? "is-page-mode" : "is-scroll-mode"
+        }${
           showRoman ? " show-inline-roman" : ""
         }`}
         aria-busy={!ready}
@@ -385,7 +479,7 @@ export function WordBoard({
             ref={stageRef}
             onScroll={handleStageScroll}
           >
-            {showRefollowButton ? (
+            {showRefollowButton && !isPagedMode ? (
               <button
                 className="refollow-button"
                 type="button"
@@ -406,7 +500,11 @@ export function WordBoard({
                   selectedWordId={activeSelectedId}
                   selectedLineId={selectedLineId}
                   hovered={hoveredLineId === line.id}
-                  followActive={activeDisplayLineId === line.id}
+                  followActive={
+                    activeSourceLineId
+                      ? line.sourceId === activeSourceLineId
+                      : activeDisplayLineId === line.id
+                  }
                   getTileWidth={getTileWidth}
                   getWordRows={getWordRows}
                   getLineMinHeight={getLineMinHeight}
@@ -417,6 +515,15 @@ export function WordBoard({
               ))}
             </div>
           </div>
+          <BoardPageNav
+            canPage={canPage}
+            currentPage={currentPage}
+            pageCount={pageCount}
+            showRefollowButton={isPagedMode && showRefollowButton}
+            onPreviousPage={handlePreviousPage}
+            onRefollow={handleRefollow}
+            onNextPage={handleNextPage}
+          />
           {boardToolsStrip}
         </div>
       </section>

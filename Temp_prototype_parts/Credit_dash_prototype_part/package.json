@@ -1,0 +1,37 @@
+{
+  "name": "credit-dashboard-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "db:repair": "node scripts/db-repair.mjs",
+    "db:smoke": "node scripts/db-smoke.mjs",
+    "ledger:repair": "node scripts/ledger-repair.mjs",
+    "payment:audit": "node scripts/payment-audit.mjs",
+    "r2:reconcile-cards": "node scripts/r2-reconcile-cards.mjs",
+    "r2:smoke": "node scripts/r2-smoke.mjs",
+    "sumup:smoke": "node scripts/sumup-smoke.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1080.0",
+    "mongoose": "^9.7.3",
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "^16.0.0",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
+    "vitest": "^3.0.0"
+  }
+}
