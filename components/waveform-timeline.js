@@ -183,6 +183,7 @@ export function WaveformTimeline({
   audioSrc,
   cachedWaveformPeaks = null,
   currentTime,
+  lyricSeekTime = null,
   isAudioRestoring = false,
   isPlaying,
   isTimingActive,
@@ -536,22 +537,26 @@ export function WaveformTimeline({
 
     const nextTime = clampTimeToSection(currentTime, audio);
 
+    const isLyricSeek = lyricSeekTime !== null && lyricSeekTime === currentTime;
+
     // Only push EXTERNAL/programmatic `currentTime` changes into the engine; an
     // engine time echoed back through the parent is left alone so it can't fight
     // live playback. See lib/waveform-sync for the full rationale.
     if (
+      isLyricSeek ||
       shouldSeekEngineToCurrentTime({
         currentTime,
         engineTime: waveSurfer.getCurrentTime(),
         audio,
         emittedTimes: emittedTimesRef.current,
+        force: isLyricSeek,
       })
     ) {
       waveSurfer.setTime(nextTime);
     }
 
     lastClockFrameRef.current = getClockFrame(nextTime);
-  }, [audio, currentTime, status]);
+  }, [audio, currentTime, status, lyricSeekTime]);
 
   // Apply the playback rate to the engine. preservePitch keeps 0.5× from dropping an
   // octave. The rAF clock reads the engine's own time, so half-rate playback needs no

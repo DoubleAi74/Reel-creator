@@ -479,16 +479,6 @@ export function WordBoard({
             ref={stageRef}
             onScroll={handleStageScroll}
           >
-            {showRefollowButton && !isPagedMode ? (
-              <button
-                className="refollow-button"
-                type="button"
-                aria-label="Re-follow current audio line"
-                onClick={handleRefollow}
-              >
-                re-follow
-              </button>
-            ) : null}
             <div
               className="line-stack"
               style={ready ? undefined : { visibility: "hidden" }}
@@ -515,6 +505,16 @@ export function WordBoard({
               ))}
             </div>
           </div>
+          {showRefollowButton && !isPagedMode ? (
+            <button
+              className="refollow-button"
+              type="button"
+              aria-label="Re-follow current audio line"
+              onClick={handleRefollow}
+            >
+              re-follow
+            </button>
+          ) : null}
           <BoardPageNav
             canPage={canPage}
             currentPage={currentPage}

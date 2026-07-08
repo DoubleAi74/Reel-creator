@@ -458,6 +458,8 @@
   padding: clamp(14px, 2.4vw, 28px) clamp(14px, 2.4vw, 28px)
     clamp(34px, 4vw, 46px);
   box-shadow: 0 18px 0 #ded6c9;
+  --stage-pad-y: clamp(12px, 2vw, 26px);
+  --stage-pad-x: clamp(12px, 2vw, 26px);
 }
 .version-sketch .stage {
   --stage-pad-y: clamp(12px, 2vw, 26px);
@@ -691,6 +693,8 @@
     border-width: 2px;
     border-radius: 8px;
     box-shadow: 0 8px 0 #ded6c9;
+    --stage-pad-y: 8px;
+    --stage-pad-x: 6px;
   }
   .version-sketch .stage {
     --stage-pad-y: 8px;
@@ -1124,6 +1128,8 @@
     border-radius: 11px;
     background: #fffaf1;
     box-shadow: 0 12px 0 #ded6c9;
+    --stage-pad-y: max(10px, calc(13px * var(--board-scale)));
+    --stage-pad-x: max(18px, calc(25px * var(--board-scale)));
   }
   .version-sketch .stage {
     --stage-pad-y: max(10px, calc(13px * var(--board-scale)));
@@ -1428,6 +1434,8 @@
   .version-sketch .board-frame {
     gap: 8px;
     padding: 16px 16px 14px;
+    --stage-pad-y: 8px;
+    --stage-pad-x: 10px;
   }
   .version-sketch .stage {
     --stage-pad-y: 8px;
@@ -1534,6 +1542,8 @@
     padding: max(22px, calc(var(--stage-h) * 40 / 922))
       max(30px, calc(var(--stage-h) * 47 / 922))
       max(16px, calc(var(--stage-h) * 24 / 922));
+    --stage-pad-y: max(10px, calc(var(--stage-h) * 13 / 922));
+    --stage-pad-x: max(18px, calc(var(--stage-h) * 25 / 922));
   }
   .wb-slot .version-sketch .stage {
     --stage-pad-y: max(10px, calc(var(--stage-h) * 13 / 922));
@@ -1624,7 +1634,7 @@
   position: absolute;
   right: calc(var(--stage-pad-x, 12px) + 8px);
   top: calc(var(--stage-pad-y, 12px) + 8px);
-  z-index: 5;
+  z-index: 20;
   border: 1px solid rgba(39, 35, 29, 0.24);
   border-radius: 999px;
   background: rgba(255, 250, 241, 0.94);

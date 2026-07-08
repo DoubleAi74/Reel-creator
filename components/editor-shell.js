@@ -545,7 +545,18 @@ export function EditorShell({ debugProbe = null, project }) {
   const [currentAudioTime, setCurrentAudioTime] = useState(
     getInitialTransportTime(project),
   );
+  const [lyricSeekTime, setLyricSeekTime] = useState(null);
   const [isTransportPlaying, setIsTransportPlaying] = useState(false);
+
+  // Clear the pending lyric seek signal shortly after it's consumed by the waveform.
+  // This prevents it from accidentally forcing seeks on future playback updates
+  // that happen to land on the same time value.
+  useEffect(() => {
+    if (lyricSeekTime !== null) {
+      const id = setTimeout(() => setLyricSeekTime(null), 0);
+      return () => clearTimeout(id);
+    }
+  }, [lyricSeekTime]);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState("");
   const [jsonImportError, setJsonImportError] = useState("");
@@ -1316,6 +1327,15 @@ export function EditorShell({ debugProbe = null, project }) {
     startTransition(() => {
       setSelectedTimingLineId(nextLineId);
     });
+
+    // Also move the playhead to the next line if it already has a time
+    // (consistent with explicit lyric selection in the tab).
+    const nextLine = projectState.lines.find((l) => l.id === nextLineId);
+    if (nextLine && Number.isFinite(nextLine.start)) {
+      const t = clampTimeToSection(nextLine.start, projectState.audio);
+      setCurrentAudioTime(t);
+      setLyricSeekTime(t);
+    }
   };
 
   const runDebugMarkCurrentLine = () => {
@@ -1660,7 +1680,9 @@ export function EditorShell({ debugProbe = null, project }) {
 
     // Only seek to the line's start time when selecting (not when deselecting)
     if (!isDeselect && Number.isFinite(line.start)) {
-      setCurrentAudioTime(clampTimeToSection(line.start, projectState.audio));
+      const targetTime = clampTimeToSection(line.start, projectState.audio);
+      setCurrentAudioTime(targetTime);
+      setLyricSeekTime(targetTime);
     }
   };
 
@@ -3976,6 +3998,7 @@ export function EditorShell({ debugProbe = null, project }) {
           <WaveformTimeline
             activeLineId={activeTimingLineId}
             audio={projectState.audio}
+            lyricSeekTime={lyricSeekTime}
             audioAssetDurationSec={
               audioUpload.asset?.durationSec ?? projectState.audio.duration
             }

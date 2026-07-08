@@ -738,6 +738,17 @@ textarea:focus-visible {
     box-shadow: none;
   }
 
+  .wb-slot .version-sketch .refollow-button {
+    border: 1px solid #2c2924;
+    background: #fffaf1;
+    color: #2c2924;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: 760;
+    top: calc(var(--stage-pad-y, 12px) + 8px);
+    right: calc(var(--stage-pad-x, 12px) + 8px);
+  }
+
   .board-page-button svg {
     width: 15px;
     height: 15px;

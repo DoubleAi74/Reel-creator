@@ -22,7 +22,14 @@ This bank is intended to be handed to a fresh agent together with later Plan and
 
 **Out of scope for this bank**: Detailed user account/auth model (deferred per user direction; current plan uses public/shared access + later "shared password for generations"), full Phase 1 YT details (covered in the sibling bank), mobile UI pixel work (already in progress on main branch), exact pricing tables for OpenAI models.
 
-**Deferred decisions (per user)**: Core auth/tenancy model, whether balance is strictly per-user or remains shared initially, exact cost-calculation method (raw tokens vs. published pricing), when to move from ephemeral assets to R2 for all MP3s.
+**Deferred decisions (per user)**: 
+- Core auth/tenancy/ownership model (currently everything is public and anonymous per browser session).
+- Whether balance will be strictly per-user, shared, or use a "shared password for generations".
+- Exact cost-calculation method (raw token counts + pricing table vs. other).
+- Precise timing of moving from ephemeral session assets to durable R2/Mongo for MP3s and lyric snapshots.
+- Authorization rules for the public generation dashboard.
+
+References to user accounts, authentication, public access, shared generation passwords, ownership, and authorization are deliberately left open and must be resolved in the planning stage.
 
 **Date of research**: 2026-07-08 (based on current codebase state on `mockup-integration-mobile`).
 
@@ -57,7 +64,9 @@ Important models and calls (from `openai-lyrics.js`):
 - Many calls go through `fetchOpenAiWithRetry` (handles retries, timeouts, `OPENAI_MAX_ATTEMPTS`, `OPENAI_REQUEST_TIMEOUT_MS`).
 - Environment-configurable models and limits (e.g. `OPENAI_QA_AUDIT_MODEL`, `OPENAI_TRANSCRIPTION_CHUNK_SECONDS`, hallucination thresholds).
 
-Current responses are processed for text/timings/quality. **No usage or cost data is captured today.** OpenAI responses for chat/completions-style and some audio endpoints commonly include a `usage` object (`prompt_tokens`, `completion_tokens`, `total_tokens`). Whisper transcription responses also return usage in some cases.
+Current responses are processed for text/timings/quality. **No usage or cost data is captured today.** 
+
+For the Responses / chat-style calls (enrichment, polishing, quality audit, line breaks), the parsed JSON response body typically contains a `usage` object with `prompt_tokens`, `completion_tokens`, and `total_tokens`. Audio transcription endpoints (content + Whisper) may surface usage differently or not at all in the primary response; any cost recording will require inspecting the actual response shape per endpoint and model (or using official pricing + token counts).
 
 The staged pipeline is defined in `lib/staged-lyrics.js`:
 - `LYRIC_PIPELINE_PHASES = ["transcribe", "enrich", "time"]`
@@ -108,6 +117,7 @@ The prototype dashboard is a completely separate small app; merging will require
 
 - Project model (`lib/project.js`) — will need to support linking a project/generation to a "card" or Mongo document.
 - Export flow (`lib/export-flow.js`) and readiness checks — potential future gating by balance.
+- **No persistent database today**: The main app has no MongoDB, no R2, and no durable storage for generations or assets beyond per-session temp files (see `lib/files.js`) + localStorage autosave + in-memory job stores. All Phase 2 Mongo + R2 work (and any generation tracking) will be entirely new.
 - No existing references to SumUp, balances, Mongo, or R2 in runtime code (only planning docs).
 
 ---
@@ -147,13 +157,13 @@ isValidTopUpMinor(...)
 
 ### 2.3 Data Models (Mongoose, `lib/models/`)
 
-- **Balance.mjs**: singleton `_id: "shared"`, `amountMinor` (integer >=0), currency "GBP", updatedAt.
-- **Card.mjs**: `_id`, title, number, colour, `r2ObjectKey`, `r2Status`, `r2AttemptCount`, `deletedAt`.
-- **CreditLedger.mjs**: append-only. Types: `["TOP_UP", "CARD_CREATE", "REFUND_ADJUSTMENT", "MANUAL_ADJUSTMENT"]`. Fields: type, amountMinor (non-zero), balanceAfterMinor, related ids, idempotencyKey, reason, createdAt.
-- **PaymentOrder.mjs**: statuses `["PAYMENT_PENDING", "PAID", ...]`, amountMinor, currency, publicReference, sumupCheckoutId, sumupHostedCheckoutUrl, paidAt, etc.
-- Others: RefundRecord, WebhookEvent.
+- **Balance.mjs**: singleton document with `_id: "shared"`, `amountMinor` (integer >=0, validated), `currency: "GBP"`, `updatedAt`.
+- **Card.mjs**: `_id`, title, number, colour, `createdAt`, `r2ObjectKey`, `r2Status` (enum including "pending_create", "created", "pending_delete", "deleted", etc.), `r2AttemptCount`, `deletedAt`, `deleteRequestedAt`, etc.
+- **CreditLedger.mjs**: append-only collection. `CREDIT_LEDGER_TYPES = ["TOP_UP", "CARD_CREATE", "REFUND_ADJUSTMENT", "MANUAL_ADJUSTMENT"]`. Key fields: `type`, `amountMinor` (non-zero integer), `balanceAfterMinor`, `idempotencyKey` (unique index), `reason`, related ids (cardId, paymentOrderId), `createdAt`.
+- **PaymentOrder.mjs**: `status` enum `["PAYMENT_PENDING", "PAID", "PAYMENT_FAILED", ...]`, `amountMinor`, `currency`, `publicReference`, `sumupCheckoutId`, `sumupHostedCheckoutUrl`, `balanceCredited` (boolean, used for atomic claim), `paidAt`, etc.
+- Others: `RefundRecord`, `WebhookEvent`.
 
-Ledger is the source of truth for balance movement.
+The append-only `CreditLedger` (with idempotencyKey) is the authoritative record of all balance changes. Balance documents are updated as a side-effect of ledger entries.
 
 ### 2.4 Ledger & Balance Logic (`lib/ledger/balance-ledger.mjs`)
 
@@ -181,7 +191,7 @@ Ledger is the source of truth for balance movement.
 
 - `GET /state` — returns current balance + non-deleted cards.
 - `POST /cards` — create random card.
-- `DELETE /cards/[id]` — remove (triggers R2 soft-delete path).
+- `DELETE /cards/[id]` — marks deletedAt + (if applicable) pending_delete, invokes deleteCardPlaceholderObject (removes R2 object and updates status), then performs hard Mongo delete (only after successful R2 removal).
 - `POST /fire` — atomic fire (ledger + card create in transaction). Returns new balance + card.
 - `POST /balance` — dev-only set balance (gated).
 
@@ -192,17 +202,17 @@ Many routes call `connectToDatabase()` + `ensureSharedBalance()`.
 **Checkout creation**:
 - Client sends desired amount.
 - Server validates bounds (`isValidTopUpMinor`).
-- `createPendingPaymentOrder` (or reuses recent pending for same amount via `findReusablePendingPaymentOrder`).
+- `createPendingPaymentOrder` (or reuses recent pending for same amount via `findReusablePendingPaymentOrder` — protects against double-click).
 - Calls SumUp `createHostedCheckout`.
-- Stores `sumupCheckoutId` + hosted URL on the order.
-- Returns `{ orderId, checkoutUrl }` → browser redirect.
+- Stores `sumupCheckoutId` + `sumupHostedCheckoutUrl` on the order.
+- Returns `{ orderId: publicReference, checkoutUrl }` → browser redirect (via `onCheckoutRedirect`).
 
 **Fulfilment (exactly-once)**:
-- **Webhook** (`POST /api/webhooks/sumup`): quick ack, stores raw event, then calls verification.
+- **Webhook** (`POST /api/webhooks/sumup`): quick ack, stores raw event (WebhookEvent), then calls verification.
 - **Return page** (`/payment/return?order=...`): shows "Confirming...", polls `/api/payments/sumup/orders/[orderId]`.
-- Verification (`payment-verification.mjs`): always re-fetches checkout from SumUp via `retrieveCheckout`.
-- Only on `PAID` + matching amount + not already credited → `applyLedgeredBalanceChange` with type `TOP_UP` + idempotency key.
-- Duplicate protection via ledger + order status.
+- Verification (`payment-verification.mjs`): always re-fetches checkout from SumUp via `retrieveCheckout`. Uses `balanceCredited: false` atomic update on PaymentOrder + ledger idempotencyKey (`top_up:${orderId}`) to ensure credit happens at most once.
+- Only on verified `PAID` + matching amount + not already credited → `applyLedgeredBalanceChange` with type `TOP_UP`.
+- Duplicate protection via ledger unique index on idempotencyKey + order status checks.
 
 Key modules:
 - `sumup-client.mjs` — Zod schemas for checkout, `createHostedCheckout`, `retrieveCheckout`, error class.
@@ -218,7 +228,7 @@ Key modules:
 - Reconcile script: `scripts/r2-reconcile-cards.mjs`.
 - Controlled by `r2-env.mjs` (credentials, bucket).
 
-On fire: card is created in Mongo with `r2Status: "pending_create"`, then R2 object is written.
+On fire (inside transaction): Card document is created with `r2ObjectKey` and `r2Status: "pending_create"`. The actual R2 object write (`createCardPlaceholderObject`) happens after the transaction succeeds.
 
 ### 2.9 Database & Bootstrap (`lib/db/`)
 
@@ -251,7 +261,7 @@ Routes/pages under `app/api/admin/` and `app/admin/` for orders, webhooks, audit
 - Wrap or extend `fetchOpenAiWithRetry` (or the low-level fetch to OpenAI endpoints in `openai-lyrics.js`) to capture `response.usage` (or headers where available) after every successful call.
 - Compute or look up cost in pence using model + token counts.
 - After a successful phase (or full job), call the equivalent of `applyLedgeredBalanceChange` (type something like `AI_TRANSCRIBE`, `AI_ENRICH`, etc.) with a strong idempotency key (e.g. based on jobId + phase + attempt).
-- Use Mongo transactions where the lyric result and ledger entry must be atomic.
+- Use MongoDB transactions (Mongoose `withTransaction` + session, as the prototype does for fire and verification) where a successful lyric phase result and the corresponding ledger debit must be atomic.
 - Block or warn the lyric pipeline when balance is too low (similar to fire button).
 
 The prototype's ledger + idempotency patterns are directly reusable.
