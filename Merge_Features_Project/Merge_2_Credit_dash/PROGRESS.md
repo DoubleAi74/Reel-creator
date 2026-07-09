@@ -1,10 +1,10 @@
 # Credit Dashboard Merge — Phase 2 Progress Tracker
 
 **Mirrors**: `IMPLEMENTATION_PLAN.md` v3 (2026-07-09). Read that + `PLAN_VERIFICATION.md` first.
-**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 6 Validated.
-**Current stage**: Stage 7 — Public dashboard + editor chrome (next).
-**Last verified checkpoint**: Stage 6 validated on 2026-07-09: SumUp env/client/order/verification libraries, checkout/order/webhook routes, and return polling page landed; webhook and return paths re-query SumUp and credit exactly once.
-**Next action**: Stage 7 — build public dashboard/read APIs and flagged editor chrome for balance/top-up/save/unlock/dashboard entry.
+**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 7 Validated.
+**Current stage**: Stage 8 — Enablement, scripts, hardening (next).
+**Last verified checkpoint**: Stage 7 validated on 2026-07-09: public dashboard/read APIs and flagged editor chrome landed; dashboard serializers leak no internal billing/R2 ids.
+**Next action**: Stage 8 — env/docs/scripts, staging-style smoke coverage, disabled parity, and final hardening.
 **Blockers**: None.
 
 Status legend: `Not started` / `In progress` / `Implemented, not validated` / `Validated` / `Blocked` / `Deferred` / `Superseded`.
@@ -204,10 +204,24 @@ Stage 6 validation/results (2026-07-09):
 - Direct library import smoke: `node --loader ./scripts/extensionless-loader.mjs --input-type=module` imported all payment libraries: passed (expected experimental-loader/typeless-package warnings only).
 - Whitespace: Stage 6 file trailing-whitespace scan passed.
 
-### Stage 7 — Public dashboard + editor chrome — `Not started`
-- [ ] `app/dashboard/page.js` + `components/DashboardView.jsx` (responsive; `serializePublicCard`). — Validate: mobile sheet/transport + tokens.
-- [ ] `app/api/dashboard/state/route.js` + `generations/[id]/route.js`. — Validate: lists saved gens; **leak test** (no internal ids); open-in-editor payload.
-- [ ] Editor chrome in `components/editor-shell.js` (balance, top-up, save toggle, unlock, dashboard link) — additive + flagged. — Validate: disabled flag hides all.
+### Stage 7 — Public dashboard + editor chrome — `Validated`
+- [x] `app/dashboard/page.js` + `components/DashboardView.jsx` (responsive; `serializePublicCard`). — Validate: mobile sheet/transport + tokens.
+- [x] `app/api/dashboard/state/route.js` + `generations/[id]/route.js`. — Validate: lists saved gens; **leak test** (no internal ids); open-in-editor payload.
+- [x] Editor chrome in `components/editor-shell.js` (balance, top-up, save toggle, unlock, dashboard link) — additive + flagged. — Validate: disabled flag hides all.
+
+Stage 7 implementation notes (2026-07-09):
+- Added public `/dashboard` page and `DashboardView` client surface. It fetches `/api/dashboard/state`, shows saved public generations, embeds playable audio via `/api/media/generations/{id}`, and links back to `/?generation={id}` for editor opening.
+- Added read-only dashboard APIs: `/api/dashboard/state` returns only `serializePublicCard` projections; `/api/dashboard/generations/[id]` returns the editor snapshot payload for saved public generations.
+- Added dashboard open-in-editor support in `app/page.js` + `EditorShell`: `/?generation={id}` fetches the saved snapshot, imports it through `importProjectValue`, points playback at `/api/media/generations/{id}`, and leaves export/regeneration gated by normal session asset requirements.
+- Added flagged editor credit chrome. `/api/credits/balance` controls visibility; when disabled, the chrome returns null. When enabled it shows balance, dashboard link, save toggle, generation unlock form, and SumUp top-up entry. The save toggle feeds the existing `save` flag in every selected phase request.
+
+Stage 7 validation/results (2026-07-09):
+- Dashboard API suite: `npx vitest run app/api/dashboard/state/route.test.js 'app/api/dashboard/generations/[id]/route.test.js'` passed (`Test Files 2 passed`, `Tests 3 passed`).
+- Combined Phase 2 regression through Stage 7: `npx vitest run lib/money.test.js lib/ledger/balance-ledger.test.js lib/ai/openai-pricing.test.js lib/ai/openai-usage.test.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.test.js lib/credits/credit-service.test.js lib/credits/rate-limit.test.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.test.js app/api/ai/transcribe/route.test.js lib/credits/unlock-cookie.test.js app/api/credits/unlock/route.test.js app/api/credits/balance/route.test.js lib/files-source-type.test.js lib/r2/r2-client.test.js lib/r2/audio-r2-lifecycle.test.js lib/generations/persist-generation.test.js 'app/api/media/generations/[id]/route.test.js' lib/payments/sumup-env.test.js lib/payments/sumup-client.test.js lib/payments/payment-urls.test.js lib/payments/payment-verification.test.js app/api/credits/checkout/route.test.js 'app/api/credits/orders/[orderId]/route.test.js' app/api/webhooks/sumup/route.test.js app/api/dashboard/state/route.test.js 'app/api/dashboard/generations/[id]/route.test.js'` passed (`Test Files 35 passed`, `Tests 158 passed`).
+- Leak coverage: dashboard state excludes `pipelineRunId`, ledger keys, R2 object keys, and job ids; editor payload returns only `{id,title,snapshot}`.
+- Lint: touched Stage 7 files passed `npx eslint`.
+- Direct library import smoke: `serialize-generation` imported with the repo's extensionless loader: passed (expected experimental-loader/typeless-package warnings only).
+- Whitespace: Stage 7 file trailing-whitespace scan passed.
 
 ### Stage 8 — Enablement, scripts, hardening — `Not started`
 - [ ] Port scripts (reconcile→generations, audit, smoke, ledger-repair). — Validate: run clean.

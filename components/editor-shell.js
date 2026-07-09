@@ -3,6 +3,7 @@
 import { startTransition, useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { EditorProvider } from "@/components/editor-context";
+import { CreditChrome } from "@/components/credit-chrome";
 import { useEditorState } from "@/components/editor-state";
 import { EditorHeader } from "@/components/editor-header";
 import { EditorModals } from "@/components/editor-modals";
@@ -24,6 +25,7 @@ import {
   importProjectJson,
   importProjectValue,
 } from "@/lib/project";
+import { parseGbpInputToMinor } from "@/lib/money";
 import {
   AUTOSAVE_STORAGE_KEY,
   decodeAutosave,
@@ -198,6 +200,20 @@ async function verifyAssetExists(assetId) {
   } catch {
     return false;
   }
+}
+
+async function fetchCreditBalancePayload() {
+  const response = await fetch("/api/credits/balance", {
+    cache: "no-store",
+    credentials: "same-origin",
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error ?? "Credit balance is unavailable.");
+  }
+
+  return payload;
 }
 
 function createBackgroundUploadEntry(kind, assetName = null) {
@@ -529,7 +545,7 @@ function getLineNumber(lines = [], lineId) {
   return index === -1 ? null : index + 1;
 }
 
-export function EditorShell({ debugProbe = null, project }) {
+export function EditorShell({ debugProbe = null, openGenerationId = "", project }) {
   const [activeSection, setActiveSection] = useState("audio");
   const previousActiveSectionRef = useRef(activeSection);
   const [audioUpload, setAudioUpload] = useState({
@@ -585,6 +601,18 @@ export function EditorShell({ debugProbe = null, project }) {
   const [autoTimingState, setAutoTimingState] = useState(
     createIdleAutoTimingState,
   );
+  const [creditState, setCreditState] = useState({
+    balanceMinor: 0,
+    enabled: false,
+    status: "idle",
+  });
+  const [saveGeneration, setSaveGeneration] = useState(true);
+  const [unlockPassword, setUnlockPassword] = useState("");
+  const [unlockStatus, setUnlockStatus] = useState("idle");
+  const [unlockMessage, setUnlockMessage] = useState("");
+  const [topUpAmount, setTopUpAmount] = useState("5.00");
+  const [topUpStatus, setTopUpStatus] = useState("idle");
+  const [topUpMessage, setTopUpMessage] = useState("");
   // Pointer to the background transcription/timing job that the poll effect
   // drives: { jobId, phase: "full" | "transcribe" | "enrich" | "time",
   // status: "running" | "done" | "error", appliedJobId }. Survives
@@ -751,6 +779,114 @@ export function EditorShell({ debugProbe = null, project }) {
   useEffect(() => {
     projectStateRef.current = projectState;
   }, [projectState]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setCreditState((currentState) => ({
+      ...currentState,
+      status: "loading",
+    }));
+    fetchCreditBalancePayload()
+      .then((payload) => {
+        if (cancelled) {
+          return;
+        }
+
+        setCreditState({
+          balanceMinor: Number.isInteger(payload.balanceMinor)
+            ? payload.balanceMinor
+            : 0,
+          currency: payload.currency ?? "GBP",
+          enabled: payload.enabled === true,
+          status: "ready",
+        });
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setCreditState({
+          balanceMinor: 0,
+          enabled: false,
+          status: "error",
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  useEffect(() => {
+    if (!openGenerationId) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    fetch(`/api/dashboard/generations/${encodeURIComponent(openGenerationId)}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? "Saved generation could not be opened.");
+        }
+
+        return payload.generation;
+      })
+      .then((generation) => {
+        if (cancelled || !generation?.snapshot) {
+          return;
+        }
+
+        const importedProject = importProjectValue(
+          generation.snapshot.project ?? generation.snapshot,
+        );
+
+        setProjectState(importedProject);
+        projectStateRef.current = importedProject;
+        setBackgroundUpload(createBackgroundUploadState(importedProject.background));
+        setAudioUpload({
+          asset: {
+            assetId: "",
+            durationSec: importedProject.audio.duration,
+            name: importedProject.audio.name || generation.title,
+          },
+          message: `${generation.title || "Saved generation"} opened from dashboard.`,
+          status: "success",
+        });
+        setAudioObjectUrl(`/api/media/generations/${encodeURIComponent(generation.id)}`);
+        setCurrentAudioTime(importedProject.audio.startOffset ?? 0);
+        setSelectedTimingLineId(null);
+        setTimingDrafts({});
+        setTranscription(null);
+        setJsonNotice({
+          message: `${generation.title || "Saved generation"} opened.`,
+          status: "success",
+        });
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        setJsonNotice({
+          message:
+            error instanceof Error
+              ? error.message
+              : "Saved generation could not be opened.",
+          status: "error",
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [openGenerationId]);
   useEffect(() => {
     editorActions.setLines(projectState.lines);
   }, [editorActions, projectState.lines]);
@@ -2265,6 +2401,88 @@ export function EditorShell({ debugProbe = null, project }) {
     window.setTimeout(() => waiter.resolve(outcome), 0);
   };
 
+  const refreshCreditBalance = async () => {
+    const payload = await fetchCreditBalancePayload();
+
+    setCreditState({
+      balanceMinor: Number.isInteger(payload.balanceMinor) ? payload.balanceMinor : 0,
+      currency: payload.currency ?? "GBP",
+      enabled: payload.enabled === true,
+      status: "ready",
+    });
+  };
+
+  const handleUnlockSubmit = async (event) => {
+    event.preventDefault();
+
+    setUnlockStatus("submitting");
+    setUnlockMessage("");
+
+    try {
+      const response = await fetch("/api/credits/unlock", {
+        body: JSON.stringify({ password: unlockPassword }),
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unlock failed.");
+      }
+
+      setUnlockPassword("");
+      setUnlockMessage("Generation unlocked.");
+      setUnlockStatus("success");
+    } catch (error) {
+      setUnlockStatus("error");
+      setUnlockMessage(
+        error instanceof Error ? error.message : "Unlock failed.",
+      );
+    }
+  };
+
+  const handleTopUpSubmit = async (event) => {
+    event.preventDefault();
+
+    const amountMinor = parseGbpInputToMinor(topUpAmount);
+
+    if (amountMinor == null) {
+      setTopUpStatus("error");
+      setTopUpMessage("Enter an amount like 5.00.");
+      return;
+    }
+
+    setTopUpStatus("submitting");
+    setTopUpMessage("");
+
+    try {
+      const response = await fetch("/api/credits/checkout", {
+        body: JSON.stringify({ amountMinor }),
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || !payload.checkoutUrl) {
+        throw new Error(payload.error ?? "Checkout could not be started.");
+      }
+
+      window.location.href = payload.checkoutUrl;
+    } catch (error) {
+      setTopUpStatus("error");
+      setTopUpMessage(
+        error instanceof Error ? error.message : "Checkout could not be started.",
+      );
+      await refreshCreditBalance().catch(() => {});
+    }
+  };
+
   // Apply a completed auto-lyrics result by replacing all lines with the
   // transcription output. An effect event so the poll loop and mount recovery
   // can both invoke it against the latest editor state.
@@ -2479,7 +2697,7 @@ export function EditorShell({ debugProbe = null, project }) {
           otherLanguage: otherSourceLanguage.trim(),
           phase,
           pipelineRunId,
-          save: true,
+          save: saveGeneration,
           saveOnCompletion: phase === finalPhase,
           sourceLanguage,
         });
@@ -2811,6 +3029,7 @@ export function EditorShell({ debugProbe = null, project }) {
       });
     }
   };
+
 
   useEffect(() => {
     // Only object URLs created from an uploaded File need revoking. Restored
@@ -3874,6 +4093,28 @@ export function EditorShell({ debugProbe = null, project }) {
           title={projectState.meta.title}
         />
 
+        <CreditChrome
+          balanceMinor={creditState.balanceMinor}
+          enabled={creditState.enabled}
+          onSaveGenerationChange={setSaveGeneration}
+          onTopUpAmountChange={setTopUpAmount}
+          onTopUpSubmit={(event) => {
+            void handleTopUpSubmit(event);
+          }}
+          onUnlockPasswordChange={setUnlockPassword}
+          onUnlockSubmit={(event) => {
+            void handleUnlockSubmit(event);
+          }}
+          saveGeneration={saveGeneration}
+          status={creditState.status}
+          topUpAmount={topUpAmount}
+          topUpMessage={topUpMessage}
+          topUpStatus={topUpStatus}
+          unlockMessage={unlockMessage}
+          unlockPassword={unlockPassword}
+          unlockStatus={unlockStatus}
+        />
+
         {!sectionWithinLimit || showGlobalJsonNotice ? (
         <div className="layout-notices absolute inset-x-3 top-[4.25rem] z-30 space-y-2 lg:static lg:inset-auto lg:space-y-3">
           {!sectionWithinLimit ? (
@@ -4106,6 +4347,7 @@ export function EditorShell({ debugProbe = null, project }) {
           statusNote: exportState.statusNote,
         }}
       />
+
     </div>
     </EditorProvider>
   );
