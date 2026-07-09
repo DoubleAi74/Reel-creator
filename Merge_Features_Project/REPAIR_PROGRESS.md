@@ -10,11 +10,12 @@
 
 ## Programme Status
 
-- **Current status:** Stage 2 in progress — **REP-201 Validated** (flagged at stage gate for review before advancing to REP-202).
+- **Current status:** Stage 2 in progress — **REP-201 Validated** (incl. REP-201a); next **REP-202**.
 - **Definitive inventory:** **26 repairs — 3 High · 6 Medium · 15 Low · 1 Verify (REP-303) · 1 Gate (REP-805)** (see REPAIR_PLAN §3.1). Corrects the earlier prose drift (correct = 6 Medium, 15 Low).
-- **Current repair ID:** REP-201 (Validated — awaiting owner stage-gate review / DV-1 acknowledgement before REP-202).
-- **Last validated checkpoint:** Post-REP-201 — `npm test` 53 files / **340** tests passed; `npm run lint` exit 0; `npm run build` exit 0. Pre-repair baseline was 331 tests.
-- **Next action:** Owner review of REP-201 (DV-1), then **REP-202** (transient-error `unresolved` dry-run re-settle script).
+- **Current repair ID:** REP-202 (in progress).
+- **Last validated checkpoint:** Post-REP-201a — `npm test` 53 files / **342** tests passed; `npm run lint` exit 0; `npm run build` exit 0. Pre-repair baseline was 331 tests.
+- **Next action:** Complete **REP-202** (transient-error `unresolved` dry-run re-settle script).
+- **Stage-gate review (2026-07-10):** REP-201 core accepted; REP-201a closed by rejecting `phase:"full"` when credits enabled (staged path only). Note for REP-202/audit: fully written-off clamp phases may have no ledger row — read `UsageRecord.writeOffMinor`.
 - **Blockers:** none on decisions — D-A…D-F all recorded. Standing gate: real-service E2E (not a code defect). **DV-1:** REP-201 supersedes the Phase-2 plan's per-phase reject model; the Phase-2 IMPLEMENTATION_PLAN should be amended by its owner so plan and code agree.
 - **Keep flag off:** `CREDITS_ENABLED=false` throughout until the Final Release-Readiness Gate.
 - **Working branch:** `repair/phase-1-2-programme` off `codex/phase-2-credit-dashboard` @ `d31ebfd`.
@@ -35,8 +36,8 @@
 | Stage | ID | Severity | Status | User approval |
 |---|---|---|---|---|
 | 1 Release blockers | — | — | N/A (none) | — |
-| 2 Financial | REP-201 | High | **Validated** (DV-1; stage-gate review) | recorded |
-| 2 Financial | REP-202 | High | Not started (D-B recorded) | recorded |
+| 2 Financial | REP-201 | High | **Validated** (incl. REP-201a; DV-1) | recorded |
+| 2 Financial | REP-202 | High | In progress (D-B recorded) | recorded |
 | 2 Financial | REP-203 | Low | Not started | no |
 | 2 Financial | REP-204 | Low | Not started | no |
 | 2 Financial | REP-205 | Low | Not started | no |
@@ -72,7 +73,7 @@ No code repairs. The real-service E2E gate is tracked in the Sandbox E2E Checkli
 ## STAGE 2 — Financial & Ledger Correctness
 
 ### REP-201 — Clamp charging to available balance; block-boundary gating; keep the work
-- **Status:** **Validated** (2026-07-09) — **flagged for stage-gate review (DV-1)** before advancing to REP-202
+- **Status:** **Validated** (2026-07-09 core + 2026-07-10 REP-201a)
 - [x] D-A recorded in Decision Log (clamp-to-zero + block-boundary gating)
 - [x] Clamp/floor settlement mode in `lib/ledger/balance-ledger.js` for **AI debits only** (`mode: "clamp"`); top-up/other debits keep default reject; records `writeOffMinor` + `fullCostMinor` on ledger metadata
 - [x] Block-boundary balance gate: gate `transcribe` + `time` + `full` job starts; **exempt** `enrich` (`isBlockBoundaryPhase` / `assertCanStartGeneration` in `credit-service.js`; route still calls gate for all phases — enrich returns `gateExempt`)
@@ -81,6 +82,7 @@ No code repairs. The real-service E2E gate is tracked in the Sandbox E2E Checkli
 - [x] Terminal "balance exhausted / Block B skipped" status: poll fields `balanceExhausted` + `writeOffMinor`; client 402 copy for time skip + post-complete balance-exhausted notice
 - [x] `writeOffMinor` / `chargedMinor` / `fullCostMinor` on `UsageRecord`; ledger metadata `settlementMode:"clamp"`, `fullCostMinor`, `writeOffMinor`
 - [x] Tests: clamp to 0 + write-off + never negative; Block A zeros then enrich settles (write-off) then time start rejects; reject mode still insufficient for non-clamp debits; disabled-flag parity preserved; persistence kept after clamp
+- [x] **REP-201a:** reject `phase:"full"` when `isCreditsEnabled()` in `app/api/ai/transcribe/route.js` (400 `full_phase_disabled`); credits-off `full` unchanged. Tests: credits-on explicit/default `full` rejected (no job); credits-off `full` allowed; staged flow unaffected.
 - **Deviation:** DV-1 — supersedes plan D3/D6/D10 (owner-approved); recommend Phase-2 plan be amended by its owner.
 - **Files changed:**
   - `lib/ledger/balance-ledger.js` — `mode: "clamp"|"reject"` (default reject); clamp replay matching; full write-off with no ledger row when debit=0
@@ -89,12 +91,13 @@ No code repairs. The real-service E2E gate is tracked in the Sandbox E2E Checkli
   - `lib/ai/transcribe-job.js` — clamp settlement surfaces balanceExhausted/writeOff; unresolved = transient only
   - `lib/ai/transcribe-store.js` — job/poll `balanceExhausted`, `writeOffMinor`
   - `components/editor-shell.js` — 402 exhausted copy; poll balance-exhausted notice
+  - `app/api/ai/transcribe/route.js` — REP-201a reject `full` when credits enabled
   - tests: `balance-ledger.test.js`, `credit-service.test.js`, `transcribe-job.test.js`, `transcribe-store.test.js`, `app/api/ai/transcribe/route.test.js`
-- **Tests run / results:** `npm test` → 53 files / **340** passed (was 331); `npm run lint` exit 0; `npm run build` exit 0. Pre-existing dirty docs under `Merge_Features_Project/` left undisturbed.
+- **Tests run / results:** Post-REP-201a `npm test` → 53 files / **342** passed (was 331 baseline / 340 post-core); `npm run lint` exit 0; `npm run build` exit 0.
 - **Deviations / notes:** Zero-debit full write-off creates no ledger row (amountMinor cannot be 0); audit via UsageRecord `writeOffMinor` + settlement return. Concurrent clamp race throws `CLAMP_RACE` for transaction retry (does not reject AI work). Top-up path still uses default reject mode (credits are positive).
 
 ### REP-202 — Remediation tooling for transient-error `unresolved` (dry-run script)
-- **Status:** Not started (D-B recorded; depends REP-201). **Scope narrowed by D-A:** insufficient balance no longer yields `unresolved` (it clamps); tool targets transient settlement/DB-error `unresolved` only.
+- **Status:** In progress (D-B recorded; depends REP-201 Validated). **Scope narrowed by D-A:** insufficient balance no longer yields `unresolved` (it clamps); tool targets transient settlement/DB-error `unresolved` only.
 - [x] D-B recorded (dry-run script; no admin route)
 - [ ] Read-only scanner for transient-error `unresolved` jobs/generations
 - [ ] Idempotent re-settle under `--apply` (reuses `ai_debit:{jobId}:{phase}`) + `MANUAL_ADJUSTMENT` path

@@ -204,6 +204,20 @@ export async function POST(request) {
     );
   }
 
+  // REP-201a: a single "full" job settles only after all OpenAI work, so Block A
+  // exhaustion cannot stop Block B mid-job. When credits are on, require the
+  // staged transcribe → enrich → time flow (already used by the client).
+  if (isCreditsEnabled() && phase === "full") {
+    return NextResponse.json(
+      {
+        error: "full_phase_disabled",
+        message:
+          "When credits are enabled, run staged phases: transcribe, enrich, then time.",
+      },
+      { status: 400 },
+    );
+  }
+
   let sourceLanguage;
 
   try {

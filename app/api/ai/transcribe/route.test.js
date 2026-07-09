@@ -368,4 +368,74 @@ describe("POST /api/ai/transcribe", () => {
     });
     expect(store.createTranscribeJob).toHaveBeenCalledTimes(1);
   });
+
+  it("rejects phase full when credits are enabled (REP-201a)", async () => {
+    creditsEnabled = true;
+    unlockCookieValue = "valid-unlock";
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+    const creditService = await import("@/lib/credits/credit-service");
+    const transcribeJob = await import("@/lib/ai/transcribe-job");
+
+    const explicitFull = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "full",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(explicitFull.status).toBe(400);
+    await expect(explicitFull.json()).resolves.toEqual({
+      error: "full_phase_disabled",
+      message:
+        "When credits are enabled, run staged phases: transcribe, enrich, then time.",
+    });
+
+    // Default / omitted phase normalizes to "full" and is also rejected.
+    transcribeJob.normalizeTranscribePhase.mockReturnValueOnce("full");
+    const defaultFull = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(defaultFull.status).toBe(400);
+    await expect(defaultFull.json()).resolves.toMatchObject({
+      error: "full_phase_disabled",
+    });
+    expect(store.createTranscribeJob).not.toHaveBeenCalled();
+    expect(creditService.assertCanStartGeneration).not.toHaveBeenCalled();
+  });
+
+  it("allows phase full when credits are disabled (REP-201a parity)", async () => {
+    creditsEnabled = false;
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+    const transcribeJob = await import("@/lib/ai/transcribe-job");
+
+    transcribeJob.normalizeTranscribePhase.mockReturnValueOnce("full");
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "full",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ jobId: "job-route" });
+    expect(store.createTranscribeJob).toHaveBeenCalledTimes(1);
+  });
 });
