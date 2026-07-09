@@ -2425,6 +2425,8 @@ export function EditorShell({ debugProbe = null, project }) {
 
     pipelineRunInFlightRef.current = true;
     let runningPhase = null;
+    const pipelineRunId = crypto.randomUUID();
+    const finalPhase = phasesToRun.at(-1);
 
     try {
       for (const phase of phasesToRun) {
@@ -2476,6 +2478,9 @@ export function EditorShell({ debugProbe = null, project }) {
           lines: currentProject.lines,
           otherLanguage: otherSourceLanguage.trim(),
           phase,
+          pipelineRunId,
+          save: true,
+          saveOnCompletion: phase === finalPhase,
           sourceLanguage,
         });
 

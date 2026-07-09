@@ -1,10 +1,10 @@
 # Credit Dashboard Merge — Phase 2 Progress Tracker
 
 **Mirrors**: `IMPLEMENTATION_PLAN.md` v3 (2026-07-09). Read that + `PLAN_VERIFICATION.md` first.
-**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 2 Validated.
-**Current stage**: Stage 3 — Credit service + phase settlement + accounting (next).
-**Last verified checkpoint**: Stage 2 validated on 2026-07-09: pricing/rounding, billing phase mapping, UsageRecord collector, and optional OpenAI usage capture landed with no charging/runtime enablement.
-**Next action**: Stage 3 — add flagged credit service, phase settlement, accounting status, `pipelineRunId`, and final-phase pass-through.
+**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 3 Validated.
+**Current stage**: Stage 4 — Generation-start gating (next).
+**Last verified checkpoint**: Stage 3 validated on 2026-07-09: flagged credit service, phase settlement, accounting status, `pipelineRunId`, and final-phase pass-through landed; disabled behavior remains dormant.
+**Next action**: Stage 4 — add generation unlock cookie, balance endpoint, and flagged start gates (403/429/500/402) while preserving 409 re-adoption behavior.
 **Blockers**: None.
 
 Status legend: `Not started` / `In progress` / `Implemented, not validated` / `Validated` / `Blocked` / `Deferred` / `Superseded`.
@@ -119,10 +119,26 @@ Stage 2 validation/results (2026-07-09):
 - Direct module import smoke: `node --input-type=module` imported `openai-pricing`, `openai-usage`, and `billing-phases`: passed (Node emitted the expected typeless-package ESM warning only).
 - Whitespace: `git diff --check -- lib/ai/openai-pricing.js lib/ai/openai-pricing.test.js lib/ai/openai-usage.js lib/ai/openai-usage.test.js lib/credits/billing-phases.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.js lib/ai/openai-lyrics.test.js Merge_Features_Project/Merge_2_Credit_dash/PROGRESS.md`: passed.
 
-### Stage 3 — Credit service + phase settlement + accounting — `Not started`
-- [ ] `lib/credits/{flags,rate-limit,credit-service}.js` (`assertCanStartGeneration` incl. price precheck; `settlePhase` D3/D4/D10; `recordUsageOnly`). — Validate: unit.
-- [ ] Add `accountingStatus`/`accountingError` to `transcribe-store.js` + poll response. — Validate: statuses surface.
-- [ ] Wire phase boundaries in `transcribe-job.js`; add `pipelineRunId` pass-through and final-phase `saveOnCompletion` handling in route/client. — Files: `lib/ai/transcribe-job.js`, `app/api/ai/transcribe/route.js`, `components/editor-shell.js` — Validate: completed-phases-only; failed `enrich`/`time` does not charge failed phase; earlier completed phases remain debited; retry/re-adopt no double debit; divergence→`unresolved`; multi-phase Run rounds each phase independently; final-phase marker correct.
+### Stage 3 — Credit service + phase settlement + accounting — `Validated`
+- [x] `lib/credits/{flags,rate-limit,credit-service}.js` (`assertCanStartGeneration` incl. price precheck; `settlePhase` D3/D4/D10; `recordUsageOnly`). — Validate: unit.
+- [x] Add `accountingStatus`/`accountingError` to `transcribe-store.js` + poll response. — Validate: statuses surface.
+- [x] Wire phase boundaries in `transcribe-job.js`; add `pipelineRunId` pass-through and final-phase `saveOnCompletion` handling in route/client. — Files: `lib/ai/transcribe-job.js`, `app/api/ai/transcribe/route.js`, `components/editor-shell.js` — Validate: completed-phases-only; failed `enrich`/`time` does not charge failed phase; earlier completed phases remain debited; retry/re-adopt no double debit; divergence→`unresolved`; multi-phase Run rounds each phase independently; final-phase marker correct.
+
+Stage 3 implementation notes (2026-07-09):
+- Added `lib/credits/flags.js`, `lib/credits/rate-limit.js`, and `lib/credits/credit-service.js`. Credit service is dormant when `CREDITS_ENABLED` is false; when enabled it prechecks configured model prices and minimum balance, settles completed phases with `applyLedgeredBalanceChange`, marks `UsageRecord`s charged only after settlement, records failed-phase usage as uncharged audit data, and converts replay divergence to `ACCOUNTING_CONFLICT`.
+- Added `accountingStatus`/`accountingError` to transcribe jobs and poll responses. Jobs default to `none`, become `settled` after successful enabled settlement, and become `unresolved` if settlement fails after AI work completed.
+- `runTranscribeJob` now creates a `UsageCollector` only when credits are enabled, passes it into the OpenAI pipeline, finalizes/settles the completed billing phase, and keeps completed AI output available even when accounting becomes unresolved.
+- `app/api/ai/transcribe/route.js` now accepts/passes `pipelineRunId`, `save` (default true), and `saveOnCompletion`; missing `pipelineRunId` falls back to a server UUID for backward compatibility.
+- The client Run button flow now creates one `pipelineRunId` per selected-phase run and sends `saveOnCompletion:true` only for the final selected phase. Only those two small hunks were staged from `components/editor-shell.js`; pre-existing Phase 1 YouTube editor changes remain unstaged.
+
+Stage 3 validation/results (2026-07-09):
+- Stage 3 suite: `npx vitest run lib/credits/credit-service.test.js lib/credits/rate-limit.test.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.test.js app/api/ai/transcribe/route.test.js` passed (`Test Files 5 passed`, `Tests 19 passed`).
+- Combined Stage 2/3 regression: `npx vitest run lib/ai/openai-pricing.test.js lib/ai/openai-usage.test.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.test.js lib/credits/credit-service.test.js lib/credits/rate-limit.test.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.test.js app/api/ai/transcribe/route.test.js` passed (`Test Files 9 passed`, `Tests 46 passed`).
+- Credit-service coverage: disabled no-op shapes, price precheck, low-balance precheck, exactly-once phase settlement, retry/re-adopt idempotency, replay-divergence conflict, zero-cost phase settlement without a ledger entry, and failed-phase uncharged usage audit.
+- Route/store coverage: accounting status surfaces in poll responses; `pipelineRunId`, `save`, and `saveOnCompletion` pass through create/enqueue/run; final-phase marker is covered at the route boundary and by staged client code review.
+- Lint: touched Stage 3 files passed `npx eslint`.
+- Direct module import smoke: Stage 3 modules imported with the repo's `scripts/extensionless-loader.mjs`; passed (Node emitted expected experimental-loader/typeless-package warnings only).
+- Whitespace: `git diff --check -- lib/credits lib/ai/transcribe-store.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.js lib/ai/transcribe-job.test.js app/api/ai/transcribe components/editor-shell.js Merge_Features_Project/Merge_2_Credit_dash/PROGRESS.md`: passed.
 
 ### Stage 4 — Generation-start gating — `Not started`
 - [ ] `app/api/credits/unlock/route.js` + signed cookie (name/TTL/timing-safe per §5.1). — Validate: correct/incorrect password; cookie TTL.

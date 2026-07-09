@@ -59,6 +59,12 @@ function normalizeLines(lines) {
     .filter((line) => line.original.trim());
 }
 
+function normalizePipelineRunId(value) {
+  return typeof value === "string" && value.trim()
+    ? value.trim()
+    : crypto.randomUUID();
+}
+
 async function resolveSessionIdForAudioAsset(sessionIdFromCookie, audioAssetId) {
   if (sessionIdFromCookie) {
     try {
@@ -171,7 +177,16 @@ export async function POST(request) {
     return respond({ jobId: inFlightJob.jobId }, 409);
   }
 
-  const job = createTranscribeJob({ assetId: audioAssetId, sessionId });
+  const pipelineRunId = normalizePipelineRunId(payload?.pipelineRunId);
+  const save = payload?.save !== false;
+  const saveOnCompletion = payload?.saveOnCompletion === true;
+  const job = createTranscribeJob({
+    assetId: audioAssetId,
+    pipelineRunId,
+    save,
+    saveOnCompletion,
+    sessionId,
+  });
 
   enqueueTranscribeJob(job.jobId, () =>
     runTranscribeJob({
@@ -181,6 +196,9 @@ export async function POST(request) {
       jobId: job.jobId,
       lines: normalizeLines(payload?.lines),
       phase,
+      pipelineRunId,
+      save,
+      saveOnCompletion,
       sessionId,
       sourceLanguage,
     }),
