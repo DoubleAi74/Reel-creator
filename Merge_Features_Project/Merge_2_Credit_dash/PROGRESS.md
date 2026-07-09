@@ -1,10 +1,10 @@
 # Credit Dashboard Merge — Phase 2 Progress Tracker
 
 **Mirrors**: `IMPLEMENTATION_PLAN.md` v3 (2026-07-09). Read that + `PLAN_VERIFICATION.md` first.
-**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 4 Validated.
-**Current stage**: Stage 5 — Persistence + R2 audio (+ provenance) (next).
-**Last verified checkpoint**: Stage 4 validated on 2026-07-09: unlock cookie, balance endpoint, and flagged generation-start gates landed; 409 re-adoption still skips gates and disabled behavior remains unchanged.
-**Next action**: Stage 5 — add `sourceType` provenance, R2 audio lifecycle, generation persistence/serializer/media route, and final-phase persistence hook.
+**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 5 Validated.
+**Current stage**: Stage 6 — Top-ups (SumUp) (next).
+**Last verified checkpoint**: Stage 5 validated on 2026-07-09: asset provenance, R2 client/audio lifecycle, Generation persistence/serialization, media route, and final-phase persistence hook landed; disabled behavior remains gated behind `CREDITS_ENABLED`.
+**Next action**: Stage 6 — port SumUp checkout/refresh/webhook/return flow with exactly-once crediting.
 **Blockers**: None.
 
 Status legend: `Not started` / `In progress` / `Implemented, not validated` / `Validated` / `Blocked` / `Deferred` / `Superseded`.
@@ -159,13 +159,29 @@ Stage 4 validation/results (2026-07-09):
 - Direct library import smoke: `node --input-type=module` imported Stage 4 credit library modules: passed (Node emitted expected typeless-package warning only). Next route execution is covered by Vitest because raw Node cannot resolve `next/server` like the Next runtime.
 - Whitespace: `git diff --check -- lib/credits app/api/credits app/api/ai/transcribe Merge_Features_Project/Merge_2_Credit_dash/PROGRESS.md`: passed.
 
-### Stage 5 — Persistence + R2 audio (+ provenance) — `Not started`
-- [ ] Add `sourceType` to `lib/files.js` metadata (`upload` + YT ingest `youtube`; additive only). — Validate: metadata correct, sweep/TTL unchanged.
-- [ ] Port `lib/r2/{r2-env,r2-client}.js`. — Validate: r2 smoke (sandbox bucket).
-- [ ] `lib/r2/audio-r2-lifecycle.js` (put/delete/reconcile, both failure directions). — Validate: object round-trip + reconcile both ways.
-- [ ] `lib/generations/{persist-generation,serialize-generation}.js`. — Validate: txn create + post-commit R2; toggle off persists nothing.
-- [ ] `app/api/media/generations/[id]/route.js`. — Validate: playable stream / 302.
-- [ ] Wire completion call in `transcribe-job.js` honoring `save` + `saveOnCompletion`; `persistGeneration` collects settled phase debits by `pipelineRunId`. — Validate: end-to-end saved gen; sourceType correct upload vs YT; no partial Generation is saved before final selected phase.
+### Stage 5 — Persistence + R2 audio (+ provenance) — `Validated`
+- [x] Add `sourceType` to `lib/files.js` metadata (`upload` + YT ingest `youtube`; additive only). — Validate: metadata correct, sweep/TTL unchanged.
+- [x] Port `lib/r2/{r2-env,r2-client}.js`. — Validate: r2 smoke (sandbox bucket).
+- [x] `lib/r2/audio-r2-lifecycle.js` (put/delete/reconcile, both failure directions). — Validate: object round-trip + reconcile both ways.
+- [x] `lib/generations/{persist-generation,serialize-generation}.js`. — Validate: txn create + post-commit R2; toggle off persists nothing.
+- [x] `app/api/media/generations/[id]/route.js`. — Validate: playable stream / 302.
+- [x] Wire completion call in `transcribe-job.js` honoring `save` + `saveOnCompletion`; `persistGeneration` collects settled phase debits by `pipelineRunId`. — Validate: end-to-end saved gen; sourceType correct upload vs YT; no partial Generation is saved before final selected phase.
+
+Stage 5 implementation notes (2026-07-09):
+- Added asset provenance normalization in `lib/files.js`: new upload writes store `sourceType:"upload"`, trusted server-side audio path ingestion defaults to `sourceType:"youtube"`, and legacy metadata reads back as `sourceType:"unknown"`. The staged Phase 5 file keeps this additive metadata/helper seam; the separate Phase 1 active-YouTube-session sweep remains an unstaged pre-existing change.
+- Ported R2 environment/client wrappers to `lib/r2/r2-env.js` and `lib/r2/r2-client.js`, including disabled/config errors, safe error-code mapping, put/head/delete/get wrappers, optional public base URL, and media-proxy object reads.
+- Added `lib/r2/audio-r2-lifecycle.js` for generation MP3 create/delete/reconcile. R2 PUT failures mark `create_failed`; a successful PUT followed by a Mongo status-update failure is repairable by `reconcileGenerationAudio` via `headR2Object`; delete failures mark `delete_failed`.
+- Added generation persistence and serialization in `lib/generations/`: `persistGeneration` creates the `Generation` in a Mongo transaction, gathers settled ledger/usage by `pipelineRunId`, updates ledger `generationId`, stores phase costs/ledger keys, then promotes the MP3 to R2 after commit. `save:false` skips all persistence/R2 work.
+- Added `GET /api/media/generations/[id]` to serve saved public generated audio: redirects to `R2_PUBLIC_BASE_URL` when configured, otherwise proxies the R2 object body.
+- Wired `runTranscribeJob` to persist only when credits are enabled, `save !== false`, and `saveOnCompletion === true`; earlier phase jobs can settle usage but cannot save a partial `Generation`.
+
+Stage 5 validation/results (2026-07-09):
+- Stage 5 suite: `npx vitest run lib/files-source-type.test.js lib/r2/r2-client.test.js lib/r2/audio-r2-lifecycle.test.js lib/generations/persist-generation.test.js lib/ai/transcribe-job.test.js 'app/api/media/generations/[id]/route.test.js'` passed (`Test Files 7 passed`, `Tests 39 passed`).
+- Combined Phase 2 regression through Stage 5: `npx vitest run lib/money.test.js lib/ledger/balance-ledger.test.js lib/ai/openai-pricing.test.js lib/ai/openai-usage.test.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.test.js lib/credits/credit-service.test.js lib/credits/rate-limit.test.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.test.js app/api/ai/transcribe/route.test.js lib/credits/unlock-cookie.test.js app/api/credits/unlock/route.test.js app/api/credits/balance/route.test.js lib/files-source-type.test.js lib/r2/r2-client.test.js lib/r2/audio-r2-lifecycle.test.js lib/generations/persist-generation.test.js 'app/api/media/generations/[id]/route.test.js'` passed (`Test Files 22 passed`, `Tests 117 passed`).
+- Existing file-storage regression: `npx vitest run lib/files.test.js lib/files-source-type.test.js` passed (`Test Files 2 passed`, `Tests 12 passed`).
+- Lint: touched Stage 5 files passed `npx eslint`.
+- Direct library import smoke: `node --loader ./scripts/extensionless-loader.mjs --input-type=module` imported Stage 5 libraries and `transcribe-job`: passed (expected experimental-loader/typeless-package warnings only).
+- Whitespace: Stage 5 file trailing-whitespace scan passed.
 
 ### Stage 6 — Top-ups (SumUp) — `Not started`
 - [ ] Port `lib/payments/*`. — Validate: sumup-env/client tests.
