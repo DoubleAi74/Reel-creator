@@ -10,11 +10,11 @@
 
 ## Programme Status
 
-- **Current status:** Stage 7 **REP-701 Validated**; Stage 8 in progress. REP-303/805 remain open.
+- **Current status:** Stages 2–8 complete (through REP-804). **REP-303** and **REP-805** remain open. Stage 9 deferred (REP-901).
 - **Definitive inventory:** **26 repairs — 3 High · 6 Medium · 15 Low · 1 Verify (REP-303) · 1 Gate (REP-805)** (see REPAIR_PLAN §3.1). Corrects the earlier prose drift (correct = 6 Medium, 15 Low).
-- **Current repair ID:** Stage 8 (801–804).
-- **Last validated checkpoint:** Post-REP-701 — `npm test` **59** files / **361** tests; lint 0; build 0.
-- **Next action:** Complete Stage 8 REP-801–804; leave REP-805 and REP-303 open.
+- **Current repair ID:** — (Stage 8 done; stop before sandbox / pricing gate).
+- **Last validated checkpoint:** Post-Stage-8 — `npm test` **59** files / **363** tests; lint 0; build 0. Baseline 331/53.
+- **Next action:** Sandbox E2E (incl. REP-303) + operator REP-805 pricing; optional Final Audit Sign-Off. Keep CREDITS_ENABLED=false.
 - **Stage-gate review (2026-07-10):** REP-201 (+201a) closed. REP-202 dry-run tool lands; clamp write-offs excluded via `charged:true` (read `UsageRecord.writeOffMinor` for audit of full write-offs with no ledger row).
 - **Blockers:** none on decisions — D-A…D-F all recorded. Standing gate: real-service E2E (not a code defect). **DV-1:** REP-201 supersedes the Phase-2 plan's per-phase reject model; the Phase-2 IMPLEMENTATION_PLAN should be amended by its owner so plan and code agree.
 - **Keep flag off:** `CREDITS_ENABLED=false` throughout until the Final Release-Readiness Gate.
@@ -56,10 +56,10 @@
 | 5 Mongo/R2/recovery | REP-502 | Low | **Validated**| no |
 | 6 Cross-phase lifecycle | REP-601 | Medium | **Validated**| no |
 | 7 Test/validation | REP-701 | Medium | **Validated**| no |
-| 8 Ops/docs | REP-801 | Low | Not started | no |
-| 8 Ops/docs | REP-802 | Low | Not started | no |
-| 8 Ops/docs | REP-803 | Medium | Not started | no |
-| 8 Ops/docs | REP-804 | Low | Not started | no |
+| 8 Ops/docs | REP-801 | Low | **Validated**| no |
+| 8 Ops/docs | REP-802 | Low | **Validated**| no |
+| 8 Ops/docs | REP-803 | Medium | **Validated**| no |
+| 8 Ops/docs | REP-804 | Low | **Validated**| no |
 | 8 Ops/docs | REP-805 | Gate | Not started (D-F recorded) | recorded |
 | 9 UI/polish | REP-901 | Low | Deferred (D-E — script-only; doc via REP-802) | recorded |
 
@@ -255,41 +255,44 @@ No code repairs. The real-service E2E gate is tracked in the Sandbox E2E Checkli
 ## STAGE 8 — Operational & Documentation
 
 ### REP-801 — Align `GEN_RATE` defaults
-- **Status:** Not started
-- [ ] Reconcile `.env.example` (20/3600) vs code (10/60); document intended defaults
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Code defaults aligned to `.env.example` / CREDITS_SETUP: **20 / 3600**
+- [x] Test asserts default config when env unset
+- **Files changed:** `lib/credits/rate-limit.js`, `lib/credits/rate-limit.test.js`, `CREDITS_SETUP.md` · **Tests:** 59/363
 
 ### REP-802 — Backup/R2-lifecycle/deploy docs
-- **Status:** Not started
-- [ ] Add Mongo backup/PITR, R2 retention, deployment order/rollback to `CREDITS_SETUP.md`/`README.md`
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Mongo backup/PITR, R2 retention, deployment order/rollback in `CREDITS_SETUP.md`
+- [x] Deletion procedure (D-E / REP-901 script-only) documented
+- [x] README pointer to ops sections
+- **Files changed:** `CREDITS_SETUP.md`, `README.md`
 
 ### REP-803 — Sandbox E2E checklist additions
-- **Status:** Not started
-- [ ] Incorporate audit §22 amendments into `CREDITS_SETUP.md`
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10) — checklist documented; execution still open
+- [x] Audit §22 / plan §8 items folded into `CREDITS_SETUP.md` §8
+- **Files changed:** `CREDITS_SETUP.md` · **Note:** sandbox run itself remains an operator gate (with REP-303)
 
 ### REP-804 — Bound rate-limit map; document per-process + XFF trust
-- **Status:** Not started
-- [ ] Evict expired keys; document per-process/multi-instance limit + XFF proxy trust
-- [ ] Tests: expired keys evicted; active windows unchanged
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Evict expired keys (periodic + explicit); tests for eviction + active windows
+- [x] Document per-process/multi-instance + XFF proxy trust in CREDITS_SETUP §4
+- **Files changed:** `lib/credits/rate-limit.js`, `lib/credits/rate-limit.test.js`, `CREDITS_SETUP.md`, `README.md`
 
 ### REP-805 — Reconcile OpenAI price seed table
-- **Status:** Not started (Blocked: D-F)
-- [ ] D-F recorded; operator confirms every model's pence values + version
-- [ ] Tests: all models priced; version stored per charge
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Open / operator gate (D-F)** — code stays fail-closed; **no price values authored**
+- [x] D-F recorded; operator must confirm every model's pence values + version before live enablement
+- [ ] Operator supplies/reviews prices (out of coding agent scope)
+- **Files changed:** none (by design)
 
 ---
 
 ## STAGE 9 — Non-Blocking UI / Polish
 
 ### REP-901 — Generation deletion (D-E: script-only) — Deferred
-- **Status:** Deferred (D-E — script-only for now; route/UI is a follow-up, not in this programme)
+- **Status:** Deferred (D-E — script-only; procedure documented via REP-802)
 - [x] D-E recorded (script-only)
-- [ ] Document the supported deletion procedure (DB `deletedAt` → `r2-reconcile`) in `CREDITS_SETUP.md` (folds into REP-802) — no code change
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- [x] Documented deletion procedure in `CREDITS_SETUP.md` §10 (no route/UI)
+- **Files changed:** `CREDITS_SETUP.md` (docs only) · **Deviations:** none
 
 ---
 

@@ -74,8 +74,16 @@ Required when `CREDITS_ENABLED=true`:
 GENERATION_PASSWORD=shared-password-for-operators
 GENERATION_UNLOCK_SECRET=long-random-server-secret
 GENERATION_UNLOCK_TTL_SECONDS=43200
+# Defaults match code + .env.example (REP-801): 20 requests / 3600 seconds
 GEN_RATE_MAX=20
 GEN_RATE_WINDOW_SECONDS=3600
+# Optional tighter limits (env wins over code defaults)
+CHECKOUT_RATE_MAX=20
+CHECKOUT_RATE_WINDOW_SECONDS=600
+UNLOCK_RATE_MAX=20
+UNLOCK_RATE_WINDOW_SECONDS=300
+ORDER_RATE_MAX=60
+ORDER_RATE_WINDOW_SECONDS=60
 ```
 
 Generate a strong unlock secret with:
@@ -85,7 +93,18 @@ openssl rand -hex 32
 ```
 
 The password is compared server-side and never stored in MongoDB. Successful
-unlock creates a signed HttpOnly cookie.
+unlock creates a signed HttpOnly cookie (`Secure` in production / https
+`APP_BASE_URL`).
+
+### Rate-limit operational notes (REP-804)
+
+- Limiters are **in-memory and per Node process**. Behind N app instances the
+  effective ceiling is roughly `limit × N` unless you put a shared edge limiter
+  in front.
+- Expired keys are periodically **evicted** so the map cannot grow without bound.
+- Client IP is taken from the **first** `X-Forwarded-For` hop (then `X-Real-Ip`).
+  Only trust these headers when a reverse proxy you control strips/forges them;
+  otherwise clients can spoof IPs and bypass per-IP limits.
 
 ## 5. SumUp
 
@@ -137,19 +156,48 @@ npm run credits:r2-smoke
 The script writes, HEADs, and deletes a tiny object. If it fails after writing,
 it attempts cleanup and prints a safe error code.
 
-## 7. Enablement Checklist
+## 7. Enablement Checklist (local smoke)
 
 1. `npm run lint`
 2. `npm test`
 3. `npm run credits:db-smoke`
 4. `npm run credits:r2-smoke`
 5. `npm run credits:sumup-smoke`
-6. Set `CREDITS_ENABLED=true` and restart the app.
+6. Set `CREDITS_ENABLED=true` and restart the app (**sandbox only** until §8 passes).
 7. Unlock generation in the editor.
 8. Create a sandbox top-up, return from checkout, and confirm the balance.
-9. Generate with "save to dashboard" on.
+9. Generate with "save to dashboard" on (set a **user title** in project meta so the card is public).
 10. Open `/dashboard`, play the saved audio, and open it back in the editor.
 11. Run `npm run credits:payment-audit` and confirm anomaly counts are zero.
+
+## 8. Sandbox E2E Checklist (REP-803 / audit §22)
+
+Run with SumUp **sandbox**, Mongo **replica set**, R2 sandbox, and a real (non-prod)
+OpenAI key. Keep production `CREDITS_ENABLED=false` until this list is green and
+**REP-805** pricing is operator-reviewed.
+
+- [ ] **Top-up exactly-once:** webhook alone, return-page alone, **both** (incl. race),
+      duplicate webhook → single credit; amount/currency/merchant mismatch rejected.
+- [ ] **Charging:** ledger debits == summed finalized `UsageRecord` for completed phases;
+      partial failure charges only completed phases; retry/re-adopt no double debit.
+- [ ] **H1 clamp go/no-go (post REP-201):** cost > balance → balance floors at 0, work kept,
+      `writeOffMinor` recorded; "run all" that zeroes balance in Block A finishes enrich,
+      then **time** is blocked (402). `phase: full` rejected when credits enabled (REP-201a).
+- [ ] **Gates:** 402 insufficient, 403 locked, 429 rate-limited on gen/checkout/unlock/orders.
+- [ ] **Kill-switch:** `CREDITS_ENABLED=false` with backends configured → checkout/webhook/
+      dashboard/media inert (404/empty); editor generation path ungated as before.
+- [ ] **Persistence/R2:** titled save → public card + playable audio + open-in-editor;
+      save toggle off → nothing public; forced R2 put failure repaired by `r2-reconcile`
+      both directions.
+- [ ] **Deletion (script-only):** set `deletedAt` → `credits:r2-reconcile` removes R2 →
+      hard-delete Mongo only after R2 gone (see §10).
+- [ ] **Standalone Mongo:** non-RS URI → `TRANSACTIONS_UNSUPPORTED` fail-closed.
+- [ ] **Pricing:** every model in precheck + live pipeline is priced; missing fails closed.
+- [ ] **Orphan YT cleanup:** result files cleaned after restart (sweeper on YT POST).
+- [ ] **Unresolved remediation:** seed transient `unresolved` / uncharged finalized usage →
+      `credits:ai-settle-repair` dry-run then `--apply` settles once (no double debit).
+- [ ] **REP-303 (open):** observe SumUp sandbox `redirect_url` vs `return_url` targets;
+      swap mapping only if evidence shows mis-wire (parked until sandbox run).
 
 ## Operations Scripts
 
@@ -204,9 +252,57 @@ npm run credits:ai-settle-repair -- --apply \
 
 Filters: `--job-id=…`, `--phase=transcribe|enrich|time`, `--limit=N`.
 
-## Rollback
+## 9. Backup, R2 lifecycle, deployment order (REP-802)
+
+### MongoDB backup / PITR
+
+- Prefer **Atlas** continuous backup / PITR (or equivalent) on the credits database.
+- Snapshot before any index rebuild, price-table change, or live enablement.
+- Restore drills: restore to a **non-prod** URI and run `credits:db-smoke` +
+  `credits:payment-audit` (read-only).
+- Never point production app servers at a restored copy without renaming DBs.
+
+### R2 retention / lifecycle
+
+- Saved generation audio lives under generation object keys; soft-delete sets
+  `deletedAt` / `deleteRequestedAt` then `credits:r2-reconcile` deletes the object.
+- Keep bucket versioning **off** unless you have a retention plan for billable
+  storage; if versioning is on, document purge of non-current versions.
+- Reconcile regularly in sandbox/staging:
+
+```bash
+npm run credits:r2-reconcile -- --limit=100
+npm run credits:r2-reconcile -- --dry-run
+```
+
+### Deployment order
+
+1. Deploy app code with **`CREDITS_ENABLED=false`** (default).
+2. Ensure Mongo replica set / Atlas URI + indexes (`credits:db-smoke`).
+3. Configure R2 + smoke; SumUp **sandbox** + smoke.
+4. Operator completes **REP-805** price review (seed or `OPENAI_PRICE_TABLE_JSON`).
+5. Run sandbox E2E (§8).
+6. Only then set `CREDITS_ENABLED=true` in the target environment and restart.
+7. Watch `credits:payment-audit` and balance/ledger for the first real top-ups.
+
+### Rollback
 
 Set `CREDITS_ENABLED=false` and restart. This disables generation charging,
-password/rate gates, balance reads, and the editor credit chrome. Ledger rows are
-append-only; corrections should use new `MANUAL_ADJUSTMENT` entries rather than
+password/rate gates, balance reads, payment/dashboard mutation paths (REP-402),
+and the editor credit chrome. Ledger rows are append-only; corrections should use
+new `MANUAL_ADJUSTMENT` entries (or `credits:ai-settle-repair`) rather than
 editing or deleting historical rows.
+
+## 10. Generation deletion procedure (script-only — D-E / REP-901)
+
+There is **no** public DELETE route in this programme. Supported operator path:
+
+1. Soft-delete in Mongo: set `deletedAt` (and optionally `deleteRequestedAt`) on
+   the `Generation` document.
+2. Run `npm run credits:r2-reconcile` so the R2 object is removed (or confirmed
+   missing).
+3. Only after R2 is gone (or safely skipped), hard-delete the Mongo document if
+   required for retention policy.
+
+Do not hard-delete Mongo while `r2Status` still expects a live object unless you
+accept orphaned R2 storage until reconcile.
