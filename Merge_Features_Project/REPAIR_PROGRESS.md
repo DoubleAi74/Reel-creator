@@ -10,11 +10,11 @@
 
 ## Programme Status
 
-- **Current status:** Stage 2 in progress — **REP-201 Validated**, **REP-202 Validated**. Next: Stage 2 lows (REP-203…206) or Stage 3.
+- **Current status:** Stage 2 complete (REP-201…206 Validated). Stage 3 in progress.
 - **Definitive inventory:** **26 repairs — 3 High · 6 Medium · 15 Low · 1 Verify (REP-303) · 1 Gate (REP-805)** (see REPAIR_PLAN §3.1). Corrects the earlier prose drift (correct = 6 Medium, 15 Low).
-- **Current repair ID:** — (REP-202 complete).
-- **Last validated checkpoint:** Post-REP-202 — `npm test` **54** files / **347** tests passed; `npm run lint` exit 0; `npm run build` exit 0. Pre-repair baseline was 331 tests / 53 files.
-- **Next action:** Stage 2 remaining lows **REP-203…206** (parallel-safe) or continue Stage 3 **REP-301** per plan order.
+- **Current repair ID:** Stage 3.
+- **Last validated checkpoint:** Post-REP-206 — `npm test` **55** files / **351** tests; lint 0; build 0. Baseline was 331/53.
+- **Next action:** Stage 3 REP-301 → REP-302; park REP-303 blocked-on-sandbox.
 - **Stage-gate review (2026-07-10):** REP-201 (+201a) closed. REP-202 dry-run tool lands; clamp write-offs excluded via `charged:true` (read `UsageRecord.writeOffMinor` for audit of full write-offs with no ledger row).
 - **Blockers:** none on decisions — D-A…D-F all recorded. Standing gate: real-service E2E (not a code defect). **DV-1:** REP-201 supersedes the Phase-2 plan's per-phase reject model; the Phase-2 IMPLEMENTATION_PLAN should be amended by its owner so plan and code agree.
 - **Keep flag off:** `CREDITS_ENABLED=false` throughout until the Final Release-Readiness Gate.
@@ -38,10 +38,10 @@
 | 1 Release blockers | — | — | N/A (none) | — |
 | 2 Financial | REP-201 | High | **Validated** (incl. REP-201a; DV-1) | recorded |
 | 2 Financial | REP-202 | High | **Validated** (D-B) | recorded |
-| 2 Financial | REP-203 | Low | Not started | no |
-| 2 Financial | REP-204 | Low | Not started | no |
-| 2 Financial | REP-205 | Low | Not started | no |
-| 2 Financial | REP-206 | Low | Not started | no |
+| 2 Financial | REP-203 | Low | **Validated** | no |
+| 2 Financial | REP-204 | Low | **Validated** | no |
+| 2 Financial | REP-205 | Low | **Validated** | no |
+| 2 Financial | REP-206 | Low | **Validated** | no |
 | 3 Payment | REP-301 | High | Not started | no |
 | 3 Payment | REP-302 | Low | Not started | no |
 | 3 Payment | REP-303 | Verify | Not started | no |
@@ -113,28 +113,28 @@ No code repairs. The real-service E2E gate is tracked in the Sandbox E2E Checkli
 - **Deviations:** Core logic in `lib/credits/ai-settle-repair.js` (script is thin CLI) for testability — still exposes `scripts/ai-settle-repair.mjs` + npm alias as specified. Re-settle temporarily forces `CREDITS_ENABLED=true` only for the `settlePhase` call (does not change deployment flag).
 
 ### REP-203 — Record usage only on `response.ok`
-- **Status:** Not started
-- [ ] Move `recordOpenAiCallUsage` after `response.ok` at all 8 sites
-- [ ] Tests: failed audio call writes no phantom-cost record; success unchanged
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] `recordOpenAiCallUsage` no-ops when `responseOk:false` at all 8 call sites
+- [x] Tests: failed path writes no record; success unchanged
+- **Files changed:** `lib/ai/openai-usage.js`, `lib/ai/openai-lyrics.js` (8 sites), tests · **Tests:** §6 green (part of Stage 2 lows batch)
 
 ### REP-204 — Complete audio-seconds fallback chain
-- **Status:** Not started
-- [ ] Thread `metadata.durationSec` + optional ffprobe last-resort into `audioSeconds`
-- [ ] Tests: each fallback level; upload `durationSec:null` yields nonzero cost
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] `resolveBillingAudioSeconds` chain + thread `assetDurationSec`/`audioFilePath` from transcribe-job; ffprobe last-resort via `probeMediaDurationSec`
+- [x] Tests: fallback order unit tests
+- **Files changed:** `lib/ai/openai-lyrics.js`, `lib/ai/transcribe-job.js`, `lib/files.js`, tests
 
 ### REP-205 — `ledger-repair` historical `balanceAfterMinor`
-- **Status:** Not started
-- [ ] Mark repaired rows (`repairedHistoricalEntry`) + document indicative `balanceAfterMinor`
-- [ ] Tests: flag present; balance untouched
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] `repairedHistoricalEntry` + `balanceAfterMinorIndicative`; help + CREDITS_SETUP docs
+- [x] Tests: flag present; balance not mutated by repair helper
+- **Files changed:** `lib/credits/ledger-repair.js`, `scripts/ledger-repair.mjs`, `CREDITS_SETUP.md`, tests
 
 ### REP-206 — Precheck/model-list sync + price-version reproducibility
-- **Status:** Not started
-- [ ] Single source / cross-check test between `openai-lyrics.js` models and `credit-service` precheck
-- [ ] Tests: every called model priced/prechecked; env-override covered
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] `getLiveOpenAiModelsByBillingPhase` is single source for `getConfiguredOpenAiModelsByPhase`
+- [x] Tests: live==precheck; every model priced; env override covered
+- **Files changed:** `lib/ai/openai-lyrics.js`, `lib/credits/credit-service.js`, tests
 
 ---
 

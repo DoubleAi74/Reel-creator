@@ -1,4 +1,5 @@
 import { ensureSharedBalance, initializeDatabaseIndexes } from "../lib/db/bootstrap.js";
+import { buildHistoricalTopUpLedgerEntry } from "../lib/credits/ledger-repair.js";
 import {
   disconnectFromDatabase,
   getConfiguredDatabaseName,
@@ -15,6 +16,11 @@ function printHelp() {
 Finds historical PAID + balanceCredited SumUp orders missing their top_up ledger
 entry. By default this is a dry run. Pass --apply to insert missing audit ledger
 entries without changing the already-credited balance.
+
+Repaired rows set metadata.repairedHistoricalEntry=true. The stored
+balanceAfterMinor is indicative only (current shared-balance snapshot at repair
+time), not a reconstructed historical post-balance. The balance itself is never
+changed by this tool.
 
 Required env:
   MONGODB_URI`);
@@ -72,21 +78,12 @@ try {
       continue;
     }
 
-    await CreditLedger.create({
-      amountMinor: order.amountMinor,
-      balanceAfterMinor: balance.amountMinor,
-      createdAt: order.paidAt ?? order.updatedAt ?? order.createdAt ?? new Date(),
-      currency: order.currency,
-      idempotencyKey,
-      metadata: {
-        checkoutId: order.sumupCheckoutId,
-        checkoutReference: order.sumupCheckoutReference,
-        repairedHistoricalEntry: true,
-      },
-      paymentOrderId: order._id,
-      reason: "Historical verified top-up ledger repair",
-      type: "TOP_UP",
-    });
+    await CreditLedger.create(
+      buildHistoricalTopUpLedgerEntry({
+        balanceAfterMinor: balance.amountMinor,
+        order,
+      }),
+    );
 
     summary.created += 1;
   }

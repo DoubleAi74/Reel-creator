@@ -156,6 +156,11 @@ Dry-run scan for historical `PAID` and `balanceCredited` SumUp orders missing
 their `top_up:{orderId}` ledger entry. It does not change the balance. Pass
 `-- --apply` only after reviewing the dry-run output.
 
+Repaired rows are stamped with `metadata.repairedHistoricalEntry: true` and
+`metadata.balanceAfterMinorIndicative: true`. The `balanceAfterMinor` value on
+those rows is the **current** shared balance at repair time (indicative only),
+not a reconstructed historical post-balance.
+
 `npm run credits:ai-settle-repair`
 
 Dry-run remediation for **transient-error** unresolved AI accounting (after
