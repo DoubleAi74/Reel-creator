@@ -336,4 +336,36 @@ describe("POST /api/ai/transcribe", () => {
     });
     expect(store.createTranscribeJob).toHaveBeenCalledTimes(0);
   });
+
+  it("still invokes the credit gate for enrich (service exempts balance floor)", async () => {
+    creditsEnabled = true;
+    unlockCookieValue = "valid-unlock";
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+    const creditService = await import("@/lib/credits/credit-service");
+
+    creditService.assertCanStartGeneration.mockResolvedValueOnce({
+      balanceMinor: 0,
+      enabled: true,
+      gateExempt: true,
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "enrich",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ jobId: "job-route" });
+    expect(creditService.assertCanStartGeneration).toHaveBeenCalledWith({
+      phase: "enrich",
+    });
+    expect(store.createTranscribeJob).toHaveBeenCalledTimes(1);
+  });
 });

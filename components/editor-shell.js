@@ -2407,6 +2407,17 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
     }
 
     if (!response.ok || typeof payload.jobId !== "string" || !payload.jobId) {
+      if (
+        response.status === 402 ||
+        payload.error === "insufficient_balance"
+      ) {
+        throw new Error(
+          body?.phase === "time"
+            ? "Credit balance exhausted — timing was skipped. Top up to continue."
+            : "Credit balance is too low to start generation. Top up to continue.",
+        );
+      }
+
       throw new Error(payload.error ?? "Transcription could not be started.");
     }
 
@@ -3274,10 +3285,41 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
             } else {
               applyAutoLyricsResult(payload.result);
             }
+
+            // REP-201: clamp may zero the balance while still delivering work.
+            if (payload.balanceExhausted === true) {
+              const exhaustedMessage =
+                "Credit balance exhausted. Completed work was kept; further phases need a top-up.";
+
+              if (phase === "time") {
+                setTimingNotice({
+                  message: exhaustedMessage,
+                  status: "success",
+                });
+              } else {
+                // Apply handlers also write lyric state; merge after they settle.
+                window.setTimeout(() => {
+                  setAutoLyricsState((currentState) => ({
+                    ...currentState,
+                    detail: exhaustedMessage,
+                    message: currentState.message
+                      ? `${currentState.message} ${exhaustedMessage}`
+                      : exhaustedMessage,
+                  }));
+                }, 0);
+              }
+
+              void refreshCreditBalance().catch(() => {});
+            }
           }
 
           settle({ appliedJobId: jobId, status: "done" });
-          resolveTranscriptionWaiter(jobId, { phase, status: "done" });
+          resolveTranscriptionWaiter(jobId, {
+            balanceExhausted: payload.balanceExhausted === true,
+            phase,
+            status: "done",
+            writeOffMinor: payload.writeOffMinor ?? 0,
+          });
           return;
         }
 
