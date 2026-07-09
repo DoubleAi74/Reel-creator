@@ -1,10 +1,10 @@
 # Credit Dashboard Merge — Phase 2 Progress Tracker
 
 **Mirrors**: `IMPLEMENTATION_PLAN.md` v3 (2026-07-09). Read that + `PLAN_VERIFICATION.md` first.
-**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 5 Validated.
-**Current stage**: Stage 6 — Top-ups (SumUp) (next).
-**Last verified checkpoint**: Stage 5 validated on 2026-07-09: asset provenance, R2 client/audio lifecycle, Generation persistence/serialization, media route, and final-phase persistence hook landed; disabled behavior remains gated behind `CREDITS_ENABLED`.
-**Next action**: Stage 6 — port SumUp checkout/refresh/webhook/return flow with exactly-once crediting.
+**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 6 Validated.
+**Current stage**: Stage 7 — Public dashboard + editor chrome (next).
+**Last verified checkpoint**: Stage 6 validated on 2026-07-09: SumUp env/client/order/verification libraries, checkout/order/webhook routes, and return polling page landed; webhook and return paths re-query SumUp and credit exactly once.
+**Next action**: Stage 7 — build public dashboard/read APIs and flagged editor chrome for balance/top-up/save/unlock/dashboard entry.
 **Blockers**: None.
 
 Status legend: `Not started` / `In progress` / `Implemented, not validated` / `Validated` / `Blocked` / `Deferred` / `Superseded`.
@@ -183,11 +183,26 @@ Stage 5 validation/results (2026-07-09):
 - Direct library import smoke: `node --loader ./scripts/extensionless-loader.mjs --input-type=module` imported Stage 5 libraries and `transcribe-job`: passed (expected experimental-loader/typeless-package warnings only).
 - Whitespace: Stage 5 file trailing-whitespace scan passed.
 
-### Stage 6 — Top-ups (SumUp) — `Not started`
-- [ ] Port `lib/payments/*`. — Validate: sumup-env/client tests.
-- [ ] `app/api/credits/checkout/route.js` + `orders/[orderId]/route.js`. — Validate: checkout + reuse window; server-authoritative amount.
-- [ ] `app/api/webhooks/sumup/route.js` (trigger-only + re-query; safe event storage). — Validate: quick-ack; no body-trust.
-- [ ] `app/payment/return/*` + poll. — Validate: **exactly-once via BOTH webhook and return**; race; duplicate webhook; wrong amount/currency rejected.
+### Stage 6 — Top-ups (SumUp) — `Validated`
+- [x] Port `lib/payments/*`. — Validate: sumup-env/client tests.
+- [x] `app/api/credits/checkout/route.js` + `orders/[orderId]/route.js`. — Validate: checkout + reuse window; server-authoritative amount.
+- [x] `app/api/webhooks/sumup/route.js` (trigger-only + re-query; safe event storage). — Validate: quick-ack; no body-trust.
+- [x] `app/payment/return/*` + poll. — Validate: **exactly-once via BOTH webhook and return**; race; duplicate webhook; wrong amount/currency rejected.
+
+Stage 6 implementation notes (2026-07-09):
+- Ported SumUp environment validation, hosted-checkout client, payment URL helpers, order helpers, verification, and refund wrapper under `lib/payments/`.
+- Added `POST /api/credits/checkout`: validates bounded integer-pence top-up amounts, reuses recent pending hosted checkouts, creates SumUp hosted checkouts with server-owned order amount/reference/currency, and rejects unsafe hosted checkout URLs.
+- Added `GET /api/credits/orders/[orderId]`: return-page polling path that finds the stored order and calls `refreshPaymentOrderFromSumUp`, which always re-queries SumUp before crediting.
+- Added `POST /api/webhooks/sumup`: trigger-only webhook path that stores safe identifiers/status, never raw body, and calls the same re-query verification path. Duplicate webhooks converge through `top_up:{order._id}` and `balanceCredited:false`.
+- Added `/payment/return` and `PaymentReturnClient` for post-checkout polling. The client only displays order state returned by the server; it does not determine crediting.
+
+Stage 6 validation/results (2026-07-09):
+- Stage 6 suite: `npx vitest run lib/payments/sumup-env.test.js lib/payments/sumup-client.test.js lib/payments/payment-urls.test.js lib/payments/payment-verification.test.js app/api/credits/checkout/route.test.js 'app/api/credits/orders/[orderId]/route.test.js' app/api/webhooks/sumup/route.test.js` passed (`Test Files 11 passed`, `Tests 38 passed`).
+- Combined Phase 2 regression through Stage 6: `npx vitest run lib/money.test.js lib/ledger/balance-ledger.test.js lib/ai/openai-pricing.test.js lib/ai/openai-usage.test.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.test.js lib/credits/credit-service.test.js lib/credits/rate-limit.test.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.test.js app/api/ai/transcribe/route.test.js lib/credits/unlock-cookie.test.js app/api/credits/unlock/route.test.js app/api/credits/balance/route.test.js lib/files-source-type.test.js lib/r2/r2-client.test.js lib/r2/audio-r2-lifecycle.test.js lib/generations/persist-generation.test.js 'app/api/media/generations/[id]/route.test.js' lib/payments/sumup-env.test.js lib/payments/sumup-client.test.js lib/payments/payment-urls.test.js lib/payments/payment-verification.test.js app/api/credits/checkout/route.test.js 'app/api/credits/orders/[orderId]/route.test.js' app/api/webhooks/sumup/route.test.js` passed (`Test Files 33 passed`, `Tests 155 passed`).
+- Exactly-once coverage: concurrent refreshes simulating webhook+return, duplicate webhooks, and order-route polling all credit at most one ledger entry; amount mismatch, currency/status mismatch, and missing checkout ids do not credit.
+- Lint: touched Stage 6 files passed `npx eslint`.
+- Direct library import smoke: `node --loader ./scripts/extensionless-loader.mjs --input-type=module` imported all payment libraries: passed (expected experimental-loader/typeless-package warnings only).
+- Whitespace: Stage 6 file trailing-whitespace scan passed.
 
 ### Stage 7 — Public dashboard + editor chrome — `Not started`
 - [ ] `app/dashboard/page.js` + `components/DashboardView.jsx` (responsive; `serializePublicCard`). — Validate: mobile sheet/transport + tokens.
