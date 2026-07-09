@@ -1,3 +1,4 @@
+process.env.CREDITS_ENABLED = "true";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -53,6 +54,8 @@ async function createGeneration(overrides = {}) {
     r2ObjectKey: null,
     r2Status: "created",
     saved: true,
+    public: true,
+    userTitled: true,
     snapshot: {
       project: {
         lines: [{ original: "hello" }],
@@ -66,6 +69,7 @@ async function createGeneration(overrides = {}) {
 
 describe("GET /api/media/generations/[id]", () => {
   beforeAll(async () => {
+    process.env.CREDITS_ENABLED = "true";
     replSet = await MongoMemoryReplSet.create({
       replSet: {
         count: 1,

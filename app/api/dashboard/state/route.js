@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isCreditsEnabled } from "../../../../lib/credits/flags.js";
 import { connectToDatabase } from "../../../../lib/db/mongoose.js";
 import { Generation } from "../../../../lib/models/Generation.js";
 import { serializePublicCard } from "../../../../lib/generations/serialize-generation.js";
@@ -7,6 +8,11 @@ import { serializePublicCard } from "../../../../lib/generations/serialize-gener
 export const runtime = "nodejs";
 
 export async function GET() {
+  // REP-402: inert empty dashboard when credits layer is disabled.
+  if (!isCreditsEnabled()) {
+    return NextResponse.json({ enabled: false, generations: [] });
+  }
+
   try {
     await connectToDatabase();
 
@@ -15,6 +21,7 @@ export async function GET() {
       public: true,
       r2Status: "created",
       saved: true,
+      userTitled: true,
     })
       .sort({ createdAt: -1 })
       .limit(50)

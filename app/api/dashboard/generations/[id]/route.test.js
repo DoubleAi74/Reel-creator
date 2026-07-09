@@ -1,3 +1,4 @@
+process.env.CREDITS_ENABLED = "true";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -33,6 +34,8 @@ async function createGeneration(overrides = {}) {
     r2ObjectKey: "generations/secret/audio.mp3",
     r2Status: "created",
     saved: true,
+    public: true,
+    userTitled: true,
     snapshot: {
       project: {
         audio: {
@@ -57,6 +60,7 @@ async function createGeneration(overrides = {}) {
 
 describe("GET /api/dashboard/generations/[id]", () => {
   beforeAll(async () => {
+    process.env.CREDITS_ENABLED = "true";
     replSet = await MongoMemoryReplSet.create({
       replSet: {
         count: 1,

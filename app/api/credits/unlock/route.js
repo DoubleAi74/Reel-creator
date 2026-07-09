@@ -1,17 +1,32 @@
 import { NextResponse } from "next/server";
 
-import { isCreditsEnabled } from "@/lib/credits/flags";
+import { isCreditsEnabled } from "../../../../lib/credits/flags.js";
+import {
+  checkUnlockRateLimit,
+  getRequestIp,
+} from "../../../../lib/credits/rate-limit.js";
 import {
   buildGenerationUnlockSetCookie,
   createGenerationUnlockCookieValue,
   verifyGenerationPassword,
-} from "@/lib/credits/unlock-cookie";
+} from "../../../../lib/credits/unlock-cookie.js";
 
 export const runtime = "nodejs";
 
 export async function POST(request) {
   if (!isCreditsEnabled()) {
     return NextResponse.json({ enabled: false });
+  }
+
+  const rateLimit = checkUnlockRateLimit({
+    ip: getRequestIp(request),
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited", retryAfter: rateLimit.retryAfter },
+      { status: 429 },
+    );
   }
 
   let payload;

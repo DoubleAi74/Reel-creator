@@ -31,6 +31,8 @@ async function createGeneration(overrides = {}) {
     r2ObjectKey: "generations/secret/audio.mp3",
     r2Status: "created",
     saved: true,
+    public: true,
+    userTitled: true,
     snapshot: {
       project: {
         lines: [{ original: "hello", translation: "hola" }],
@@ -44,6 +46,7 @@ async function createGeneration(overrides = {}) {
 
 describe("GET /api/dashboard/state", () => {
   beforeAll(async () => {
+    process.env.CREDITS_ENABLED = "true";
     replSet = await MongoMemoryReplSet.create({
       replSet: {
         count: 1,
@@ -96,12 +99,13 @@ describe("GET /api/dashboard/state", () => {
       audioUrl: `/api/media/generations/${generation._id.toString()}`,
       id: generation._id.toString(),
       lyricPreview: "hello",
-      sourceType: "upload",
       title: "Dashboard test",
     });
+    expect(payload.generations[0]).not.toHaveProperty("sourceType");
     expect(JSON.stringify(payload)).not.toContain("pipelineRunId");
     expect(JSON.stringify(payload)).not.toContain("ledgerKeys");
     expect(JSON.stringify(payload)).not.toContain("r2ObjectKey");
     expect(JSON.stringify(payload)).not.toContain("job-secret");
+    expect(JSON.stringify(payload)).not.toContain("sourceType");
   });
 });

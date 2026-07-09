@@ -58,6 +58,7 @@ describe("POST /api/credits/checkout", () => {
   beforeEach(async () => {
     await PaymentOrder.deleteMany({});
     stubSumUpEnvironment();
+    process.env.CREDITS_ENABLED = "true";
     vi.stubGlobal("fetch", vi.fn(async () => checkoutResponse()));
   });
 

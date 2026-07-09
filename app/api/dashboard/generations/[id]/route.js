@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
+import { isCreditsEnabled } from "../../../../../lib/credits/flags.js";
 import { connectToDatabase } from "../../../../../lib/db/mongoose.js";
 import { Generation } from "../../../../../lib/models/Generation.js";
 import { serializeEditorPayload } from "../../../../../lib/generations/serialize-generation.js";
@@ -8,6 +9,10 @@ import { serializeEditorPayload } from "../../../../../lib/generations/serialize
 export const runtime = "nodejs";
 
 export async function GET(_request, context) {
+  if (!isCreditsEnabled()) {
+    return NextResponse.json({ enabled: false, error: "credits_disabled" }, { status: 404 });
+  }
+
   const { id } = await context.params;
 
   if (!mongoose.isValidObjectId(id)) {
@@ -22,6 +27,7 @@ export async function GET(_request, context) {
       deletedAt: null,
       public: true,
       saved: true,
+      userTitled: true,
     }).lean();
 
     if (!generation) {

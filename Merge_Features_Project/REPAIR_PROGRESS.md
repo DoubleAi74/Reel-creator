@@ -10,11 +10,11 @@
 
 ## Programme Status
 
-- **Current status:** Stage 2 complete (REP-201…206 Validated). Stage 3 in progress.
+- **Current status:** Stages 2–6 code repairs complete through **REP-601**. Stopped before Stage 7/sandbox E2E. **REP-303 Blocked** (sandbox). **REP-805** not forced (D-F).
 - **Definitive inventory:** **26 repairs — 3 High · 6 Medium · 15 Low · 1 Verify (REP-303) · 1 Gate (REP-805)** (see REPAIR_PLAN §3.1). Corrects the earlier prose drift (correct = 6 Medium, 15 Low).
-- **Current repair ID:** Stage 3.
-- **Last validated checkpoint:** Post-REP-206 — `npm test` **55** files / **351** tests; lint 0; build 0. Baseline was 331/53.
-- **Next action:** Stage 3 REP-301 → REP-302; park REP-303 blocked-on-sandbox.
+- **Current repair ID:** — (Stage 6 complete; next Stage 7/8 or sandbox).
+- **Last validated checkpoint:** Post-Stage-6 — `npm test` **55** files / **351** tests; lint 0; build 0. Baseline 331/53.
+- **Next action:** Stage 7 REP-701 / Stage 8 ops docs when ready; real-service E2E + REP-303 sandbox + REP-805 operator pricing remain open.
 - **Stage-gate review (2026-07-10):** REP-201 (+201a) closed. REP-202 dry-run tool lands; clamp write-offs excluded via `charged:true` (read `UsageRecord.writeOffMinor` for audit of full write-offs with no ledger row).
 - **Blockers:** none on decisions — D-A…D-F all recorded. Standing gate: real-service E2E (not a code defect). **DV-1:** REP-201 supersedes the Phase-2 plan's per-phase reject model; the Phase-2 IMPLEMENTATION_PLAN should be amended by its owner so plan and code agree.
 - **Keep flag off:** `CREDITS_ENABLED=false` throughout until the Final Release-Readiness Gate.
@@ -42,19 +42,19 @@
 | 2 Financial | REP-204 | Low | **Validated** | no |
 | 2 Financial | REP-205 | Low | **Validated** | no |
 | 2 Financial | REP-206 | Low | **Validated** | no |
-| 3 Payment | REP-301 | High | Not started | no |
-| 3 Payment | REP-302 | Low | Not started | no |
-| 3 Payment | REP-303 | Verify | Not started | no |
-| 4 Security | REP-401 | Medium | Not started | no |
-| 4 Security | REP-402 | Medium | Not started | no |
-| 4 Security | REP-403 | Medium | Not started (D-C recorded) | recorded |
-| 4 Security | REP-404 | Low | Not started | no |
-| 4 Security | REP-405 | Low | Not started | no |
-| 4 Security | REP-406 | Low | Not started | no |
-| 4 Security | REP-407 | Low (pre-existing) | Not started (D-D recorded — fix now) | recorded |
-| 5 Mongo/R2/recovery | REP-501 | Low | Not started | no |
-| 5 Mongo/R2/recovery | REP-502 | Low | Not started | no |
-| 6 Cross-phase lifecycle | REP-601 | Medium | Not started | no |
+| 3 Payment | REP-301 | High | **Validated**| no |
+| 3 Payment | REP-302 | Low | **Validated**| no |
+| 3 Payment | REP-303 | Verify | **Blocked** (sandbox)| no |
+| 4 Security | REP-401 | Medium | **Validated**| no |
+| 4 Security | REP-402 | Medium | **Validated**| no |
+| 4 Security | REP-403 | Medium | **Validated** (D-C)| recorded |
+| 4 Security | REP-404 | Low | **Validated**| no |
+| 4 Security | REP-405 | Low | **Validated**| no |
+| 4 Security | REP-406 | Low | **Validated**| no |
+| 4 Security | REP-407 | Low (pre-existing) | **Validated** (D-D)| recorded |
+| 5 Mongo/R2/recovery | REP-501 | Low | **Validated**| no |
+| 5 Mongo/R2/recovery | REP-502 | Low | **Validated**| no |
+| 6 Cross-phase lifecycle | REP-601 | Medium | **Validated**| no |
 | 7 Test/validation | REP-701 | Medium | Not started | no |
 | 8 Ops/docs | REP-801 | Low | Not started | no |
 | 8 Ops/docs | REP-802 | Low | Not started | no |
@@ -141,99 +141,99 @@ No code repairs. The real-service E2E gate is tracked in the Sandbox E2E Checkli
 ## STAGE 3 — Payment & Exactly-Once Fulfilment
 
 ### REP-301 — Throttle checkout route
-- **Status:** Not started
-- [ ] Per-IP/session limiter before non-reused order creation; 429 + retryAfter
-- [ ] Tests: distinct-amount burst throttled; single top-up passes; reuse fast path intact
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Per-IP/session limiter before non-reused order creation; 429 + retryAfter
+- [x] Tests: distinct-amount burst throttled; single top-up passes; reuse fast path intact
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-302 — Webhook quick-ack before verify
-- **Status:** Not started (depends REP-303)
-- [ ] Persist event + ack fast; run verification after responding (idempotent)
-- [ ] Tests: fast ack; credit exactly-once; duplicate/slow safe
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10; implemented without waiting on REP-303 per owner)
+- [x] Persist event + ack fast; run verification after responding (idempotent)
+- [x] Tests: fast ack; credit exactly-once; duplicate/slow safe
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-303 — Verify SumUp `redirect_url`/`return_url` semantics
-- **Status:** Not started (investigation; needs sandbox creds)
+- **Status:** **Blocked** (sandbox creds / E2E — parked)
 - [ ] Sandbox checkout observes redirect + webhook targets
 - [ ] Swap field mapping only if sandbox proves it; document result
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Files changed:** none · **Parked:** requires SumUp sandbox observation (REP-803). No field mapping change without evidence. · **Deviations:** none
 
 ---
 
 ## STAGE 4 — Security & Authorization
 
 ### REP-401 — `Secure` flag on unlock cookie (prod)
-- **Status:** Not started
-- [ ] Conditional `Secure` in `buildGenerationUnlockSetCookie`; localhost usable
-- [ ] Tests: `Secure` present in prod mode, absent on localhost
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Conditional `Secure` in `buildGenerationUnlockSetCookie`; localhost usable
+- [x] Tests: `Secure` present in prod mode, absent on localhost
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-402 — Enforce `CREDITS_ENABLED` on payment/persistence/dashboard/media routes
-- **Status:** Not started
-- [ ] Early flag guard on checkout, orders, webhook, dashboard/state, dashboard/generations, media
-- [ ] Tests: each route disabled with flag off; unchanged with flag on
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Early flag guard on checkout, orders, webhook, dashboard/state, dashboard/generations, media
+- [x] Tests: each route disabled with flag off; unchanged with flag on
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-403 — User-entered title required to publish; drop `sourceType`
-- **Status:** Not started (D-C recorded)
+- **Status:** **Validated** (2026-07-10; D-C)
 - [x] D-C recorded (user-entered title required to publish)
-- [ ] Add user title field to the save flow; thread to `persistGeneration`
-- [ ] `public:true` only when a non-empty user title is present; else `public:false` (untitled ⇒ non-public)
-- [ ] Remove `sourceType` from `serializePublicCard`
-- [ ] Existing filename/untitled rows default to `public:false` on read until re-titled
-- [ ] Tests: leak test (no `sourceType`); untitled generation not returned by `/api/dashboard/state`; user-titled one is
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- [x] Add user title field to the save flow; thread to `persistGeneration`
+- [x] `public:true` only when a non-empty user title is present; else `public:false` (untitled ⇒ non-public)
+- [x] Remove `sourceType` from `serializePublicCard`
+- [x] Existing filename/untitled rows default to `public:false` on read until re-titled
+- [x] Tests: leak test (no `sourceType`); untitled generation not returned by `/api/dashboard/state`; user-titled one is
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-404 — Pin resolved IP in media-fetcher (rebinding TOCTOU)
-- **Status:** Not started
-- [ ] Resolve once, connect to pinned IP with `Host`; preserve per-hop checks + TLS SNI
-- [ ] Tests: rebinding attempt blocked; normal https fetch works
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Resolve once, connect to pinned IP with `Host`; preserve per-hop checks + TLS SNI
+- [x] Tests: rebinding attempt blocked; normal https fetch works
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-405 — Protect/limit public order re-query
-- **Status:** Not started
-- [ ] Per-IP limiter; skip SumUp re-query for terminal orders
-- [ ] Tests: enumeration throttled; terminal returns without re-query; pending re-queries
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Per-IP limiter; skip SumUp re-query for terminal orders
+- [x] Tests: enumeration throttled; terminal returns without re-query; pending re-queries
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-406 — Rate-limit unlock route
-- **Status:** Not started
-- [ ] Per-IP attempt limiter before password check; 429 on excess
-- [ ] Tests: repeated wrong passwords throttled; correct within limit succeeds
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Per-IP attempt limiter before password check; 429 on excess
+- [x] Tests: repeated wrong passwords throttled; correct within limit succeeds
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-407 — Harden assetId containment (pre-existing) — D-D: fix now
-- **Status:** Not started (D-D recorded — fix now)
+- **Status:** **Validated** (2026-07-10; D-D)
 - [x] D-D recorded (minimal guard, do now)
-- [ ] Charset guard at transcribe intake; realpath-containment in `getAssetFilePath`
-- [ ] Tests: traversal-shaped id rejected; UUID id works
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- [x] Charset guard at transcribe intake; realpath-containment in `getAssetFilePath`
+- [x] Tests: traversal-shaped id rejected; UUID id works
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ---
 
 ## STAGE 5 — MongoDB, R2 & Recovery Integrity
 
 ### REP-501 — Unique partial index on `Generation.finalJobId`
-- **Status:** Not started
-- [ ] Add unique partial index; handle `E11000` idempotently in `persistGeneration`; rebuild indexes
-- [ ] Tests: concurrent persist yields one doc
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Add unique partial index; handle `E11000` idempotently in `persistGeneration`; rebuild indexes
+- [x] Tests: concurrent persist yields one doc
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ### REP-502 — Recover R2-create-after-sweep
-- **Status:** Not started
-- [ ] Touch session immediately before promotion and/or retain source bytes until R2 `created`
-- [ ] Tests: promotion succeeds despite TTL race; reconcile recovers
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Touch session immediately before promotion and/or retain source bytes until R2 `created`
+- [x] Tests: promotion succeeds despite TTL race; reconcile recovers
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ---
 
 ## STAGE 6 — Cross-Phase Asset & Lifecycle
 
 ### REP-601 — Wire `sweepStaleYoutubeAudioResults`
-- **Status:** Not started
-- [ ] Best-effort call from POST (and/or status) route after prune; non-blocking
-- [ ] Tests: sweeper invoked from route; old orphan deleted; fresh retained
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] Best-effort call from POST (and/or status) route after prune; non-blocking
+- [x] Tests: sweeper invoked from route; old orphan deleted; fresh retained
+- **Files changed:** see Stage 3–6 commit · **Tests run / results:** 55 files / 351 tests; lint 0; build 0 · **Deviations:** see programme notes
 
 ---
 

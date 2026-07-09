@@ -84,6 +84,7 @@ describe("POST /api/webhooks/sumup", () => {
     await WebhookEvent.deleteMany({});
     retrieveCheckout.mockReset();
     stubSumUpEnvironment();
+    process.env.CREDITS_ENABLED = "true";
   });
 
   afterAll(async () => {
@@ -143,22 +144,27 @@ describe("POST /api/webhooks/sumup", () => {
       await expect(response.json()).resolves.toEqual({ received: true });
     }
 
+    // REP-302: verification is background; wait for settlement.
+    await vi.waitFor(async () => {
+      expect(await CreditLedger.countDocuments()).toBe(1);
+    });
+
     expect(await WebhookEvent.countDocuments()).toBe(2);
-    expect(
-      await WebhookEvent.find({}).sort({ createdAt: 1 }).lean(),
-    ).toEqual([
-      expect.objectContaining({
-        checkoutId: "checkout-webhook",
-        processingStatus: "VERIFIED_PAID",
-        safeErrorCode: null,
-      }),
-      expect.objectContaining({
-        checkoutId: "checkout-webhook",
-        processingStatus: "VERIFIED_PAID",
-        safeErrorCode: null,
-      }),
-    ]);
-    expect(await CreditLedger.countDocuments()).toBe(1);
+    await vi.waitFor(async () => {
+      const events = await WebhookEvent.find({}).sort({ createdAt: 1 }).lean();
+      expect(events).toEqual([
+        expect.objectContaining({
+          checkoutId: "checkout-webhook",
+          processingStatus: "VERIFIED_PAID",
+          safeErrorCode: null,
+        }),
+        expect.objectContaining({
+          checkoutId: "checkout-webhook",
+          processingStatus: "VERIFIED_PAID",
+          safeErrorCode: null,
+        }),
+      ]);
+    });
     expect(await Balance.findById("shared").lean()).toMatchObject({
       amountMinor: 1000,
     });
@@ -180,9 +186,11 @@ describe("POST /api/webhooks/sumup", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await WebhookEvent.findOne().lean()).toMatchObject({
-      processingStatus: "MATCHED",
-      safeErrorCode: "CHECKOUT_NOT_PAID",
+    await vi.waitFor(async () => {
+      expect(await WebhookEvent.findOne().lean()).toMatchObject({
+        processingStatus: "MATCHED",
+        safeErrorCode: "CHECKOUT_NOT_PAID",
+      });
     });
     expect(await CreditLedger.countDocuments()).toBe(0);
   });

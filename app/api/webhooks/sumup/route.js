@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isCreditsEnabled } from "../../../../lib/credits/flags.js";
 import { connectToDatabase } from "../../../../lib/db/mongoose.js";
 import { PaymentOrder } from "../../../../lib/models/PaymentOrder.js";
 import { WebhookEvent } from "../../../../lib/models/WebhookEvent.js";
@@ -56,6 +57,11 @@ async function updateWebhookEvent(webhookEvent, update) {
 }
 
 export async function POST(request) {
+  // REP-402: ignore webhooks when the credit layer is disabled.
+  if (!isCreditsEnabled()) {
+    return NextResponse.json({ enabled: false, received: true }, { status: 404 });
+  }
+
   let body;
 
   try {
@@ -103,16 +109,30 @@ export async function POST(request) {
       safeErrorCode: null,
     });
 
-    const result = await refreshPaymentOrderFromSumUp(order);
-
-    await updateWebhookEvent(webhookEvent, {
-      processingStatus: result.verification.ok ? "VERIFIED_PAID" : "MATCHED",
-      safeErrorCode: result.verification.ok
-        ? null
-        : result.verification.failures.includes("status")
-          ? "CHECKOUT_NOT_PAID"
-          : "VERIFICATION_MISMATCH",
-    });
+    // REP-302: quick-ack after persisting the event; verify asynchronously.
+    // Exactly-once credit is still guaranteed by ai/top_up idempotency keys
+    // and the return-page re-query path.
+    void refreshPaymentOrderFromSumUp(order)
+      .then(async (result) => {
+        await updateWebhookEvent(webhookEvent, {
+          processingStatus: result.verification.ok ? "VERIFIED_PAID" : "MATCHED",
+          safeErrorCode: result.verification.ok
+            ? null
+            : result.verification.failures.includes("status")
+              ? "CHECKOUT_NOT_PAID"
+              : "VERIFICATION_MISMATCH",
+        });
+      })
+      .catch(async (error) => {
+        await updateWebhookEvent(webhookEvent, {
+          processingStatus: "ERROR",
+          safeErrorCode: safeWebhookErrorDetails(error).kind,
+        }).catch(() => {});
+        console.error(
+          "POST /api/webhooks/sumup background verify error:",
+          safeWebhookErrorDetails(error),
+        );
+      });
 
     return NextResponse.json({ received: true });
   } catch (error) {

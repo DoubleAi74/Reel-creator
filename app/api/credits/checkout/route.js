@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 
+import {
+  checkCheckoutRateLimit,
+  getRequestIp,
+} from "../../../../lib/credits/rate-limit.js";
+import { isCreditsEnabled } from "../../../../lib/credits/flags.js";
 import { connectToDatabase } from "../../../../lib/db/mongoose.js";
 import {
   attachHostedCheckoutToOrder,
@@ -57,6 +62,10 @@ function safeCheckoutErrorDetails(error) {
 }
 
 export async function POST(request) {
+  if (!isCreditsEnabled()) {
+    return NextResponse.json({ enabled: false, error: "credits_disabled" }, { status: 404 });
+  }
+
   let body;
 
   try {
@@ -87,6 +96,18 @@ export async function POST(request) {
         orderId: reusableOrder.publicReference,
         reused: true,
       });
+    }
+
+    // REP-301: throttle only non-reused checkout creation (SumUp API cost).
+    const rateLimit = checkCheckoutRateLimit({
+      ip: getRequestIp(request),
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "rate_limited", retryAfter: rateLimit.retryAfter },
+        { status: 429 },
+      );
     }
 
     const order = await createPendingPaymentOrder({

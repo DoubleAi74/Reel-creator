@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
+import { isCreditsEnabled } from "../../../../../lib/credits/flags.js";
 import { connectToDatabase } from "../../../../../lib/db/mongoose.js";
 import { Generation } from "../../../../../lib/models/Generation.js";
 import {
@@ -26,6 +27,10 @@ function toResponseBody(body) {
 }
 
 export async function GET(_request, context) {
+  if (!isCreditsEnabled()) {
+    return NextResponse.json({ enabled: false, error: "credits_disabled" }, { status: 404 });
+  }
+
   const { id } = await context.params;
 
   if (!mongoose.isValidObjectId(id)) {
@@ -38,6 +43,7 @@ export async function GET(_request, context) {
     _id: id,
     deletedAt: null,
     public: true,
+    userTitled: true,
     r2Status: "created",
     saved: true,
   }).lean();

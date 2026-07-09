@@ -2745,6 +2745,8 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
           save: saveGeneration,
           saveOnCompletion: phase === finalPhase,
           sourceLanguage,
+          // REP-403 / D-C: project meta title is the user-entered public card title.
+          title: currentProject.meta?.title ?? "",
         });
 
         beginTranscriptionTracking(jobId, phase);

@@ -72,6 +72,7 @@ describe("GET /api/credits/orders/[orderId]", () => {
     await PaymentOrder.deleteMany({});
     retrieveCheckout.mockReset();
     stubSumUpEnvironment();
+    process.env.CREDITS_ENABLED = "true";
   });
 
   afterAll(async () => {

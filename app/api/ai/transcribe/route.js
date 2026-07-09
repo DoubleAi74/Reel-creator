@@ -192,6 +192,14 @@ export async function POST(request) {
     );
   }
 
+  // REP-407: reject traversal-shaped asset ids at intake.
+  if (!/^[a-zA-Z0-9_-]+$/.test(audioAssetId)) {
+    return NextResponse.json(
+      { error: "Invalid audio asset id." },
+      { status: 400 },
+    );
+  }
+
   const includeRomanization = payload?.includeRomanization === true;
   let phase;
 
@@ -281,6 +289,8 @@ export async function POST(request) {
   const pipelineRunId = normalizePipelineRunId(payload?.pipelineRunId);
   const save = payload?.save !== false;
   const saveOnCompletion = payload?.saveOnCompletion === true;
+  const title =
+    typeof payload?.title === "string" ? payload.title.trim().slice(0, 180) : "";
   const job = createTranscribeJob({
     assetId: audioAssetId,
     pipelineRunId,
@@ -302,6 +312,7 @@ export async function POST(request) {
       saveOnCompletion,
       sessionId,
       sourceLanguage,
+      title,
     }),
   );
 

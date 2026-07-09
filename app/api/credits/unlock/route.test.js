@@ -9,16 +9,21 @@ const ORIGINAL_ENV = {
 
 let creditsEnabled = true;
 
-vi.mock("@/lib/credits/flags", () => ({
+vi.mock("../../../../lib/credits/flags.js", () => ({
   isCreditsEnabled: vi.fn(() => creditsEnabled),
 }));
 
-vi.mock("@/lib/credits/unlock-cookie", () => ({
+vi.mock("../../../../lib/credits/unlock-cookie.js", () => ({
   buildGenerationUnlockSetCookie: vi.fn(
     () => "rc_gen_unlock=cookie-value; Path=/; Max-Age=60; HttpOnly; SameSite=Lax",
   ),
   createGenerationUnlockCookieValue: vi.fn(() => "cookie-value"),
   verifyGenerationPassword: vi.fn((password) => password === "shared-password"),
+}));
+
+vi.mock("../../../../lib/credits/rate-limit.js", () => ({
+  checkUnlockRateLimit: vi.fn(() => ({ allowed: true, remaining: 20, retryAfter: 0 })),
+  getRequestIp: vi.fn(() => "127.0.0.1"),
 }));
 
 describe("POST /api/credits/unlock", () => {

@@ -12,6 +12,7 @@ import {
   getYoutubeAudioConfig,
   isYoutubeAudioConfigured,
 } from "../../../lib/youtube-audio/server-config";
+import { sweepStaleYoutubeAudioResults } from "../../../lib/youtube-audio/storage";
 import { parseYoutubeAudioSegmentRequest } from "../../../lib/youtube-audio/validation";
 
 export const runtime = "nodejs";
@@ -36,6 +37,9 @@ export async function POST(request) {
   }
 
   try {
+    // REP-601: best-effort orphan result sweep after restarts (non-blocking).
+    void sweepStaleYoutubeAudioResults().catch(() => {});
+
     const cookieStore = await cookies();
     const existingSessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const sessionId = existingSessionId ?? crypto.randomUUID();
