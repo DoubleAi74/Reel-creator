@@ -94,6 +94,36 @@ describe("POST /api/credits/checkout", () => {
     expect(await PaymentOrder.countDocuments()).toBe(0);
   });
 
+  it("fails closed before creating an order when SumUp config is incomplete", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    resetSumUpEnvironmentForTests();
+    vi.stubEnv("SUMUP_API_KEY", "");
+    vi.stubEnv("SUMUP_API_KEY_TEST", "");
+    vi.stubEnv("SUMUP_API_KEY_LIVE", "");
+    vi.stubEnv("SUMUP_MERCHANT_CODE", "");
+    vi.stubEnv("SUMUP_MERCHANT_CODE_TEST", "");
+    vi.stubEnv("SUMUP_MERCHANT_CODE_LIVE", "");
+    vi.stubEnv("SUMUP_CHECKOUT_RETURN_URL", "");
+    vi.stubEnv("SUMUP_WEBHOOK_URL", "");
+    fetch.mockClear();
+
+    const response = await POST(
+      new Request("http://localhost/api/credits/checkout", {
+        body: JSON.stringify({ amountMinor: 500 }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "Unable to create checkout.",
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(await PaymentOrder.countDocuments()).toBe(0);
+    consoleErrorSpy.mockRestore();
+  });
+
   it("creates a SumUp checkout and reuses a recent pending checkout", async () => {
     const response = await POST(
       new Request("http://localhost/api/credits/checkout", {

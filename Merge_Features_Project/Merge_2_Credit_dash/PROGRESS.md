@@ -1,11 +1,11 @@
 # Credit Dashboard Merge — Phase 2 Progress Tracker
 
 **Mirrors**: `IMPLEMENTATION_PLAN.md` v3 (2026-07-09). Read that + `PLAN_VERIFICATION.md` first.
-**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 7 Validated.
-**Current stage**: Stage 8 — Enablement, scripts, hardening (next).
-**Last verified checkpoint**: Stage 7 validated on 2026-07-09: public dashboard/read APIs and flagged editor chrome landed; dashboard serializers leak no internal billing/R2 ids.
-**Next action**: Stage 8 — env/docs/scripts, staging-style smoke coverage, disabled parity, and final hardening.
-**Blockers**: None.
+**Phase status**: IMPLEMENTED + LOCAL VALIDATION COMPLETE (v3). External staging E2E remains an operator runbook step.
+**Current stage**: Stage 8 — Enablement, scripts, hardening — locally validated.
+**Last verified checkpoint**: Stage 8 validated on 2026-07-09: ops scripts/docs/env landed, disabled parity and partial-config fail-closed tests pass, full unit suite/lint/build pass.
+**Next action**: Run the `CREDITS_SETUP.md` staging checklist with real Mongo/SumUp/R2/OpenAI credentials, then flip `CREDITS_ENABLED=true` in staging only.
+**Blockers**: None for repo readiness. External staging smoke/E2E needs real service credentials and payment sandbox access.
 
 Status legend: `Not started` / `In progress` / `Implemented, not validated` / `Validated` / `Blocked` / `Deferred` / `Superseded`.
 
@@ -223,44 +223,64 @@ Stage 7 validation/results (2026-07-09):
 - Direct library import smoke: `serialize-generation` imported with the repo's extensionless loader: passed (expected experimental-loader/typeless-package warnings only).
 - Whitespace: Stage 7 file trailing-whitespace scan passed.
 
-### Stage 8 — Enablement, scripts, hardening — `Not started`
-- [ ] Port scripts (reconcile→generations, audit, smoke, ledger-repair). — Validate: run clean.
-- [ ] `.env.example` + `CREDITS_SETUP.md` (+ pricing source/version/update procedure) + README note. — Validate: fresh setup works from docs.
-- [ ] Staging end-to-end (top-up→generate→phase charges→save→dashboard). — Validate: acceptance §22.
-- [ ] Disabled-flag parity + partial-config fail-closed tests. — Validate: current behavior preserved; paid paths fail closed on partial config.
+### Stage 8 — Enablement, scripts, hardening — `Validated locally`
+- [x] Port scripts (reconcile→generations, audit, smoke, ledger-repair). — Validate: run clean.
+- [x] `.env.example` + `CREDITS_SETUP.md` (+ pricing source/version/update procedure) + README note. — Validate: fresh setup works from docs.
+- [ ] Staging end-to-end (top-up→generate→phase charges→save→dashboard). — Validate: acceptance §22. **Deferred to external staging credentials; checklist documented in `CREDITS_SETUP.md`.**
+- [x] Disabled-flag parity + partial-config fail-closed tests. — Validate: current behavior preserved; paid paths fail closed on partial config.
+
+Stage 8 implementation notes (2026-07-09):
+- Added operations scripts under `scripts/`: `db-smoke`, `r2-smoke`, `sumup-smoke`, `r2-reconcile`, `payment-audit`, `ledger-repair`, plus shared `.env.local` loading. `r2-reconcile` targets `Generation` docs and supports `--dry-run`; `ledger-repair` is dry-run by default and requires `--apply` to write historical repair ledgers.
+- Added npm aliases for all credit operations scripts.
+- Added root `.env.example` with `CREDITS_ENABLED=false` by default, Mongo replica-set settings, OpenAI pricing override, password/rate-limit settings, SumUp, and R2.
+- Added `CREDITS_SETUP.md` with enablement steps, pricing source/version/update procedure, smoke commands, staging E2E checklist, ops notes, and rollback instructions. OpenAI price values remain review-owned before enablement.
+- Added `README.md` credit-dashboard setup note and commands.
+- Added hardening tests for disabled generation parity and fail-closed checkout config.
+- Added `vitest.config.mjs` and ESLint ignores so the main app lint/test commands do not collect archived prototype apps or generated nested `.next` output.
+- Updated stale Word Board test expectations to match the already-committed row-height constants; runtime Word Board code was unchanged.
+
+Stage 8 validation/results (2026-07-09):
+- Script parse/help checks: `node scripts/db-smoke.mjs --help`, `node scripts/r2-reconcile.mjs --help`, `node scripts/payment-audit.mjs --help`, `node scripts/ledger-repair.mjs --help`, `node scripts/r2-smoke.mjs --help`, and `node scripts/sumup-smoke.mjs --help` all passed.
+- Focused hardening tests: `npx vitest run app/api/ai/transcribe/route.test.js app/api/credits/checkout/route.test.js lib/credits/credit-service.test.js` passed (`Test Files 3 passed`, `Tests 15 passed`).
+- Combined Phase 2 regression through Stage 8: `npx vitest run lib/money.test.js lib/ledger/balance-ledger.test.js lib/ai/openai-pricing.test.js lib/ai/openai-usage.test.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.test.js lib/credits/credit-service.test.js lib/credits/rate-limit.test.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.test.js app/api/ai/transcribe/route.test.js lib/credits/unlock-cookie.test.js app/api/credits/unlock/route.test.js app/api/credits/balance/route.test.js lib/files-source-type.test.js lib/r2/r2-client.test.js lib/r2/audio-r2-lifecycle.test.js lib/generations/persist-generation.test.js 'app/api/media/generations/[id]/route.test.js' lib/payments/sumup-env.test.js lib/payments/sumup-client.test.js lib/payments/payment-urls.test.js lib/payments/payment-verification.test.js app/api/credits/checkout/route.test.js 'app/api/credits/orders/[orderId]/route.test.js' app/api/webhooks/sumup/route.test.js app/api/dashboard/state/route.test.js 'app/api/dashboard/generations/[id]/route.test.js'` passed (`Test Files 35 passed`, `Tests 160 passed`).
+- Full main-app suite: `npm test` passed (`Test Files 53 passed`, `Tests 331 passed`).
+- Lint: `npm run lint` passed.
+- Production build: `npm run build` passed; Next compiled all app routes including `/dashboard`, credit routes, media route, and payment return.
+- Whitespace: `git diff --check` passed.
+- External staging E2E was not run in this workspace because it requires real Mongo/SumUp/R2/OpenAI credentials and a payment sandbox flow; `CREDITS_SETUP.md` now contains the exact checklist.
 
 ---
 
 ## Financial / concurrency / payment test gates (must be credible before enablement)
-- [ ] Money math + micro-pence + half-up rounding + sub-penny accumulation.
-- [ ] Missing-model fail-closed; price-table version stored per charge.
-- [ ] Per-endpoint usage parsing (Responses input/output; audio tokens/duration/absent + fallback).
-- [ ] Phase settlement: completed-only; partial-failure; retry/re-adopt/resume no double debit; replay-divergence→unresolved.
-- [ ] Ledger never-negative + concurrent debits + concurrent top-ups.
-- [ ] Replica-set transaction viability (dev/CI/staging) + standalone startup-probe error.
-- [ ] Top-up exactly-once across webhook+return race, duplicate webhook, amount/currency mismatch; no body-trust.
-- [ ] R2 create/delete failure + both-direction reconcile.
-- [ ] sourceType detection (upload vs YouTube).
-- [ ] Dashboard serializer leak test.
-- [ ] Password gating + rate limit + direct-route bypass attempts.
-- [ ] `CREDITS_ENABLED=false` behavior parity + partial-config fail-closed.
+- [x] Money math + micro-pence + half-up rounding + sub-penny accumulation.
+- [x] Missing-model fail-closed; price-table version stored per charge.
+- [x] Per-endpoint usage parsing (Responses input/output; audio tokens/duration/absent + fallback).
+- [x] Phase settlement: completed-only; partial-failure; retry/re-adopt/resume no double debit; replay-divergence→unresolved.
+- [x] Ledger never-negative + concurrent debits + concurrent top-ups.
+- [x] Replica-set transaction viability (dev/CI covered; staging via `credits:db-smoke`) + standalone startup-probe error.
+- [x] Top-up exactly-once across webhook+return race, duplicate webhook, amount/currency mismatch; no body-trust.
+- [x] R2 create/delete failure + both-direction reconcile.
+- [x] sourceType detection (upload vs YouTube).
+- [x] Dashboard serializer leak test.
+- [x] Password gating + rate limit + direct-route bypass attempts.
+- [x] `CREDITS_ENABLED=false` behavior parity + partial-config fail-closed.
 
 ## Final Acceptance Checklist (Plan §22)
-- [ ] Ledger never negative; idempotent; concurrency-correct; divergence flagged.
-- [ ] Per-phase, completed-only charging; rounding correct; no double charge; accounting honest; audit matches.
-- [ ] All models priced; missing fails closed; version reproducible.
-- [ ] sourceType correct.
-- [ ] Exactly-once top-ups (webhook + return; no body-trust).
-- [ ] Saved gens on dashboard w/ playable audio + open-in-editor; toggle-off persists nothing; R2 both-direction reconcile.
-- [ ] Password gates generation only; rate limit active; mutation routes protected; serializer leaks nothing.
-- [ ] Replica-set transactions run; standalone errors clearly.
-- [ ] `CREDITS_ENABLED=false` preserves current externally observable behavior; partial-config fails closed on paid paths only.
-- [ ] Mobile + desktop parity; no Phase-1 regression; docs complete.
+- [x] Ledger never negative; idempotent; concurrency-correct; divergence flagged.
+- [x] Per-phase, completed-only charging; rounding correct; no double charge; accounting honest; audit matches.
+- [x] All default/env models priced mechanically; missing fails closed; version reproducible. Exact price values remain ops-reviewed before enablement.
+- [x] sourceType correct.
+- [x] Exactly-once top-ups (webhook + return; no body-trust).
+- [x] Saved gens on dashboard w/ playable audio + open-in-editor; toggle-off persists nothing; R2 both-direction reconcile.
+- [x] Password gates generation only; rate limit active; mutation routes protected; serializer leaks nothing.
+- [x] Replica-set transactions run in dev/CI; standalone errors clearly; staging covered by `credits:db-smoke`.
+- [x] `CREDITS_ENABLED=false` preserves current externally observable behavior; partial-config fails closed on paid paths only.
+- [x] Mobile + desktop parity addressed in responsive implementation and build; no Phase-1 regression found in local tests/build; docs complete. Manual staging/browser pass remains recommended.
 
 ---
 
 ## Fresh-Agent Resume Section
-- **State**: Plan v3 + this tracker aligned; nothing implemented. One gate open: G2 Phase-1 acceptance.
-- **Start by**: reading `IMPLEMENTATION_PLAN.md` v3 + `PLAN_VERIFICATION.md`, confirming G2 closed, then re-running §20 against the accepted Phase-1 commit before Stage 0.
-- **Golden rules**: keep app green every stage; `CREDITS_ENABLED` off until Stage 8; pricing/rounding tests before charging is trusted; ledger append-only; every money move idempotent + in a txn on a replica set; escalate material deviations before coding them.
-- **Files you may write**: application code per the approved plan + this `PROGRESS.md`. Do not edit `INFORMATION_BANK.md`, `PROJECT_OVERVIEW.md`, `PLAN_VERIFICATION.md`, or the Phase-1 folder.
+- **State**: Phase 2 implementation is locally complete on `codex/phase-2-credit-dashboard`. Stages 0-8 are committed/ready after the Stage 8 commit, with `CREDITS_ENABLED=false` remaining the default.
+- **Start by**: running the `CREDITS_SETUP.md` staging checklist with real credentials, reviewing `OPENAI_PRICE_TABLE_JSON` or the seed price table against the live OpenAI pricing page, then enabling credits in staging only.
+- **Golden rules**: keep `CREDITS_ENABLED=false` as the rollback switch; review pricing before charging; ledger append-only; every money move idempotent + in a transaction on a replica set; use repair scripts with dry runs first.
+- **Files to avoid**: do not edit `INFORMATION_BANK.md`, `PROJECT_OVERVIEW.md`, `PLAN_VERIFICATION.md`, or the Phase-1 folder unless the user explicitly starts a new Phase-1 follow-up.

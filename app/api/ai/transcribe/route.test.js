@@ -167,6 +167,40 @@ describe("POST /api/ai/transcribe", () => {
     );
   });
 
+  it("preserves the disabled generation path without invoking credit gates", async () => {
+    creditsEnabled = false;
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+    const creditService = await import("@/lib/credits/credit-service");
+    const rateLimit = await import("@/lib/credits/rate-limit");
+    const unlockCookie = await import("@/lib/credits/unlock-cookie");
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audio: {
+            duration: 12,
+            endOffset: null,
+            startOffset: 0,
+          },
+          audioAssetId: "asset-route",
+          includeRomanization: true,
+          lines: [{ id: "line-1", original: "hello" }],
+          phase: "time",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ jobId: "job-route" });
+    expect(store.createTranscribeJob).toHaveBeenCalledTimes(1);
+    expect(unlockCookie.isGenerationUnlockCookieValid).not.toHaveBeenCalled();
+    expect(rateLimit.checkGenerationRateLimit).not.toHaveBeenCalled();
+    expect(creditService.assertCanStartGeneration).not.toHaveBeenCalled();
+  });
+
   it("skips credit gates when adopting an in-flight job", async () => {
     creditsEnabled = true;
     const { POST } = await import("./route");
