@@ -1,10 +1,10 @@
 # Credit Dashboard Merge — Phase 2 Progress Tracker
 
 **Mirrors**: `IMPLEMENTATION_PLAN.md` v3 (2026-07-09). Read that + `PLAN_VERIFICATION.md` first.
-**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 1 Validated.
-**Current stage**: Stage 2 — Pricing + rounding + usage collector (next).
-**Last verified checkpoint**: Stage 1 validated on 2026-07-09: DB/model/money/ledger foundation landed with no runtime wiring; replica-set tests cover transaction support, indexes, idempotency, never-negative debits, concurrent debits, replay-divergence, and Generation/UsageRecord uniqueness.
-**Next action**: Stage 2 — add price table, billing phase mapping, usage collector, and OpenAI usage capture without charging.
+**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 2 Validated.
+**Current stage**: Stage 3 — Credit service + phase settlement + accounting (next).
+**Last verified checkpoint**: Stage 2 validated on 2026-07-09: pricing/rounding, billing phase mapping, UsageRecord collector, and optional OpenAI usage capture landed with no charging/runtime enablement.
+**Next action**: Stage 3 — add flagged credit service, phase settlement, accounting status, `pipelineRunId`, and final-phase pass-through.
 **Blockers**: None.
 
 Status legend: `Not started` / `In progress` / `Implemented, not validated` / `Validated` / `Blocked` / `Deferred` / `Superseded`.
@@ -98,11 +98,26 @@ Stage 1 validation/results (2026-07-09):
 - Direct module import smoke: `node --input-type=module` imported all Stage 1 DB/model/money/ledger modules: passed (Node emitted the expected typeless-package ESM warning only).
 - Whitespace: `git diff --check -- lib/db lib/models lib/ledger lib/money.js lib/money.test.js`: passed.
 
-### Stage 2 — Pricing + rounding + usage collector — `Not started`
-- [ ] `lib/ai/openai-pricing.js` (versioned micro-pence table, all default+env models) + `hasPrice`/`computeCallCostMicros`/`roundMicrosToPenceHalfUp`. — Validate: unit tests incl. **missing-model fail-closed** + **sub-penny accumulation + half-up**.
-- [ ] `lib/credits/billing-phases.js` (phase→ledger type). — Validate: mapping test.
-- [ ] `lib/ai/openai-usage.js` collector (callId, phase totals, finalized-for-phase). — Validate: aggregation + retry-same-callId tests.
-- [ ] Thread collector into `openai-lyrics.js`; `record()` after `tryParseJson(rawText)` at all 8 sites; tag sub-phase/billing unit in `runLyricTimingPipeline`; parse Responses `input/output` + audio `tokens`/`duration`/absent. — Files: `lib/ai/openai-lyrics.js` — Validate: correct capture per endpoint; **pipeline output unchanged**; UsageRecords written (no debit).
+### Stage 2 — Pricing + rounding + usage collector — `Validated`
+- [x] `lib/ai/openai-pricing.js` (versioned micro-pence table, all default+env models) + `hasPrice`/`computeCallCostMicros`/`roundMicrosToPenceHalfUp`. — Validate: unit tests incl. **missing-model fail-closed** + **sub-penny accumulation + half-up**.
+- [x] `lib/credits/billing-phases.js` (phase→ledger type). — Validate: mapping test.
+- [x] `lib/ai/openai-usage.js` collector (callId, phase totals, finalized-for-phase). — Validate: aggregation + retry-same-callId tests.
+- [x] Thread collector into `openai-lyrics.js`; `record()` after `tryParseJson(rawText)` at all 8 sites; tag sub-phase/billing unit in `runLyricTimingPipeline`; parse Responses `input/output` + audio `tokens`/`duration`/absent. — Files: `lib/ai/openai-lyrics.js` — Validate: correct capture per endpoint; **pipeline output unchanged**; UsageRecords written (no debit).
+
+Stage 2 implementation notes (2026-07-09):
+- Added `lib/ai/openai-pricing.js` with version `openai-seed-2026-07-09-user-review-required`, integer micro-pence math, default model coverage for the current lyric pipeline, `OPENAI_PRICE_TABLE_JSON` overrides, missing-model/unit fail-closed errors, audio duration pricing, token pricing, and half-up pence rounding export. Exact pence values remain user-owned before enablement.
+- Added `lib/credits/billing-phases.js` mapping `transcribe→AI_TRANSCRIBE`, `enrich→AI_ENRICH`, and `time→AI_TIMING`.
+- Added `lib/ai/openai-usage.js` with `createUsageCollector({jobId,pipelineRunId})`, stable per-phase call IDs, idempotent `UsageRecord` upsert by `callId`, phase totals, `markPhaseComplete`, and `finalizedUsageForPhase`. Collector records remain `charged:false`; Stage 2 performs no debits.
+- Threaded optional `usageCollector` through `openai-lyrics.js` only. With no collector (current runtime), behavior remains unchanged. When a collector is supplied, all eight OpenAI call sites record after `tryParseJson(rawText)` and are tagged by v3 billing phase: content transcription / line breaks / source repair as `transcribe`, translation / polish / word meanings as `enrich`, timing transcription / quality audit as `time`.
+
+Stage 2 validation/results (2026-07-09):
+- Stage 2 suite: `npx vitest run lib/ai/openai-pricing.test.js lib/ai/openai-usage.test.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.test.js` passed (`Test Files 4 passed`, `Tests 27 passed`).
+- Pricing coverage: Responses input/output tokens, audio duration, audio token usage, absent audio usage with fallback, missing model fail-closed, missing unit fail-closed, override version/merge, malformed override rejection, sub-penny accumulation, and half-up phase rounding.
+- Collector coverage: extraction for Responses/audio usage shapes, retry-same-callId idempotent upsert, phase totals, `markPhaseComplete`, finalized records, and Mongo `UsageRecord` persistence with `charged:false`.
+- Pipeline capture coverage: mock collector test exercises all eight OpenAI call sites, verifies phase/endpoint/usage tags and positive raw costs, and confirms pipeline output remains unchanged.
+- Lint: `npx eslint lib/ai/openai-pricing.js lib/ai/openai-pricing.test.js lib/ai/openai-usage.js lib/ai/openai-usage.test.js lib/credits/billing-phases.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.js lib/ai/openai-lyrics.test.js`: passed.
+- Direct module import smoke: `node --input-type=module` imported `openai-pricing`, `openai-usage`, and `billing-phases`: passed (Node emitted the expected typeless-package ESM warning only).
+- Whitespace: `git diff --check -- lib/ai/openai-pricing.js lib/ai/openai-pricing.test.js lib/ai/openai-usage.js lib/ai/openai-usage.test.js lib/credits/billing-phases.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.js lib/ai/openai-lyrics.test.js Merge_Features_Project/Merge_2_Credit_dash/PROGRESS.md`: passed.
 
 ### Stage 3 — Credit service + phase settlement + accounting — `Not started`
 - [ ] `lib/credits/{flags,rate-limit,credit-service}.js` (`assertCanStartGeneration` incl. price precheck; `settlePhase` D3/D4/D10; `recordUsageOnly`). — Validate: unit.
