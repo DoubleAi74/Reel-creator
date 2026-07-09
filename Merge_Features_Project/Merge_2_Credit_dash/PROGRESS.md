@@ -1,10 +1,10 @@
 # Credit Dashboard Merge — Phase 2 Progress Tracker
 
 **Mirrors**: `IMPLEMENTATION_PLAN.md` v3 (2026-07-09). Read that + `PLAN_VERIFICATION.md` first.
-**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 0 Validated.
-**Current stage**: Stage 1 — DB / models / money / ledger (next).
-**Last verified checkpoint**: Stage 0 validated on 2026-07-09: Phase 1 acceptance recorded, v3 plan-ready status confirmed, §20 drift check found no material mismatch, deps installed, module imports passed, scoped tests passed, repo-wide `npm test` baseline unchanged, and Mongo replica-set transaction probe passed.
-**Next action**: Stage 1 — port DB/model/money/ledger modules behind no runtime wiring, then validate ledger/model tests on the replica-set harness.
+**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 1 Validated.
+**Current stage**: Stage 2 — Pricing + rounding + usage collector (next).
+**Last verified checkpoint**: Stage 1 validated on 2026-07-09: DB/model/money/ledger foundation landed with no runtime wiring; replica-set tests cover transaction support, indexes, idempotency, never-negative debits, concurrent debits, replay-divergence, and Generation/UsageRecord uniqueness.
+**Next action**: Stage 2 — add price table, billing phase mapping, usage collector, and OpenAI usage capture without charging.
 **Blockers**: None.
 
 Status legend: `Not started` / `In progress` / `Implemented, not validated` / `Validated` / `Blocked` / `Deferred` / `Superseded`.
@@ -41,7 +41,7 @@ Status legend: `Not started` / `In progress` / `Implemented, not validated` / `V
 ---
 
 ## Verification-finding disposition (from `PLAN_VERIFICATION.md`)
-Original B1-B7 from the first verification → resolved in v2/v3. Re-verification B1 (`core` group mismatch) → resolved in v3 by per-phase billing + `pipelineRunId` persistence aggregation. Re-verification B2 (approval/acceptance gates) → G1 closed; G2 remains external. Non-blocking notes → applied or carried forward: sourceType seam accepted as Phase-2 scope, focused Phase-1 tests now passed, exact price values remain config-owned, stale info-bank wording superseded by v3.
+Original B1-B7 from the first verification → resolved in v2/v3. Re-verification B1 (`core` group mismatch) → resolved in v3 by per-phase billing + `pipelineRunId` persistence aggregation. Re-verification B2 (approval/acceptance gates) → G1/G2 closed before implementation. Non-blocking notes → applied or carried forward: sourceType seam accepted as Phase-2 scope, focused Phase-1 tests now passed, exact price values remain config-owned, stale info-bank wording superseded by v3.
 
 ---
 
@@ -76,13 +76,27 @@ Stage 0 validation/results (2026-07-09):
 - Whitespace: `git diff --check -- package.json package-lock.json Merge_Features_Project/Merge_2_Credit_dash/PROGRESS.md`: passed.
 - Files changed by Stage 0: `package.json`, `package-lock.json`, `Merge_Features_Project/Merge_2_Credit_dash/PROGRESS.md`.
 
-### Stage 1 — DB / models / money / ledger — `Not started`
-- [ ] Port `lib/db/mongoose.js` (+`assertTransactionsSupported`), `lib/db/bootstrap.js`. — Validate: connects to RS test Mongo.
-- [ ] Port `lib/money.js` (+tests). — Validate: money tests green.
-- [ ] Port Balance/PaymentOrder/WebhookEvent/RefundRecord. — Validate: schemas load.
-- [ ] Extend `CreditLedger` enum → add `AI_TRANSCRIBE`,`AI_ENRICH`,`AI_TIMING` (drop unused `CARD_CREATE`). — Validate: enum test.
-- [ ] Add single `Generation` model (§10.2) + `UsageRecord` (§10.3, unique `callId`). — Validate: indexes build.
-- [ ] Port `lib/ledger/balance-ledger.js` (+tests). — Validate: idempotency / never-negative / **concurrent debits** / **replay-divergence** tests green on RS harness.
+### Stage 1 — DB / models / money / ledger — `Validated`
+- [x] Port `lib/db/mongoose.js` (+`assertTransactionsSupported`), `lib/db/bootstrap.js`. — Validate: connects to RS test Mongo.
+- [x] Port `lib/money.js` (+tests). — Validate: money tests green.
+- [x] Port Balance/PaymentOrder/WebhookEvent/RefundRecord. — Validate: schemas load.
+- [x] Extend `CreditLedger` enum → add `AI_TRANSCRIBE`,`AI_ENRICH`,`AI_TIMING` (drop unused `CARD_CREATE`). — Validate: enum test.
+- [x] Add single `Generation` model (§10.2) + `UsageRecord` (§10.3, unique `callId`). — Validate: indexes build.
+- [x] Port `lib/ledger/balance-ledger.js` (+tests). — Validate: idempotency / never-negative / **concurrent debits** / **replay-divergence** tests green on RS harness.
+
+Stage 1 implementation notes (2026-07-09):
+- Added `lib/db/mongoose.js` with cached connection, `hasMongoUri`, `getConfiguredDatabaseName`, `connectToDatabase`, `assertTransactionsSupported`, and test-only disconnect support. The transaction probe performs an insert/delete inside `withTransaction` and throws `TRANSACTIONS_UNSUPPORTED` with a replica-set/Atlas remediation message on standalone deployments.
+- Added `lib/db/bootstrap.js` with `initializeDatabaseIndexes`, `ensureSharedBalance`, and `INITIAL_BALANCE_MINOR` parsing (default `500` pence).
+- Added `lib/money.js` using integer pence and micro-pence helpers, including half-up micro-pence rounding for later Stage 2 billing.
+- Added Mongoose models: `Balance`, `CreditLedger`, `PaymentOrder`, `WebhookEvent`, `RefundRecord`, single-doc `Generation`, and `UsageRecord`. `CreditLedger` uses the v3 enum (`TOP_UP`, `AI_TRANSCRIBE`, `AI_ENRICH`, `AI_TIMING`, `REFUND_ADJUSTMENT`, `MANUAL_ADJUSTMENT`) and no `CARD_CREATE`; `UsageRecord.callId` and ledger idempotency keys are unique.
+- Added `lib/ledger/balance-ledger.js` requiring a session/transaction, stamping `balanceAfterMinor`, preserving never-negative debits with conditional balance updates, exact replay idempotency, and replay-divergence detection.
+- Kept Stage 1 unwired: no route/client/transcribe runtime behavior changes; `CREDITS_ENABLED` remains unused/off.
+
+Stage 1 validation/results (2026-07-09):
+- Scoped Stage 1 tests: `npx vitest run --root lib --reporter verbose money.test.js ledger/balance-ledger.test.js` passed (`Test Files 2 passed`, `Tests 17 passed`).
+- Replica-set coverage in `lib/ledger/balance-ledger.test.js`: transaction support probe, shared-balance seed, unique index creation, input validation, idempotent exact replay, replay-divergence rejection, never-negative rollback, concurrent debit overdraw prevention, and `Generation`/`UsageRecord` contract checks.
+- Direct module import smoke: `node --input-type=module` imported all Stage 1 DB/model/money/ledger modules: passed (Node emitted the expected typeless-package ESM warning only).
+- Whitespace: `git diff --check -- lib/db lib/models lib/ledger lib/money.js lib/money.test.js`: passed.
 
 ### Stage 2 — Pricing + rounding + usage collector — `Not started`
 - [ ] `lib/ai/openai-pricing.js` (versioned micro-pence table, all default+env models) + `hasPrice`/`computeCallCostMicros`/`roundMicrosToPenceHalfUp`. — Validate: unit tests incl. **missing-model fail-closed** + **sub-penny accumulation + half-up**.
