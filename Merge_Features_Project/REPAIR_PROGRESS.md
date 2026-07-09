@@ -10,11 +10,11 @@
 
 ## Programme Status
 
-- **Current status:** Stages 2–6 code repairs complete through **REP-601**. Stopped before Stage 7/sandbox E2E. **REP-303 Blocked** (sandbox). **REP-805** not forced (D-F).
+- **Current status:** Stage 7 **REP-701 Validated**; Stage 8 in progress. REP-303/805 remain open.
 - **Definitive inventory:** **26 repairs — 3 High · 6 Medium · 15 Low · 1 Verify (REP-303) · 1 Gate (REP-805)** (see REPAIR_PLAN §3.1). Corrects the earlier prose drift (correct = 6 Medium, 15 Low).
-- **Current repair ID:** — (Stage 6 complete; next Stage 7/8 or sandbox).
-- **Last validated checkpoint:** Post-Stage-6 — `npm test` **55** files / **351** tests; lint 0; build 0. Baseline 331/53.
-- **Next action:** Stage 7 REP-701 / Stage 8 ops docs when ready; real-service E2E + REP-303 sandbox + REP-805 operator pricing remain open.
+- **Current repair ID:** Stage 8 (801–804).
+- **Last validated checkpoint:** Post-REP-701 — `npm test` **59** files / **361** tests; lint 0; build 0.
+- **Next action:** Complete Stage 8 REP-801–804; leave REP-805 and REP-303 open.
 - **Stage-gate review (2026-07-10):** REP-201 (+201a) closed. REP-202 dry-run tool lands; clamp write-offs excluded via `charged:true` (read `UsageRecord.writeOffMinor` for audit of full write-offs with no ledger row).
 - **Blockers:** none on decisions — D-A…D-F all recorded. Standing gate: real-service E2E (not a code defect). **DV-1:** REP-201 supersedes the Phase-2 plan's per-phase reject model; the Phase-2 IMPLEMENTATION_PLAN should be amended by its owner so plan and code agree.
 - **Keep flag off:** `CREDITS_ENABLED=false` throughout until the Final Release-Readiness Gate.
@@ -55,7 +55,7 @@
 | 5 Mongo/R2/recovery | REP-501 | Low | **Validated**| no |
 | 5 Mongo/R2/recovery | REP-502 | Low | **Validated**| no |
 | 6 Cross-phase lifecycle | REP-601 | Medium | **Validated**| no |
-| 7 Test/validation | REP-701 | Medium | Not started | no |
+| 7 Test/validation | REP-701 | Medium | **Validated**| no |
 | 8 Ops/docs | REP-801 | Low | Not started | no |
 | 8 Ops/docs | REP-802 | Low | Not started | no |
 | 8 Ops/docs | REP-803 | Medium | Not started | no |
@@ -240,15 +240,15 @@ No code repairs. The real-service E2E gate is tracked in the Sandbox E2E Checkli
 ## STAGE 7 — Test & Validation Gaps
 
 ### REP-701 — Close standalone test/validation gaps
-- **Status:** Not started (depends REP-201, 301, 402, 405, 406, 501, 601)
-- [ ] H1 guarded-invariant test (REP-201)
-- [ ] Sweeper-invoked test (REP-601)
-- [ ] Checkout throttle / unlock brute-force / order enumeration tests (REP-301/406/405)
-- [ ] Kill-switch route-gating tests (REP-402)
-- [ ] Concurrent `persistGeneration` dedup test (REP-501)
-- [ ] Mocked-infra caveat documented
-- [ ] Full `npm test` green
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- **Status:** **Validated** (2026-07-10)
+- [x] H1 guarded-invariant test (clamp + block-boundary + reject-mode) — `lib/credits/guarded-invariants.test.js` (+ existing REP-201 coverage)
+- [x] Sweeper-invoked test (REP-601) — `app/api/youtube-audio-segments/route.sweeper.test.js`
+- [x] Checkout / unlock / order throttle tests — `app/api/credits/route-guards.test.js`
+- [x] Kill-switch route-gating tests (REP-402) — same file
+- [x] Concurrent `persistGeneration` dedup (REP-501) — `lib/generations/persist-dedup.test.js`
+- [x] Mocked-infra caveat documented in `CREDITS_SETUP.md`
+- [x] Full `npm test` green (59 files / 361 tests)
+- **Files changed:** `lib/credits/guarded-invariants.test.js`, `app/api/credits/route-guards.test.js`, `lib/generations/persist-dedup.test.js`, `app/api/youtube-audio-segments/route.sweeper.test.js`, `CREDITS_SETUP.md` · **Tests:** 59/361 · **Deviations:** none
 
 ---
 

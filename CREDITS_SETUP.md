@@ -4,6 +4,22 @@ Phase 2 is guarded by `CREDITS_ENABLED`. Keep it `false` until the database,
 pricing, password, SumUp, R2, and smoke checks below are complete. With the flag
 off, the editor remains usable and the paid credit gates stay inert.
 
+## Mocked infrastructure caveat (local tests)
+
+`npm test` uses **in-process mocks and emulators**, not production services:
+
+| Dependency | In Vitest | Required for real enablement |
+|---|---|---|
+| MongoDB | `mongodb-memory-server` replica set | Atlas / real replica set (`credits:db-smoke`) |
+| SumUp | mocked `fetch` / stubbed client | Sandbox then live keys |
+| Cloudflare R2 | mocked client / lifecycle | Sandbox bucket + `credits:r2-smoke` |
+| OpenAI | mocked HTTP / no paid calls | Real key; pricing reviewed (REP-805) |
+| RapidAPI (YT) | mocked provider responses | Real RapidAPI key |
+
+Green local tests **do not** replace sandbox E2E (see checklist below). Always keep
+`CREDITS_ENABLED=false` until Mongo transactions, SumUp sandbox, R2, and pricing
+are verified with real (non-prod) services.
+
 ## 1. Create `.env.local`
 
 ```bash
