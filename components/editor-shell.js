@@ -13,6 +13,7 @@ import { AudioTab } from "@/components/tabs/audio-tab";
 import { LyricsTab } from "@/components/tabs/lyrics-tab";
 import { StyleTab } from "@/components/tabs/style-tab";
 import { WaveformTimeline } from "@/components/waveform-timeline";
+import { YoutubeSegmentModal } from "@/components/youtube-segment-modal";
 import {
   getExportReadiness,
   getRenderPollDelayMs,
@@ -557,6 +558,10 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
     createBackgroundUploadState(project.background),
   );
   const [audioObjectUrl, setAudioObjectUrl] = useState(null);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeAudioEnabled, setYoutubeAudioEnabled] = useState(false);
+  const [youtubeConfigError, setYoutubeConfigError] = useState("");
+  const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
   const [isLoadingSample, setIsLoadingSample] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(
     getInitialTransportTime(project),
@@ -780,6 +785,35 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
     projectStateRef.current = projectState;
   }, [projectState]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/youtube-audio/config", {
+      cache: "no-store",
+      credentials: "same-origin",
+    })
+      .then((response) => (response.ok ? response.json() : { enabled: false }))
+      .then((payload) => {
+        if (cancelled) {
+          return;
+        }
+
+        setYoutubeAudioEnabled(Boolean(payload?.enabled));
+        setYoutubeConfigError("");
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setYoutubeAudioEnabled(false);
+        setYoutubeConfigError("");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   useEffect(() => {
     let cancelled = false;
 
@@ -3030,6 +3064,89 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
     }
   };
 
+  const handleOpenYoutubeModal = () => {
+    if (!youtubeAudioEnabled) {
+      return;
+    }
+
+    if (!youtubeUrl.trim()) {
+      setYoutubeConfigError("Enter a YouTube URL.");
+      return;
+    }
+
+    setYoutubeConfigError("");
+    setIsYoutubeModalOpen(true);
+  };
+
+  const handleYoutubeSegmentComplete = (asset) => {
+    const durationSec = Number(asset?.durationSec);
+
+    if (!asset?.assetId || !Number.isFinite(durationSec) || durationSec <= 0) {
+      setAudioUpload({
+        asset: null,
+        message: "YouTube import completed without a usable audio asset.",
+        status: "error",
+      });
+      return;
+    }
+
+    appliedTranscribeJobIdRef.current = null;
+    const currentProject = projectStateRef.current;
+    const nextAsset = {
+      ...asset,
+      durationSec,
+      kind: "audio",
+    };
+    const nextAudio = normalizeAudioSection({
+      ...currentProject.audio,
+      duration: durationSec,
+      endOffset: null,
+      name: asset.name,
+      startOffset: 0,
+    });
+    const { clampedCount, lines } = clampLineStartsToSection(
+      currentProject.lines,
+      nextAudio,
+    );
+
+    if (audioObjectUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(audioObjectUrl);
+    }
+
+    setProjectState({
+      ...currentProject,
+      audio: nextAudio,
+      lines,
+    });
+    setAudioUpload({
+      asset: nextAsset,
+      message: `${asset.name} added.`,
+      status: "success",
+    });
+    setTimingNotice(
+      clampedCount > 0
+        ? {
+            message: `${clampedCount} timed ${
+              clampedCount === 1 ? "line was" : "lines were"
+            } clamped inside the active section.`,
+            status: "danger",
+          }
+        : {
+            message: "",
+            status: "idle",
+          },
+    );
+    setAudioObjectUrl(buildSessionAssetUrl(asset.assetId));
+    setIsTransportPlaying(false);
+    setCurrentAudioTime(0);
+    setAutoFollowEnabled(true);
+    setSelectedTimingLineId(null);
+    setTimingDrafts({});
+    setTranscription(null);
+    setAutoLyricsState(createIdleAutoLyricsState());
+    setAutoTimingState(createIdleAutoTimingState());
+    setIsYoutubeModalOpen(false);
+  };
 
   useEffect(() => {
     // Only object URLs created from an uploaded File need revoking. Restored
@@ -3901,6 +4018,18 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
               onClear: handleClearAudio,
               onLoadSample: handleLoadSample,
               onPickFile: () => audioInputRef.current?.click(),
+              youtube: {
+                enabled: youtubeAudioEnabled,
+                error: youtubeConfigError,
+                onOpen: handleOpenYoutubeModal,
+                onUrlChange: (value) => {
+                  setYoutubeUrl(value);
+                  if (youtubeConfigError) {
+                    setYoutubeConfigError("");
+                  }
+                },
+                url: youtubeUrl,
+              },
             }}
             lyricsSource={{
               auto: autoLyricsState,
@@ -4348,6 +4477,14 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
         }}
       />
 
+      {isYoutubeModalOpen ? (
+        <YoutubeSegmentModal
+          isOpen={isYoutubeModalOpen}
+          onClose={() => setIsYoutubeModalOpen(false)}
+          onComplete={handleYoutubeSegmentComplete}
+          sourceUrl={youtubeUrl}
+        />
+      ) : null}
     </div>
     </EditorProvider>
   );

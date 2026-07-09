@@ -100,6 +100,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
     onLoadSample,
     onPickFile,
     upload,
+    youtube = {},
   } = audio;
 
   const {
@@ -201,6 +202,36 @@ export function AudioTab({ audio, lyricsSource, project }) {
             {upload.status}
           </StatusBadge>
         </div>
+
+        {youtube.enabled ? (
+          <div className="youtube-import mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <label className="field-label text-left">
+              <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
+                YouTube URL
+              </span>
+              <input
+                className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                onChange={(event) => youtube.onUrlChange?.(event.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                type="url"
+                value={youtube.url ?? ""}
+              />
+            </label>
+            <button
+              className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!String(youtube.url ?? "").trim()}
+              onClick={() => youtube.onOpen?.()}
+              type="button"
+            >
+              Choose segment
+            </button>
+            {youtube.error ? (
+              <p className="text-left text-sm leading-6 text-[var(--danger)] sm:col-span-2">
+                {youtube.error}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <p

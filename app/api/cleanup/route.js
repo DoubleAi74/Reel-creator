@@ -5,11 +5,12 @@ import {
   removeSessionAssets,
   SESSION_COOKIE_NAME,
   sweepExpiredSessions,
-} from "@/lib/files";
+} from "../../../lib/files";
 import {
   findInFlightRenderForSession,
   removeRenderJobsForSessions,
-} from "@/lib/render/store";
+} from "../../../lib/render/store";
+import { findInFlightYoutubeAudioForSession } from "../../../lib/youtube-audio/job-store";
 
 export const runtime = "nodejs";
 
@@ -50,6 +51,13 @@ export async function POST(request) {
     if (findInFlightRenderForSession(sessionId)) {
       return badRequest(
         "A render is still queued or running for this session. Wait for it to finish before cleaning up.",
+        409,
+      );
+    }
+
+    if (findInFlightYoutubeAudioForSession(sessionId)) {
+      return badRequest(
+        "A YouTube audio import is still queued or running for this session. Wait for it to finish before cleaning up.",
         409,
       );
     }
