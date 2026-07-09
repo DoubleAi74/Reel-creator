@@ -10,12 +10,12 @@
 
 ## Programme Status
 
-- **Current status:** Stage 2 in progress — **REP-201 Validated** (incl. REP-201a); next **REP-202**.
+- **Current status:** Stage 2 in progress — **REP-201 Validated**, **REP-202 Validated**. Next: Stage 2 lows (REP-203…206) or Stage 3.
 - **Definitive inventory:** **26 repairs — 3 High · 6 Medium · 15 Low · 1 Verify (REP-303) · 1 Gate (REP-805)** (see REPAIR_PLAN §3.1). Corrects the earlier prose drift (correct = 6 Medium, 15 Low).
-- **Current repair ID:** REP-202 (in progress).
-- **Last validated checkpoint:** Post-REP-201a — `npm test` 53 files / **342** tests passed; `npm run lint` exit 0; `npm run build` exit 0. Pre-repair baseline was 331 tests.
-- **Next action:** Complete **REP-202** (transient-error `unresolved` dry-run re-settle script).
-- **Stage-gate review (2026-07-10):** REP-201 core accepted; REP-201a closed by rejecting `phase:"full"` when credits enabled (staged path only). Note for REP-202/audit: fully written-off clamp phases may have no ledger row — read `UsageRecord.writeOffMinor`.
+- **Current repair ID:** — (REP-202 complete).
+- **Last validated checkpoint:** Post-REP-202 — `npm test` **54** files / **347** tests passed; `npm run lint` exit 0; `npm run build` exit 0. Pre-repair baseline was 331 tests / 53 files.
+- **Next action:** Stage 2 remaining lows **REP-203…206** (parallel-safe) or continue Stage 3 **REP-301** per plan order.
+- **Stage-gate review (2026-07-10):** REP-201 (+201a) closed. REP-202 dry-run tool lands; clamp write-offs excluded via `charged:true` (read `UsageRecord.writeOffMinor` for audit of full write-offs with no ledger row).
 - **Blockers:** none on decisions — D-A…D-F all recorded. Standing gate: real-service E2E (not a code defect). **DV-1:** REP-201 supersedes the Phase-2 plan's per-phase reject model; the Phase-2 IMPLEMENTATION_PLAN should be amended by its owner so plan and code agree.
 - **Keep flag off:** `CREDITS_ENABLED=false` throughout until the Final Release-Readiness Gate.
 - **Working branch:** `repair/phase-1-2-programme` off `codex/phase-2-credit-dashboard` @ `d31ebfd`.
@@ -37,7 +37,7 @@
 |---|---|---|---|---|
 | 1 Release blockers | — | — | N/A (none) | — |
 | 2 Financial | REP-201 | High | **Validated** (incl. REP-201a; DV-1) | recorded |
-| 2 Financial | REP-202 | High | In progress (D-B recorded) | recorded |
+| 2 Financial | REP-202 | High | **Validated** (D-B) | recorded |
 | 2 Financial | REP-203 | Low | Not started | no |
 | 2 Financial | REP-204 | Low | Not started | no |
 | 2 Financial | REP-205 | Low | Not started | no |
@@ -97,13 +97,20 @@ No code repairs. The real-service E2E gate is tracked in the Sandbox E2E Checkli
 - **Deviations / notes:** Zero-debit full write-off creates no ledger row (amountMinor cannot be 0); audit via UsageRecord `writeOffMinor` + settlement return. Concurrent clamp race throws `CLAMP_RACE` for transaction retry (does not reject AI work). Top-up path still uses default reject mode (credits are positive).
 
 ### REP-202 — Remediation tooling for transient-error `unresolved` (dry-run script)
-- **Status:** In progress (D-B recorded; depends REP-201 Validated). **Scope narrowed by D-A:** insufficient balance no longer yields `unresolved` (it clamps); tool targets transient settlement/DB-error `unresolved` only.
+- **Status:** **Validated** (2026-07-10; D-B). **Scope narrowed by D-A:** insufficient balance no longer yields `unresolved` (it clamps); tool targets transient settlement/DB-error `unresolved` only.
 - [x] D-B recorded (dry-run script; no admin route)
-- [ ] Read-only scanner for transient-error `unresolved` jobs/generations
-- [ ] Idempotent re-settle under `--apply` (reuses `ai_debit:{jobId}:{phase}`) + `MANUAL_ADJUSTMENT` path
-- [ ] npm alias `credits:ai-settle-repair` + docs (`CREDITS_SETUP.md`)
-- [ ] Tests: idempotent re-settle; dry-run writes nothing
-- **Files changed:** — · **Tests run / results:** — · **Deviations:** —
+- [x] Read-only scanner for uncharged finalized `UsageRecord`s + `Generation.accountingStatus:"unresolved"` (skips clamp write-offs with `charged:true`)
+- [x] Idempotent re-settle under `--apply` (reuses `ai_debit:{jobId}:{phase}` via `settlePhase`) + `MANUAL_ADJUSTMENT` path (`--manual-adjustment-minor` + `--reason`)
+- [x] npm alias `credits:ai-settle-repair` + docs (`CREDITS_SETUP.md`)
+- [x] Tests: scan dry-run writes nothing; re-settle once + second apply no double debit; MANUAL_ADJUSTMENT dry-run + idempotent apply
+- **Files changed:**
+  - `lib/credits/ai-settle-repair.js` — scan / re-settle / manual adjustment
+  - `scripts/ai-settle-repair.mjs` — CLI (dry-run default)
+  - `lib/credits/ai-settle-repair.test.js`
+  - `package.json` — `credits:ai-settle-repair`
+  - `CREDITS_SETUP.md` — operator docs
+- **Tests run / results:** `npm test` → **54** files / **347** passed; lint 0; build 0.
+- **Deviations:** Core logic in `lib/credits/ai-settle-repair.js` (script is thin CLI) for testability — still exposes `scripts/ai-settle-repair.mjs` + npm alias as specified. Re-settle temporarily forces `CREDITS_ENABLED=true` only for the `settlePhase` call (does not change deployment flag).
 
 ### REP-203 — Record usage only on `response.ok`
 - **Status:** Not started

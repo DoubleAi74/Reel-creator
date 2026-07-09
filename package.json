@@ -6,6 +6,7 @@
     "dev": "next dev --webpack",
     "dev:turbo": "next dev --turbopack",
     "build": "next build",
+    "credits:ai-settle-repair": "node scripts/ai-settle-repair.mjs",
     "credits:db-smoke": "node scripts/db-smoke.mjs",
     "credits:ledger-repair": "node scripts/ledger-repair.mjs",
     "credits:payment-audit": "node scripts/payment-audit.mjs",

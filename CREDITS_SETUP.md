@@ -156,6 +156,33 @@ Dry-run scan for historical `PAID` and `balanceCredited` SumUp orders missing
 their `top_up:{orderId}` ledger entry. It does not change the balance. Pass
 `-- --apply` only after reviewing the dry-run output.
 
+`npm run credits:ai-settle-repair`
+
+Dry-run remediation for **transient-error** unresolved AI accounting (after
+REP-201, insufficient balance clamps and does **not** leave `unresolved`).
+Scans:
+
+- `UsageRecord` rows with `attemptFinal: true`, `charged: false`, and
+  `rawCostMicros > 0` (settlement/DB failure after work completed)
+- `Generation` documents with `accountingStatus: "unresolved"`
+
+Clamp write-offs (`charged: true` + `writeOffMinor`) are **not** candidates —
+they already settled with an audited write-off and may have no ledger row when
+the debit was fully written off.
+
+Default is dry-run (JSON summary only). Pass `-- --apply` to re-run
+`settlePhase` under the existing idempotency key `ai_debit:{jobId}:{phase}`
+(no double debit). Optional signed `MANUAL_ADJUSTMENT`:
+
+```bash
+npm run credits:ai-settle-repair -- --apply \
+  --manual-adjustment-minor=-5 \
+  --reason="operator correction" \
+  --idempotency-key=manual_adj:ai_repair:example-1
+```
+
+Filters: `--job-id=…`, `--phase=transcribe|enrich|time`, `--limit=N`.
+
 ## Rollback
 
 Set `CREDITS_ENABLED=false` and restart. This disables generation charging,
