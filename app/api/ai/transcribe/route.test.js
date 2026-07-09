@@ -7,14 +7,22 @@ const sourceLanguage = {
 };
 
 let cookieSessionId = "session-route";
+let unlockCookieValue = null;
+let creditsEnabled = false;
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(async () => ({
-    get: vi.fn((name) =>
-      name === "reel-creator-session" && cookieSessionId
-        ? { value: cookieSessionId }
-        : undefined,
-    ),
+    get: vi.fn((name) => {
+      if (name === "reel-creator-session" && cookieSessionId) {
+        return { value: cookieSessionId };
+      }
+
+      if (name === "rc_gen_unlock" && unlockCookieValue) {
+        return { value: unlockCookieValue };
+      }
+
+      return undefined;
+    }),
   })),
 }));
 
@@ -44,11 +52,38 @@ vi.mock("@/lib/render/store", () => ({
   removeRenderJobsForSessions: vi.fn(),
 }));
 
+vi.mock("@/lib/credits/flags", () => ({
+  isCreditsEnabled: vi.fn(() => creditsEnabled),
+}));
+
+vi.mock("@/lib/credits/unlock-cookie", () => ({
+  GENERATION_UNLOCK_COOKIE: "rc_gen_unlock",
+  isGenerationUnlockCookieValid: vi.fn((value) => value === "valid-unlock"),
+}));
+
+vi.mock("@/lib/credits/rate-limit", () => ({
+  checkGenerationRateLimit: vi.fn(() => ({
+    allowed: true,
+    retryAfter: 0,
+  })),
+}));
+
+vi.mock("@/lib/credits/credit-service", () => ({
+  assertCanStartGeneration: vi.fn(async () => ({
+    enabled: true,
+  })),
+}));
+
 describe("POST /api/ai/transcribe", () => {
   beforeEach(async () => {
     cookieSessionId = "session-route";
+    unlockCookieValue = null;
+    creditsEnabled = false;
     const files = await import("@/lib/files");
     const store = await import("@/lib/ai/transcribe-store");
+    const rateLimit = await import("@/lib/credits/rate-limit");
+    const creditService = await import("@/lib/credits/credit-service");
+    const unlockCookie = await import("@/lib/credits/unlock-cookie");
 
     files.findSessionIdForAsset.mockReset();
     files.readAssetMetadata.mockReset();
@@ -62,6 +97,19 @@ describe("POST /api/ai/transcribe", () => {
     store.enqueueTranscribeJob.mockReset();
     store.findInFlightTranscribeForSession.mockReset();
     store.findInFlightTranscribeForSession.mockReturnValue(null);
+    rateLimit.checkGenerationRateLimit.mockClear();
+    rateLimit.checkGenerationRateLimit.mockReturnValue({
+      allowed: true,
+      retryAfter: 0,
+    });
+    creditService.assertCanStartGeneration.mockClear();
+    creditService.assertCanStartGeneration.mockResolvedValue({
+      enabled: true,
+    });
+    unlockCookie.isGenerationUnlockCookieValid.mockClear();
+    unlockCookie.isGenerationUnlockCookieValid.mockImplementation(
+      (value) => value === "valid-unlock",
+    );
   });
 
   it("passes pipeline run and final-save flags into the queued job", async () => {
@@ -117,5 +165,141 @@ describe("POST /api/ai/transcribe", () => {
         sessionId: "session-route",
       }),
     );
+  });
+
+  it("skips credit gates when adopting an in-flight job", async () => {
+    creditsEnabled = true;
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+    const creditService = await import("@/lib/credits/credit-service");
+    const unlockCookie = await import("@/lib/credits/unlock-cookie");
+
+    store.findInFlightTranscribeForSession.mockReturnValue({ jobId: "job-existing" });
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "time",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({ jobId: "job-existing" });
+    expect(unlockCookie.isGenerationUnlockCookieValid).not.toHaveBeenCalled();
+    expect(creditService.assertCanStartGeneration).not.toHaveBeenCalled();
+  });
+
+  it("blocks a new enabled generation when the unlock cookie is missing", async () => {
+    creditsEnabled = true;
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "time",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "locked" });
+    expect(store.createTranscribeJob).not.toHaveBeenCalled();
+  });
+
+  it("returns 429 when the enabled generation rate limit is exceeded", async () => {
+    creditsEnabled = true;
+    unlockCookieValue = "valid-unlock";
+    const { POST } = await import("./route");
+    const rateLimit = await import("@/lib/credits/rate-limit");
+
+    rateLimit.checkGenerationRateLimit.mockReturnValue({
+      allowed: false,
+      retryAfter: 42,
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "time",
+          sourceLanguage: "auto",
+        }),
+        headers: {
+          "x-forwarded-for": "203.0.113.9",
+        },
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toEqual({
+      error: "rate_limited",
+      retryAfter: 42,
+    });
+    expect(rateLimit.checkGenerationRateLimit).toHaveBeenCalledWith({
+      ip: "203.0.113.9",
+      sessionId: "session-route",
+    });
+  });
+
+  it("returns pricing and balance gate errors without starting a job", async () => {
+    creditsEnabled = true;
+    unlockCookieValue = "valid-unlock";
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+    const creditService = await import("@/lib/credits/credit-service");
+
+    creditService.assertCanStartGeneration.mockRejectedValueOnce({
+      code: "PRICING_UNAVAILABLE",
+      details: { model: "missing-model" },
+    });
+
+    const pricingResponse = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "time",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(pricingResponse.status).toBe(500);
+    await expect(pricingResponse.json()).resolves.toEqual({
+      error: "pricing_unavailable",
+      model: "missing-model",
+    });
+
+    creditService.assertCanStartGeneration.mockRejectedValueOnce({
+      code: "INSUFFICIENT_BALANCE",
+      details: { balanceMinor: 0 },
+    });
+
+    const balanceResponse = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "time",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(balanceResponse.status).toBe(402);
+    await expect(balanceResponse.json()).resolves.toEqual({
+      balanceMinor: 0,
+      error: "insufficient_balance",
+    });
+    expect(store.createTranscribeJob).toHaveBeenCalledTimes(0);
   });
 });

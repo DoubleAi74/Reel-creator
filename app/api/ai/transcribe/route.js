@@ -17,6 +17,13 @@ import {
   enqueueTranscribeJob,
   findInFlightTranscribeForSession,
 } from "@/lib/ai/transcribe-store";
+import { assertCanStartGeneration } from "@/lib/credits/credit-service";
+import { isCreditsEnabled } from "@/lib/credits/flags";
+import { checkGenerationRateLimit } from "@/lib/credits/rate-limit";
+import {
+  GENERATION_UNLOCK_COOKIE,
+  isGenerationUnlockCookieValid,
+} from "@/lib/credits/unlock-cookie";
 import { removeRenderJobsForSessions } from "@/lib/render/store";
 
 export const runtime = "nodejs";
@@ -92,6 +99,75 @@ function appendSessionCookie(response, sessionId) {
     "Set-Cookie",
     `${SESSION_COOKIE_NAME}=${sessionId}; Path=/; Max-Age=${SESSION_COOKIE_MAX_AGE_SECONDS}; HttpOnly; SameSite=Lax`,
   );
+}
+
+function getRequestIp(request) {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  return request.headers.get("x-real-ip")?.trim() ?? "";
+}
+
+function mapCreditGateError(error) {
+  if (error?.code === "PRICING_UNAVAILABLE") {
+    return NextResponse.json(
+      { error: "pricing_unavailable", model: error.details?.model },
+      { status: 500 },
+    );
+  }
+
+  if (error?.code === "INSUFFICIENT_BALANCE") {
+    return NextResponse.json(
+      {
+        balanceMinor: error.details?.balanceMinor,
+        error: "insufficient_balance",
+      },
+      { status: 402 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      error: "credits_unavailable",
+      message: error instanceof Error ? error.message : "Credits are unavailable.",
+    },
+    { status: 500 },
+  );
+}
+
+async function getCreditGateResponse({ cookieStore, phase, request, sessionId }) {
+  if (!isCreditsEnabled()) {
+    return null;
+  }
+
+  const unlockCookie = cookieStore.get(GENERATION_UNLOCK_COOKIE)?.value;
+
+  if (!isGenerationUnlockCookieValid(unlockCookie)) {
+    return NextResponse.json({ error: "locked" }, { status: 403 });
+  }
+
+  const rateLimit = checkGenerationRateLimit({
+    ip: getRequestIp(request),
+    sessionId,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited", retryAfter: rateLimit.retryAfter },
+      { status: 429 },
+    );
+  }
+
+  try {
+    await assertCanStartGeneration({ phase });
+  } catch (error) {
+    return mapCreditGateError(error);
+  }
+
+  return null;
 }
 
 export async function POST(request) {
@@ -175,6 +251,17 @@ export async function POST(request) {
 
   if (inFlightJob) {
     return respond({ jobId: inFlightJob.jobId }, 409);
+  }
+
+  const creditGateResponse = await getCreditGateResponse({
+    cookieStore,
+    phase,
+    request,
+    sessionId,
+  });
+
+  if (creditGateResponse) {
+    return creditGateResponse;
   }
 
   const pipelineRunId = normalizePipelineRunId(payload?.pipelineRunId);

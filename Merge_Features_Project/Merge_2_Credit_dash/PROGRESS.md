@@ -1,10 +1,10 @@
 # Credit Dashboard Merge — Phase 2 Progress Tracker
 
 **Mirrors**: `IMPLEMENTATION_PLAN.md` v3 (2026-07-09). Read that + `PLAN_VERIFICATION.md` first.
-**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 3 Validated.
-**Current stage**: Stage 4 — Generation-start gating (next).
-**Last verified checkpoint**: Stage 3 validated on 2026-07-09: flagged credit service, phase settlement, accounting status, `pipelineRunId`, and final-phase pass-through landed; disabled behavior remains dormant.
-**Next action**: Stage 4 — add generation unlock cookie, balance endpoint, and flagged start gates (403/429/500/402) while preserving 409 re-adoption behavior.
+**Phase status**: IMPLEMENTATION STARTED (v3) — Stage 4 Validated.
+**Current stage**: Stage 5 — Persistence + R2 audio (+ provenance) (next).
+**Last verified checkpoint**: Stage 4 validated on 2026-07-09: unlock cookie, balance endpoint, and flagged generation-start gates landed; 409 re-adoption still skips gates and disabled behavior remains unchanged.
+**Next action**: Stage 5 — add `sourceType` provenance, R2 audio lifecycle, generation persistence/serializer/media route, and final-phase persistence hook.
 **Blockers**: None.
 
 Status legend: `Not started` / `In progress` / `Implemented, not validated` / `Validated` / `Blocked` / `Deferred` / `Superseded`.
@@ -140,10 +140,24 @@ Stage 3 validation/results (2026-07-09):
 - Direct module import smoke: Stage 3 modules imported with the repo's `scripts/extensionless-loader.mjs`; passed (Node emitted expected experimental-loader/typeless-package warnings only).
 - Whitespace: `git diff --check -- lib/credits lib/ai/transcribe-store.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.js lib/ai/transcribe-job.test.js app/api/ai/transcribe components/editor-shell.js Merge_Features_Project/Merge_2_Credit_dash/PROGRESS.md`: passed.
 
-### Stage 4 — Generation-start gating — `Not started`
-- [ ] `app/api/credits/unlock/route.js` + signed cookie (name/TTL/timing-safe per §5.1). — Validate: correct/incorrect password; cookie TTL.
-- [ ] `app/api/credits/balance/route.js`. — Validate: enabled/disabled shapes.
-- [ ] Gate `app/api/ai/transcribe/route.js`: 403 locked / 429 rate / 500 pricing-unavailable / 402 low; `pipelineRunId`/`save`/`saveOnCompletion` passthrough; 409 re-adopt skips gates. — Validate: each gate; direct-API bypass blocked; disabled flag unchanged.
+### Stage 4 — Generation-start gating — `Validated`
+- [x] `app/api/credits/unlock/route.js` + signed cookie (name/TTL/timing-safe per §5.1). — Validate: correct/incorrect password; cookie TTL.
+- [x] `app/api/credits/balance/route.js`. — Validate: enabled/disabled shapes.
+- [x] Gate `app/api/ai/transcribe/route.js`: 403 locked / 429 rate / 500 pricing-unavailable / 402 low; `pipelineRunId`/`save`/`saveOnCompletion` passthrough; 409 re-adopt skips gates. — Validate: each gate; direct-API bypass blocked; disabled flag unchanged.
+
+Stage 4 implementation notes (2026-07-09):
+- Added signed unlock-cookie helpers in `lib/credits/unlock-cookie.js`: `rc_gen_unlock`, HMAC-SHA256 signature, `GENERATION_UNLOCK_TTL_SECONDS` default 12h, timing-safe password compare, and `HttpOnly; SameSite=Lax` cookie construction.
+- Added `POST /api/credits/unlock`: disabled shape `{enabled:false}`, 401 for wrong password, 500 fail-closed if password/secret config is incomplete, and `Set-Cookie` on success.
+- Added `GET /api/credits/balance`: returns `getBalance()` shape and maps service errors to a safe 500.
+- Added flagged generation-start gates in `POST /api/ai/transcribe`: with credits disabled the route skips all new gates; with credits enabled, brand-new jobs require unlock cookie, pass the simple session/IP rate limit, and pass price/balance precheck. Existing 409 in-flight adoption returns before gates as required.
+
+Stage 4 validation/results (2026-07-09):
+- Stage 4 suite: `npx vitest run lib/credits/unlock-cookie.test.js app/api/credits/unlock/route.test.js app/api/credits/balance/route.test.js app/api/ai/transcribe/route.test.js` passed (`Test Files 4 passed`, `Tests 11 passed`).
+- Combined Stage 2/3/4 regression: `npx vitest run lib/credits/unlock-cookie.test.js app/api/credits/unlock/route.test.js app/api/credits/balance/route.test.js app/api/ai/transcribe/route.test.js lib/credits/credit-service.test.js lib/credits/rate-limit.test.js lib/ai/transcribe-store.test.js lib/ai/transcribe-job.test.js lib/ai/openai-pricing.test.js lib/ai/openai-usage.test.js lib/credits/billing-phases.test.js lib/ai/openai-lyrics.test.js` passed (`Test Files 12 passed`, `Tests 56 passed`).
+- Gate coverage: disabled parity, 409 re-adoption skipping gates, 403 locked, 429 rate-limited, 500 pricing-unavailable, 402 insufficient balance, and no job creation on gate failures.
+- Lint: touched Stage 4 files passed `npx eslint`.
+- Direct library import smoke: `node --input-type=module` imported Stage 4 credit library modules: passed (Node emitted expected typeless-package warning only). Next route execution is covered by Vitest because raw Node cannot resolve `next/server` like the Next runtime.
+- Whitespace: `git diff --check -- lib/credits app/api/credits app/api/ai/transcribe Merge_Features_Project/Merge_2_Credit_dash/PROGRESS.md`: passed.
 
 ### Stage 5 — Persistence + R2 audio (+ provenance) — `Not started`
 - [ ] Add `sourceType` to `lib/files.js` metadata (`upload` + YT ingest `youtube`; additive only). — Validate: metadata correct, sweep/TTL unchanged.
