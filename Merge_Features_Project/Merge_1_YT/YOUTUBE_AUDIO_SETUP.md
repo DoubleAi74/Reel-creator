@@ -25,7 +25,24 @@ YT_AUDIO_DEBUG=0
 YT_MEDIA_DOWNLOAD_RETRIES=2
 # Force sync convert in the POST request (auto-enabled on Vercel via VERCEL=1).
 # YT_AUDIO_SYNC=1
+# Always-on convert breadcrumbs in server logs (also auto-on when VERCEL=1).
+# YT_AUDIO_DEBUG=1
 ```
+
+## Debugging convert failures (Vercel)
+
+1. Open the **deployed** site → browser DevTools → **Console**.
+2. Run a convert. Look for lines prefixed **`[yt-convert:client]`** (request timing,
+   HTTP status, `errorCode`, whether an asset came back).
+3. Open **Vercel → Project → Logs** (or `vercel logs`). Filter for **`[yt-audio:convert]`**.
+   You should see: `post-received` → `post-job` → `post-run-sync` → `phase` /
+   `provider-attempt` → `sync-done` or `sync-threw` / `post-threw`.
+4. If the client fails at **~10 seconds** with no useful `errorCode`, the platform
+   likely killed the function (Vercel **Hobby** max duration is often **10s** even
+   when `maxDuration = 60` is set). Upgrade plan or shorten work / raise limits.
+
+Set `YT_AUDIO_DEBUG=1` in Vercel env for the fuller `[yt-audio] …` diagnostic stream
+(URLs/secrets are redacted).
 
 Do not use `NEXT_PUBLIC_` for provider keys. With no key, `/api/youtube-audio/config` returns
 `{"enabled":false}` and the editor hides/disables the YouTube acquisition controls.
