@@ -1,0 +1,255 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+
+import { formatGbpFromMinor } from "@/lib/money";
+
+const menuRowClasses =
+  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--surface-2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]";
+
+function BriefcaseIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="h-5 w-5 flex-none"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z"
+      />
+    </svg>
+  );
+}
+
+function MoneyIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="h-5 w-5 flex-none"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"
+      />
+    </svg>
+  );
+}
+
+function HamburgerIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+      className="h-[18px] w-[18px]"
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+      className="h-[18px] w-[18px]"
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ expanded }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.75}
+      stroke="currentColor"
+      className={`h-4 w-4 flex-none transition-transform ${expanded ? "rotate-180" : ""}`}
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  );
+}
+
+// Mobile-only hamburger + dropdown for the fixed transport bar. The panel is
+// position:fixed (the transport bar is overflow:hidden, so an absolute panel
+// would be clipped). Reuses the balance/top-up props already assembled for the
+// desktop header dropdown; renders nothing when the credit layer is disabled.
+export function CreditMobileMenu({
+  balanceMinor = 0,
+  dashboardHref = "/dashboard",
+  enabled = false,
+  onTopUpAmountChange,
+  onTopUpSubmit,
+  status = "idle",
+  topUpAmount = "",
+  topUpMessage = "",
+  topUpStatus = "idle",
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [creditsExpanded, setCreditsExpanded] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+
+    function handlePointerDown(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  if (!enabled) {
+    return null;
+  }
+
+  const checkingBalance = status === "loading";
+  const submitting = topUpStatus === "submitting";
+
+  return (
+    <div className="transport-menu lg:hidden" ref={wrapperRef}>
+      <button
+        type="button"
+        className="transport-button"
+        aria-label={menuOpen ? "Close menu" : "Menu"}
+        aria-haspopup="menu"
+        aria-expanded={menuOpen}
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        {menuOpen ? <CloseIcon /> : <HamburgerIcon />}
+      </button>
+
+      {menuOpen ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close menu"
+            className="fixed inset-0 z-[55] cursor-default"
+            onClick={() => setMenuOpen(false)}
+          />
+
+          <div
+            className="fixed z-[60] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-[var(--shadow-soft)]"
+            role="menu"
+            aria-label="Dashboard and credits"
+            style={{
+              top: "calc(var(--mobile-transport-h, 108px) + 6px)",
+              right: "10px",
+              width: "min(280px, calc(100vw - 20px))",
+            }}
+          >
+            <Link
+              href={dashboardHref}
+              className={menuRowClasses}
+              role="menuitem"
+              onClick={() => setMenuOpen(false)}
+            >
+              <BriefcaseIcon />
+              Dashboard
+            </Link>
+
+            <button
+              type="button"
+              className={menuRowClasses}
+              aria-expanded={creditsExpanded}
+              onClick={() => setCreditsExpanded((expanded) => !expanded)}
+            >
+              <MoneyIcon />
+              Credits
+              <ChevronIcon expanded={creditsExpanded} />
+            </button>
+
+            {creditsExpanded ? (
+              <div className="mt-1 rounded-lg bg-[var(--surface-2)] p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+                  Balance
+                </p>
+                <p className="mt-0.5 text-lg font-semibold tabular-nums">
+                  {checkingBalance ? "Checking…" : formatGbpFromMinor(balanceMinor)}
+                </p>
+
+                <form
+                  className="mt-3 flex items-center gap-2"
+                  onSubmit={(event) => {
+                    onTopUpSubmit?.(event);
+                  }}
+                >
+                  <span className="text-sm text-[var(--muted)]">£</span>
+                  <input
+                    aria-label="Top-up amount in pounds"
+                    className="min-h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-sm outline-none focus:border-[var(--accent)]"
+                    inputMode="decimal"
+                    onChange={(event) => onTopUpAmountChange?.(event.target.value)}
+                    placeholder="5.00"
+                    value={topUpAmount}
+                  />
+                  <button
+                    type="submit"
+                    className="min-h-9 whitespace-nowrap rounded-lg bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:opacity-60"
+                    disabled={submitting}
+                  >
+                    {submitting ? "…" : "Add money"}
+                  </button>
+                </form>
+
+                {topUpMessage ? (
+                  <p
+                    className={`mt-2 text-xs ${
+                      topUpStatus === "error"
+                        ? "text-[var(--danger)]"
+                        : "text-[var(--muted)]"
+                    }`}
+                  >
+                    {topUpMessage}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}

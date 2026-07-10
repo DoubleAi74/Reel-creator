@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  clearInflightYoutubeAudioJob,
+  inflightMatchesSourceUrl,
+  loadInflightYoutubeAudioJob,
+  saveInflightYoutubeAudioJob,
+} from "@/lib/youtube-audio/client-inflight-job";
+import {
   MAX_SEGMENT_SECONDS,
   MIN_SEGMENT_SECONDS,
 } from "@/lib/youtube-audio/validation";
@@ -12,6 +18,10 @@ const DEFAULT_SEGMENT_SECONDS = 15;
 const VIDEO_LOAD_TIMEOUT_MS = 15000;
 const POLL_INTERVAL_MS = 2200;
 const MAX_POLL_ATTEMPTS = 120;
+const STILL_RUNNING_CLIENT_MESSAGE =
+  "Still converting on the server. Keep this page open or return here to keep checking status.";
+const COMPLETE_WITHOUT_ASSET_MESSAGE =
+  "Conversion finished but this browser session could not attach the audio. Refresh and try opening the import again, or re-convert.";
 
 const ERROR_COPY = {
   FEATURE_DISABLED: "YouTube imports are not enabled on this server.",
@@ -39,6 +49,7 @@ export function YoutubeSegmentModal({
   const dialogRef = useRef(null);
   const previousFocusRef = useRef(null);
   const activeRequestRef = useRef(0);
+  const pollingRef = useRef(false);
   const videoId = useMemo(() => extractYouTubeVideoId(sourceUrl), [sourceUrl]);
   const [durationSec, setDurationSec] = useState(null);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
@@ -79,6 +90,133 @@ export function YoutubeSegmentModal({
     returnFocus();
   }, [converting, onClose, returnFocus]);
 
+  const finishWithAsset = useCallback(
+    (asset) => {
+      clearInflightYoutubeAudioJob();
+      onComplete?.(asset);
+      onClose?.();
+      returnFocus();
+    },
+    [onClose, onComplete, returnFocus],
+  );
+
+  const pollConversionJob = useCallback(async (jobId, requestId) => {
+    for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
+      if (activeRequestRef.current !== requestId) {
+        return { kind: "cancelled" };
+      }
+
+      let response;
+      let payload = {};
+
+      try {
+        response = await fetch(`/api/youtube-audio-segments/${jobId}`, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        payload = await response.json().catch(() => ({}));
+      } catch {
+        // Transient network blip (common when iOS wakes) — keep polling.
+        setMessage(statusMessage("downloading"));
+        await delay(POLL_INTERVAL_MS);
+        continue;
+      }
+
+      if (payload.status === "complete") {
+        if (payload?.asset?.assetId) {
+          return { kind: "complete", payload };
+        }
+
+        clearInflightYoutubeAudioJob();
+        return {
+          kind: "error",
+          message: COMPLETE_WITHOUT_ASSET_MESSAGE,
+        };
+      }
+
+      if (!response.ok || payload.status === "failed") {
+        clearInflightYoutubeAudioJob();
+        return {
+          kind: "error",
+          message: errorMessage(payload.errorCode),
+        };
+      }
+
+      setMessage(statusMessage(payload.phase));
+      await delay(POLL_INTERVAL_MS);
+    }
+
+    // Budget exhausted: keep inflight so visibility/focus can resume.
+    return { kind: "budget" };
+  }, []);
+
+  const runPollForJob = useCallback(
+    async (jobId, { announcePreparing = false } = {}) => {
+      if (!jobId || pollingRef.current) {
+        return;
+      }
+
+      const requestId = activeRequestRef.current + 1;
+      activeRequestRef.current = requestId;
+      pollingRef.current = true;
+      setStatus("converting");
+
+      if (announcePreparing) {
+        setMessage("Preparing audio...");
+      } else {
+        setMessage("Checking conversion status...");
+      }
+
+      try {
+        const result = await pollConversionJob(jobId, requestId);
+
+        if (activeRequestRef.current !== requestId) {
+          return;
+        }
+
+        if (result?.kind === "cancelled") {
+          return;
+        }
+
+        if (result?.kind === "complete") {
+          finishWithAsset(result.payload.asset);
+          return;
+        }
+
+        if (result?.kind === "budget") {
+          setStatus("converting");
+          setMessage(STILL_RUNNING_CLIENT_MESSAGE);
+          return;
+        }
+
+        if (result?.kind === "error") {
+          setStatus("error");
+          setMessage(result.message || ERROR_COPY.INTERNAL_ERROR);
+        }
+      } finally {
+        if (activeRequestRef.current === requestId) {
+          pollingRef.current = false;
+        }
+      }
+    },
+    [finishWithAsset, pollConversionJob],
+  );
+
+  const resumeInflightIfAny = useCallback(() => {
+    const inflight = loadInflightYoutubeAudioJob();
+
+    if (!inflightMatchesSourceUrl(inflight, sourceUrl)) {
+      return false;
+    }
+
+    if (pollingRef.current) {
+      return true;
+    }
+
+    void runPollForJob(inflight.jobId, { announcePreparing: false });
+    return true;
+  }, [runPollForJob, sourceUrl]);
+
   useEffect(() => {
     if (!isOpen) {
       return undefined;
@@ -115,6 +253,29 @@ export function YoutubeSegmentModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [converting, handleClose, isOpen]);
 
+  // Resume poll after iOS background / tab freeze (Stage B).
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    function onVisible() {
+      if (document.visibilityState && document.visibilityState !== "visible") {
+        return;
+      }
+
+      resumeInflightIfAny();
+    }
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [isOpen, resumeInflightIfAny]);
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -125,6 +286,9 @@ export function YoutubeSegmentModal({
     }
 
     let cancelled = false;
+
+    // If a convert is already in flight for this URL, resume instead of only loading UI.
+    const resumed = resumeInflightIfAny();
 
     loadYoutubeVideoInfo(videoId)
       .then((info) => {
@@ -145,6 +309,12 @@ export function YoutubeSegmentModal({
         setEndTime(defaultEnd);
         setStartDraft(formatTime(0));
         setEndDraft(formatTime(defaultEnd));
+
+        if (resumed || pollingRef.current) {
+          // Keep converting status/message from resume poll.
+          return;
+        }
+
         setStatus(duration >= MIN_SEGMENT_SECONDS ? "ready" : "error");
         setMessage(
           duration >= MIN_SEGMENT_SECONDS
@@ -157,15 +327,20 @@ export function YoutubeSegmentModal({
           return;
         }
 
+        if (resumed || pollingRef.current) {
+          return;
+        }
+
         setStatus("error");
         setMessage("Video details could not be loaded.");
       });
 
     return () => {
       cancelled = true;
-      activeRequestRef.current += 1;
+      // Do not bump activeRequestRef here — that would cancel resume polls on
+      // strict-mode double-mount or videoId-stable re-runs. Close cancels instead.
     };
-  }, [isOpen, videoId]);
+  }, [isOpen, resumeInflightIfAny, videoId]);
 
   if (!isOpen) {
     return null;
@@ -203,12 +378,13 @@ export function YoutubeSegmentModal({
   }
 
   async function handleConvert() {
-    if (!canConvert) {
+    if (!canConvert || pollingRef.current) {
       return;
     }
 
     const requestId = activeRequestRef.current + 1;
     activeRequestRef.current = requestId;
+    pollingRef.current = true;
     setStatus("converting");
     setMessage("Preparing audio...");
 
@@ -235,50 +411,51 @@ export function YoutubeSegmentModal({
         throw new Error("YouTube import did not return a job id.");
       }
 
-      const completed = await pollConversionJob(startPayload.jobId, requestId);
+      saveInflightYoutubeAudioJob({
+        jobId: startPayload.jobId,
+        sourceUrl,
+        startedAt: Date.now(),
+      });
 
-      if (!completed?.asset?.assetId) {
-        throw new Error("YouTube import completed without an audio asset.");
+      const result = await pollConversionJob(startPayload.jobId, requestId);
+
+      if (activeRequestRef.current !== requestId) {
+        return;
       }
 
-      onComplete?.(completed.asset);
-      onClose?.();
-      returnFocus();
+      if (result?.kind === "cancelled") {
+        return;
+      }
+
+      if (result?.kind === "complete") {
+        finishWithAsset(result.payload.asset);
+        return;
+      }
+
+      if (result?.kind === "budget") {
+        setStatus("converting");
+        setMessage(STILL_RUNNING_CLIENT_MESSAGE);
+        return;
+      }
+
+      if (result?.kind === "error") {
+        setStatus("error");
+        setMessage(result.message || ERROR_COPY.INTERNAL_ERROR);
+        return;
+      }
     } catch (error) {
       if (activeRequestRef.current !== requestId) {
         return;
       }
 
+      clearInflightYoutubeAudioJob();
       setStatus("error");
       setMessage(error instanceof Error ? error.message : ERROR_COPY.INTERNAL_ERROR);
+    } finally {
+      if (activeRequestRef.current === requestId) {
+        pollingRef.current = false;
+      }
     }
-  }
-
-  async function pollConversionJob(jobId, requestId) {
-    for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
-      if (activeRequestRef.current !== requestId) {
-        return null;
-      }
-
-      const response = await fetch(`/api/youtube-audio-segments/${jobId}`, {
-        cache: "no-store",
-        credentials: "same-origin",
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (payload.status === "complete") {
-        return payload;
-      }
-
-      if (!response.ok || payload.status === "failed") {
-        throw new Error(errorMessage(payload.errorCode));
-      }
-
-      setMessage(statusMessage(payload.phase));
-      await delay(POLL_INTERVAL_MS);
-    }
-
-    throw new Error("YouTube import is still running. Try again shortly.");
   }
 
   const statusText =

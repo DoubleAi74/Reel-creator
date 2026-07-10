@@ -1,4 +1,5 @@
 import { EditorShell } from "@/components/editor-shell";
+import { isCreditsEnabled } from "@/lib/credits/flags";
 import { createDefaultProject } from "@/lib/project";
 
 /*
@@ -92,6 +93,7 @@ export default async function Home({ searchParams }) {
 
   return (
     <EditorShell
+      creditsEnabled={isCreditsEnabled()}
       openGenerationId={openGenerationId}
       project={createDefaultProject()}
     />
