@@ -152,24 +152,36 @@ function buildSessionAssetUrl(assetId) {
  * Prefer embedded convert bytes (Vercel multi-isolate /tmp 404s on /api/assets).
  * Falls back to session asset URL for localhost / single-instance hosts.
  */
-function buildYoutubeAssetPlaybackUrl(asset) {
-  if (asset?.audioBase64 && typeof asset.audioBase64 === "string") {
-    try {
-      const binary = atob(asset.audioBase64);
-      const bytes = new Uint8Array(binary.length);
+function youtubeAssetToFile(asset) {
+  if (!asset?.audioBase64 || typeof asset.audioBase64 !== "string") {
+    return null;
+  }
 
-      for (let index = 0; index < binary.length; index += 1) {
-        bytes[index] = binary.charCodeAt(index);
-      }
+  try {
+    const binary = atob(asset.audioBase64);
+    const bytes = new Uint8Array(binary.length);
 
-      const blob = new Blob([bytes], {
-        type: asset.mimeType || "audio/mpeg",
-      });
-
-      return URL.createObjectURL(blob);
-    } catch {
-      // Fall through to session URL.
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
     }
+
+    const type = asset.mimeType || "audio/mpeg";
+    const name =
+      typeof asset.name === "string" && asset.name.trim()
+        ? asset.name.trim()
+        : "youtube-audio.mp3";
+
+    return new File([bytes], name, { type });
+  } catch {
+    return null;
+  }
+}
+
+function buildYoutubeAssetPlaybackUrl(asset) {
+  const file = youtubeAssetToFile(asset);
+
+  if (file) {
+    return URL.createObjectURL(file);
   }
 
   return buildSessionAssetUrl(asset?.assetId);
@@ -705,6 +717,9 @@ export function EditorShell({
   const appliedTranscribeJobIdRef = useRef(null);
   const transcriptionWaitersRef = useRef(new Map());
   const pipelineRunInFlightRef = useRef(false);
+  // Keep the playable MP3 bytes on the client so generate can re-attach them to
+  // the request (multi-isolate hosts lose /tmp between upload and generate).
+  const audioSourceFileRef = useRef(null);
   // Stays false until autosave recovery has run, so the initial blank project
   // cannot overwrite saved state before it is restored on mount.
   const autosaveHydratedRef = useRef(false);
@@ -2123,6 +2138,7 @@ export function EditorShell({
 
       setProjectState(importedProject);
       setAudioObjectUrl(null);
+      audioSourceFileRef.current = null;
       setAudioUpload({
         asset: null,
         message:
@@ -2169,6 +2185,7 @@ export function EditorShell({
 
     setProjectState(cloneProject(blankProject));
     setAudioObjectUrl(null);
+    audioSourceFileRef.current = null;
     setAudioUpload({
       asset: null,
       message: "Upload an MP3 to start a new project.",
@@ -2206,6 +2223,7 @@ export function EditorShell({
       audio: blankAudio,
     }));
     setAudioObjectUrl(null);
+    audioSourceFileRef.current = null;
     setAudioUpload({
       asset: null,
       message: "Track cleared. Upload an MP3 to start again.",
@@ -2286,6 +2304,7 @@ export function EditorShell({
 
       const durationSec = await readAudioDuration(sampleFile).catch(() => null);
       const nextObjectUrl = URL.createObjectURL(sampleFile);
+      audioSourceFileRef.current = sampleFile;
       const nextAsset = {
         ...payload,
         durationSec: durationSec ?? payload.durationSec ?? null,
@@ -2496,20 +2515,80 @@ export function EditorShell({
     await handleBackgroundAssetFile("video", file);
   };
 
+  const resolveClientAudioFileForTranscribe = async () => {
+    if (audioSourceFileRef.current instanceof File) {
+      return audioSourceFileRef.current;
+    }
+
+    if (audioObjectUrl?.startsWith("blob:")) {
+      try {
+        const blob = await fetch(audioObjectUrl).then((response) => response.blob());
+        const name =
+          typeof audioUpload.asset?.name === "string" && audioUpload.asset.name.trim()
+            ? audioUpload.asset.name.trim()
+            : "audio.mp3";
+
+        return new File([blob], name, {
+          type: blob.type || "audio/mpeg",
+        });
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
+  };
+
   // POST to start (or, on 409, adopt the already-running job for this session +
   // asset) a background transcription job and return its jobId. The poll effect
   // drives progress + completion, decoupled from this request, so a dropped
   // connection (sleep / reload / navigation) no longer cancels the work.
+  // When the client still has the MP3 (File or blob:), send it as multipart so
+  // multi-isolate hosts can store it on the same isolate that runs the job.
   const startTranscriptionJob = async (body) => {
-    const response = await fetch("/api/ai/transcribe", {
-      body: JSON.stringify(body),
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    });
+    const audioFile = await resolveClientAudioFileForTranscribe();
+    let response;
+
+    if (audioFile) {
+      const formData = new FormData();
+      formData.append("payload", JSON.stringify(body));
+      formData.append("file", audioFile, audioFile.name || "audio.mp3");
+      response = await fetch("/api/ai/transcribe", {
+        body: formData,
+        credentials: "same-origin",
+        method: "POST",
+      });
+    } else {
+      response = await fetch("/api/ai/transcribe", {
+        body: JSON.stringify(body),
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+    }
+
     const payload = await response.json().catch(() => ({}));
+
+    if (
+      typeof payload.audioAssetId === "string" &&
+      payload.audioAssetId.trim() &&
+      audioUpload.asset
+    ) {
+      const nextAssetId = payload.audioAssetId.trim();
+      setAudioUpload((current) =>
+        current.asset
+          ? {
+              ...current,
+              asset: {
+                ...current.asset,
+                assetId: nextAssetId,
+              },
+            }
+          : current,
+      );
+    }
 
     if (response.status === 409 && typeof payload.jobId === "string") {
       return payload.jobId;
@@ -2527,7 +2606,11 @@ export function EditorShell({
         );
       }
 
-      throw new Error(payload.error ?? "Transcription could not be started.");
+      throw new Error(
+        typeof payload.message === "string" && payload.message.trim()
+          ? payload.message
+          : payload.error ?? "Transcription could not be started.",
+      );
     }
 
     return payload.jobId;
@@ -3135,6 +3218,7 @@ export function EditorShell({
 
       const durationSec = await readAudioDuration(file).catch(() => null);
       const nextObjectUrl = URL.createObjectURL(file);
+      audioSourceFileRef.current = file;
       const nextAsset = {
         ...payload,
         durationSec: durationSec ?? payload.durationSec ?? null,
@@ -3238,7 +3322,11 @@ export function EditorShell({
       currentProject.lines,
       nextAudio,
     );
-    const nextObjectUrl = buildYoutubeAssetPlaybackUrl(asset);
+    const sourceFile = youtubeAssetToFile(asset);
+    const nextObjectUrl = sourceFile
+      ? URL.createObjectURL(sourceFile)
+      : buildYoutubeAssetPlaybackUrl(asset);
+    audioSourceFileRef.current = sourceFile;
 
     if (audioObjectUrl?.startsWith("blob:")) {
       URL.revokeObjectURL(audioObjectUrl);

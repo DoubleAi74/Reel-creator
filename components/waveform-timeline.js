@@ -106,11 +106,13 @@ function WaveformSkeleton({ currentPercent = 0 }) {
   );
 }
 
-// The WebAudio backend plays through an AudioContext, which the browser starts
+// WebAudio backend plays through an AudioContext, which the browser starts
 // suspended until a user gesture. Resume it before any play() so sound (and the
-// audioContext-derived clock) actually advances.
+// audioContext-derived clock) actually advances. MediaElement backend has no
+// AudioContext here — play() from the user gesture is enough.
 async function resumeWaveAudioContext(waveSurfer) {
-  const audioContext = waveSurfer?.getMediaElement?.()?.audioContext;
+  const media = waveSurfer?.getMediaElement?.();
+  const audioContext = media?.audioContext ?? null;
 
   if (audioContext && audioContext.state === "suspended") {
     try {
@@ -119,6 +121,93 @@ async function resumeWaveAudioContext(waveSurfer) {
       // Resume can reject if the context was torn down mid-gesture; ignore.
     }
   }
+}
+
+/**
+ * Full WebAudio decode of multi-minute tracks is unreliable on iOS/Android
+ * (memory, silent decode failures, stuck "loading"). Prefer HTMLMediaElement
+ * streaming on mobile; keep WebAudio on desktop for sample-accurate seeks.
+ */
+function prefersMediaElementAudioBackend() {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+
+  const userAgent = navigator.userAgent || "";
+
+  if (/iPhone|iPad|iPod/i.test(userAgent)) {
+    return true;
+  }
+
+  // iPadOS 13+ can report as Macintosh with touch.
+  if (
+    /Macintosh/i.test(userAgent) &&
+    typeof navigator.maxTouchPoints === "number" &&
+    navigator.maxTouchPoints > 1
+  ) {
+    return true;
+  }
+
+  if (/Android/i.test(userAgent)) {
+    return true;
+  }
+
+  return false;
+}
+
+function prepareHtmlAudioElement(mediaElement) {
+  if (!mediaElement || typeof mediaElement.play !== "function") {
+    return;
+  }
+
+  // iOS quirks: keep inline playback and avoid remote-control / silent-mode traps.
+  try {
+    mediaElement.setAttribute("playsinline", "true");
+    mediaElement.setAttribute("webkit-playsinline", "true");
+    mediaElement.playsInline = true;
+    mediaElement.preload = "auto";
+  } catch {
+    // Best-effort only.
+  }
+}
+
+function attachMediaCanPlay(mediaElement, onCanPlay) {
+  if (!mediaElement || typeof mediaElement.addEventListener !== "function") {
+    onCanPlay();
+    return () => {};
+  }
+
+  let settled = false;
+  const settle = () => {
+    if (settled) {
+      return;
+    }
+
+    settled = true;
+    onCanPlay();
+  };
+
+  // HTMLMediaElement uses readyState; WebAudioPlayer may not.
+  if (
+    typeof mediaElement.readyState === "number" &&
+    mediaElement.readyState >= 2
+  ) {
+    settle();
+    return () => {};
+  }
+
+  mediaElement.addEventListener("canplay", settle, { once: true });
+  mediaElement.addEventListener("loadeddata", settle, { once: true });
+
+  // WebAudioPlayer emits canplay after decode; if peaks path never gets it,
+  // do not leave the transport disabled forever.
+  const fallbackId = window.setTimeout(settle, 4000);
+
+  return () => {
+    window.clearTimeout(fallbackId);
+    mediaElement.removeEventListener("canplay", settle);
+    mediaElement.removeEventListener("loadeddata", settle);
+  };
 }
 
 function installTimingDebugHook(waveSurferRef) {
@@ -341,13 +430,13 @@ export function WaveformTimeline({
     let mediaCanPlayCleanup = () => {};
     let readyDuration = null;
     let statusReadyApplied = false;
+    const useMediaElementBackend = prefersMediaElementAudioBackend();
 
     const waveSurfer = WaveSurfer.create({
-      // Play through Web Audio (decoded PCM + AudioBufferSourceNode) instead of
-      // an HTMLAudioElement. This gives a sample-accurate clock and exact,
-      // rebuffer-free seeks, so the preview (which is slaved to this clock)
-      // stays locked to the music after mid-song seeks and ±2s jumps.
-      backend: "WebAudio",
+      // Desktop: WebAudio for sample-accurate clock/seeks (preview stays locked).
+      // Mobile: MediaElement streams without full PCM decode — multi-minute MP3s
+      // often fail or never become playable under WebAudio on iOS/Android.
+      backend: useMediaElementBackend ? "MediaElement" : "WebAudio",
       container: containerRef.current,
       cursorColor: "#2C9B3F",
       dragToSeek: true,
@@ -370,6 +459,7 @@ export function WaveformTimeline({
     });
 
     waveSurferRef.current = waveSurfer;
+    prepareHtmlAudioElement(waveSurfer.getMediaElement?.());
 
     const applyFunctionalReady = (durationInSeconds) => {
       if (statusReadyApplied || !mediaCanPlay) {
@@ -391,17 +481,10 @@ export function WaveformTimeline({
 
     if (loadedWithCachedPeaks) {
       const mediaElement = waveSurfer.getMediaElement?.();
-      const handleMediaCanPlay = () => {
+      mediaCanPlayCleanup = attachMediaCanPlay(mediaElement, () => {
         mediaCanPlay = true;
         applyFunctionalReady(readyDuration);
-      };
-
-      mediaElement?.addEventListener?.("canplay", handleMediaCanPlay, {
-        once: true,
       });
-      mediaCanPlayCleanup = () => {
-        mediaElement?.removeEventListener?.("canplay", handleMediaCanPlay);
-      };
     }
 
     const maybeExportWaveformPeaks = (durationInSeconds) => {

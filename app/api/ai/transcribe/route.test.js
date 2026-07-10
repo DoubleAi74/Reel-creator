@@ -30,6 +30,7 @@ vi.mock("@/lib/files", () => ({
   SESSION_COOKIE_NAME: "reel-creator-session",
   findSessionIdForAsset: vi.fn(),
   readAssetMetadata: vi.fn(),
+  storeUploadedAsset: vi.fn(),
   touchSessionAndSweep: vi.fn(),
 }));
 
@@ -89,6 +90,12 @@ describe("POST /api/ai/transcribe", () => {
     files.readAssetMetadata.mockReset();
     files.readAssetMetadata.mockResolvedValue({
       kind: "audio",
+    });
+    files.storeUploadedAsset.mockReset();
+    files.storeUploadedAsset.mockResolvedValue({
+      assetId: "asset-reattached",
+      kind: "audio",
+      name: "reattach.mp3",
     });
     files.touchSessionAndSweep.mockReset();
     files.touchSessionAndSweep.mockResolvedValue([]);
@@ -270,6 +277,71 @@ describe("POST /api/ai/transcribe", () => {
     );
     expect(unlockCookie.isGenerationUnlockCookieValid).not.toHaveBeenCalled();
     expect(creditService.assertCanStartGeneration).not.toHaveBeenCalled();
+  });
+
+  it("reattaches a client MP3 onto this isolate when multipart file is sent", async () => {
+    cookieSessionId = null;
+    const { POST } = await import("./route");
+    const files = await import("@/lib/files");
+    const store = await import("@/lib/ai/transcribe-store");
+    const transcribeJob = await import("@/lib/ai/transcribe-job");
+
+    // Minimal MP3-ish buffer with frame sync (storeUploadedAsset validates).
+    const bytes = new Uint8Array([0xff, 0xe0, 0x00, 0x00, 1, 2, 3, 4]);
+    const formData = new FormData();
+    formData.append(
+      "payload",
+      JSON.stringify({
+        audio: { duration: 12, endOffset: null, startOffset: 0 },
+        audioAssetId: "stale-asset",
+        phase: "generate",
+        sourceLanguage: "auto",
+      }),
+    );
+    formData.append(
+      "file",
+      new File([bytes], "client.mp3", { type: "audio/mpeg" }),
+    );
+
+    // Bypass buffer validation — unit test focuses on routing.
+    files.storeUploadedAsset.mockResolvedValue({
+      assetId: "asset-reattached",
+      kind: "audio",
+      name: "client.mp3",
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: formData,
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      audioAssetId: "asset-reattached",
+      jobId: "job-route",
+    });
+    expect(files.storeUploadedAsset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "audio",
+        sessionId: expect.any(String),
+      }),
+    );
+    expect(store.createTranscribeJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: "asset-reattached",
+        phase: "generate",
+      }),
+    );
+
+    await store.enqueueTranscribeJob.mock.calls[0][1]();
+    expect(transcribeJob.runTranscribeJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        audioAssetId: "asset-reattached",
+        phase: "generate",
+      }),
+    );
   });
 
   it("blocks a new enabled generation when the unlock cookie is missing", async () => {
