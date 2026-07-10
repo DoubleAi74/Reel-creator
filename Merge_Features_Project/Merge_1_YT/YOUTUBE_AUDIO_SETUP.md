@@ -75,6 +75,9 @@ Do not use `NEXT_PUBLIC_` for provider keys. With no key, `/api/youtube-audio/co
 - **Mobile / iOS (any host):** if the tab freezes mid-poll, re-open the import (same URL) —
   the client resumes the in-flight `jobId` from `sessionStorage` when using poll mode.
 - **Cookies:** same-origin session cookie is required to attach the MP3 as an editor asset.
+- **Playback on Vercel:** session files live in per-isolate `/tmp`. A later `GET /api/assets/:id`
+  often 404s on another isolate. On `VERCEL=1` the convert response embeds `audioBase64` so the
+  editor plays via a `blob:` URL (like a local upload). Override with `YT_AUDIO_EMBED_BYTES=0/1`.
 - **ffmpeg:** provider `trimMode: "provider"` + MP3 paths (primary `youtube-mp36`) **do not**
   call local ffmpeg/ffprobe — they store the provider file as-is. Local-trim providers
   (`youtube-mp3-2025`) need `ffmpeg`/`ffprobe` on PATH (or `FFMPEG_PATH` / `FFPROBE_PATH`).
