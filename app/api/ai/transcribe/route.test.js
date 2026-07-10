@@ -142,6 +142,7 @@ describe("POST /api/ai/transcribe", () => {
     expect(response.status).toBe(200);
     expect(store.createTranscribeJob).toHaveBeenCalledWith({
       assetId: "asset-route",
+      phase: "time",
       pipelineRunId: "run-route",
       save: false,
       saveOnCompletion: true,
@@ -163,6 +164,45 @@ describe("POST /api/ai/transcribe", () => {
         save: false,
         saveOnCompletion: true,
         sessionId: "session-route",
+      }),
+    );
+  });
+
+  it("starts generate jobs without forwarding stale editor lines", async () => {
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+    const transcribeJob = await import("@/lib/ai/transcribe-job");
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audio: {
+            duration: 12,
+            endOffset: null,
+            startOffset: 0,
+          },
+          audioAssetId: "asset-route",
+          lines: [{ id: "stale-line", original: "do not lock me" }],
+          phase: "generate",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await store.enqueueTranscribeJob.mock.calls[0][1]();
+
+    expect(store.createTranscribeJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: "asset-route",
+        phase: "generate",
+      }),
+    );
+    expect(transcribeJob.runTranscribeJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lines: [],
+        phase: "generate",
       }),
     );
   });
@@ -223,6 +263,11 @@ describe("POST /api/ai/transcribe", () => {
 
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toEqual({ jobId: "job-existing" });
+    expect(store.findInFlightTranscribeForSession).toHaveBeenCalledWith(
+      "session-route",
+      "asset-route",
+      "time",
+    );
     expect(unlockCookie.isGenerationUnlockCookieValid).not.toHaveBeenCalled();
     expect(creditService.assertCanStartGeneration).not.toHaveBeenCalled();
   });
@@ -392,7 +437,7 @@ describe("POST /api/ai/transcribe", () => {
     await expect(explicitFull.json()).resolves.toEqual({
       error: "full_phase_disabled",
       message:
-        "When credits are enabled, run staged phases: transcribe, enrich, then time.",
+        "When credits are enabled, run Generate lyrics, then Time lyrics.",
     });
 
     // Default / omitted phase normalizes to "full" and is also rejected.

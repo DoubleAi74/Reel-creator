@@ -8,10 +8,34 @@ import {
 import {
   buildGenerationUnlockSetCookie,
   createGenerationUnlockCookieValue,
+  getGenerationUnlockCookieValueFromRequest,
+  isGenerationUnlockCookieValid,
   verifyGenerationPassword,
 } from "../../../../lib/credits/unlock-cookie.js";
 
 export const runtime = "nodejs";
+
+export async function GET(request) {
+  if (!isCreditsEnabled()) {
+    return NextResponse.json({ enabled: false, unlocked: false });
+  }
+
+  try {
+    return NextResponse.json({
+      unlocked: isGenerationUnlockCookieValid(
+        getGenerationUnlockCookieValueFromRequest(request),
+      ),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "credits_not_configured",
+        message: error instanceof Error ? error.message : "Credits are not configured.",
+      },
+      { status: 500 },
+    );
+  }
+}
 
 export async function POST(request) {
   if (!isCreditsEnabled()) {

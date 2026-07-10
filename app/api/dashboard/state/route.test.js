@@ -28,7 +28,7 @@ async function createGeneration(overrides = {}) {
     finalJobId: `job-${crypto.randomUUID()}`,
     jobIds: ["job-secret"],
     pipelineRunId: `run-${crypto.randomUUID()}`,
-    r2ObjectKey: "generations/secret/audio.mp3",
+    r2ObjectKey: `generations/${crypto.randomUUID()}/audio.mp3`,
     r2Status: "created",
     saved: true,
     public: true,
@@ -107,5 +107,47 @@ describe("GET /api/dashboard/state", () => {
     expect(JSON.stringify(payload)).not.toContain("r2ObjectKey");
     expect(JSON.stringify(payload)).not.toContain("job-secret");
     expect(JSON.stringify(payload)).not.toContain("sourceType");
+  });
+
+  it("returns untitled private cards saved by the current session", async () => {
+    const ownedGeneration = await createGeneration({
+      ownerScope: {
+        sessionId: "session-dashboard",
+        type: "session",
+      },
+      public: false,
+      title: "Untitled generation",
+      userTitled: false,
+    });
+    await createGeneration({
+      ownerScope: {
+        sessionId: "other-session",
+        type: "session",
+      },
+      public: false,
+      title: "Other private generation",
+      userTitled: false,
+    });
+
+    const response = await GET(
+      new Request("http://localhost/api/dashboard/state", {
+        headers: {
+          cookie: "reel-creator-session=session-dashboard",
+        },
+      }),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.generations).toHaveLength(1);
+    expect(payload.generations[0]).toMatchObject({
+      audioUrl: `/api/media/generations/${ownedGeneration._id.toString()}`,
+      id: ownedGeneration._id.toString(),
+      title: "Untitled generation",
+    });
+    expect(JSON.stringify(payload)).not.toContain("other-session");
+    expect(JSON.stringify(payload)).not.toContain("ownerScope");
+    expect(JSON.stringify(payload)).not.toContain("pipelineRunId");
+    expect(JSON.stringify(payload)).not.toContain("r2ObjectKey");
   });
 });

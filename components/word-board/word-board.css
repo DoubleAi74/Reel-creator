@@ -203,7 +203,9 @@
 .word-button {
   min-height: calc(40px * var(--tile-layout-scale));
   min-width: calc(52px * var(--tile-layout-scale));
-  border: 1px solid currentColor;
+  /* border: 1px solid currentColor; */
+  border: 1px solid color-mix(in srgb, currentColor 5%, transparent);
+
   border-radius: var(--tile-radius);
   padding: calc(8px * var(--tile-layout-scale))
     calc(12px * var(--tile-layout-scale));
@@ -267,7 +269,7 @@
   visibility: hidden;
 }
 .word-button.is-selected {
-  transform: translateY(-2px);
+  transform: none;
 }
 .word-roman-inline {
   display: none;
@@ -293,7 +295,9 @@
 .pager-button {
   width: 46px;
   height: 46px;
-  border: 1px solid currentColor;
+  border: 2px solid currentColor;
+  /* border: 1px solid rgba(31, 29, 26, 0.4); */
+
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -452,7 +456,8 @@
   grid-template-rows: minmax(0, 1fr) auto;
   gap: clamp(12px, 2.2vw, 18px);
   min-height: 0;
-  border: 2px solid #22201d;
+  /* border: 2px solid #22201d; */
+  border: 2px solid rgba(44, 41, 36, 0.3);
   border-radius: 8px;
   background: #fffaf1;
   padding: clamp(14px, 2.4vw, 28px) clamp(14px, 2.4vw, 28px)
@@ -473,7 +478,8 @@
   scrollbar-color: rgba(43, 40, 35, 0.26) transparent;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  border: 2px solid #2c2924;
+  /* border: 2px solid #2c2924; */
+  border: 2px solid rgba(44, 41, 36, 0.3);
   border-radius: 6px;
   background: #f7f0df;
   padding: var(--stage-pad-y) var(--stage-pad-x);
@@ -600,10 +606,9 @@
   box-shadow: var(--tile-shadow-x) var(--tile-shadow-roman-y) 0
     rgba(43, 40, 35, 0.15);
 }
-.version-sketch .word-button:hover,
 .version-sketch .word-button.is-selected {
-  border-color: #1d1b18;
-  background: #1d1b18;
+  border-color: #39352f;
+  background: #383530;
   color: #fff7e8;
   box-shadow:
     var(--tile-shadow-active-x) var(--tile-shadow-active-y) 0
@@ -621,13 +626,9 @@
   color: #302d28;
 }
 .version-sketch .line-row:hover .word-button:not(.is-selected):hover {
-  border-color: #1d1b18;
-  background: #1d1b18;
-  color: #fff7e8;
-  box-shadow:
-    var(--tile-shadow-active-x) var(--tile-shadow-active-y) 0
-      rgba(43, 40, 35, 0.16),
-    inset 0 0 0 1px rgba(255, 247, 232, 0.07);
+  background: #f3f0e9;
+  color: #302d28;
+  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0 rgba(43, 40, 35, 0.17);
 }
 .version-sketch .word-button .word-english {
   font-family: inherit;
@@ -760,6 +761,11 @@
     line-height: 1;
     text-align: center;
     white-space: nowrap;
+  }
+  .version-sketch .word-button .word-hindi {
+    /* Optical centering: Noto Sans Devanagari sits high in the flex box, so
+       nudge the original text down slightly to match the Latin gloss. */
+    transform: translateY(calc(2.2px * var(--tile-layout-scale)));
   }
   .version-sketch .word-button .word-english {
     font-family:
@@ -1207,7 +1213,6 @@
     box-shadow: var(--tile-shadow-x) var(--tile-shadow-roman-y) 0
       rgba(43, 40, 35, 0.15);
   }
-  .version-sketch .word-button:hover,
   .version-sketch .word-button.is-selected {
     border-color: #201d19;
     background: #201d19;
@@ -1228,13 +1233,10 @@
     color: #302d28;
   }
   .version-sketch .line-row:hover .word-button:not(.is-selected):hover {
-    border-color: #201d19;
-    background: #201d19;
-    color: #fff7e8;
-    box-shadow:
-      var(--tile-shadow-active-x) var(--tile-shadow-active-y) 0
-        rgba(43, 40, 35, 0.16),
-      inset 0 0 0 1px rgba(255, 247, 232, 0.07);
+    background: #f3ecdf;
+    color: #b9801e;
+    box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0
+      rgba(43, 40, 35, 0.17);
   }
   .version-sketch .word-button.is-selected {
     transform: none;

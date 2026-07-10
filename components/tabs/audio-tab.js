@@ -6,40 +6,29 @@ import { LYRIC_PIPELINE_PRESETS } from "@/lib/staged-lyrics";
 
 const PIPELINE_PRESET_OPTIONS = [
   {
-    label: "All three",
-    preset: LYRIC_PIPELINE_PRESETS.all,
+    label: "Generate + Time",
+    preset: LYRIC_PIPELINE_PRESETS.both,
   },
   {
-    label: "First two",
-    preset: LYRIC_PIPELINE_PRESETS.firstTwo,
+    label: "Generate only",
+    preset: LYRIC_PIPELINE_PRESETS.generateOnly,
   },
   {
-    label: "First one",
-    preset: LYRIC_PIPELINE_PRESETS.firstOne,
+    label: "Time only",
+    preset: LYRIC_PIPELINE_PRESETS.timeOnly,
   },
 ];
 
 const PIPELINE_PHASE_OPTIONS = [
   {
-    description: "Create editable source lyric lines from the uploaded MP3.",
-    phase: "transcribe",
-    step: "1",
-    title: "Transcribe & clean",
+    phase: "generate",
+    title: "Generate lyrics",
     unavailable: "Upload an MP3 first.",
   },
   {
-    description: "Add English, romanization, and word meanings.",
-    phase: "enrich",
-    step: "2",
-    title: "Translate & enrich",
-    unavailable: "Run Part 1 or add lyric lines first.",
-  },
-  {
-    description: "Align the current lyric lines to the uploaded audio.",
     phase: "time",
-    step: "3",
     title: "Time lyrics",
-    unavailable: "Run Part 1 or add lyric lines first.",
+    unavailable: "Generate lyrics or add lyric lines first.",
   },
 ];
 
@@ -79,16 +68,20 @@ function getStatusLabel(status) {
   return "Waiting";
 }
 
-function getRunButtonLabel(isBusy, selectedCount) {
+function getRunButtonLabel(isBusy, preset, selectedCount) {
   if (isBusy) {
     return "Running...";
   }
 
-  if (selectedCount === 0) {
-    return "Run";
+  if (preset === LYRIC_PIPELINE_PRESETS.generateOnly) {
+    return "Generate lyrics";
   }
 
-  return `Run ${selectedCount} part${selectedCount === 1 ? "" : "s"}`;
+  if (preset === LYRIC_PIPELINE_PRESETS.timeOnly) {
+    return "Time lyrics";
+  }
+
+  return selectedCount > 0 ? "Run both" : "Run";
 }
 
 export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
@@ -127,9 +120,6 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
     ? pipeline.selectedPhases.length
     : 0;
   const canRunSelectedPipeline = canGenerate && selectedPhaseCount > 0;
-  const transcribeWillCreateLines = Boolean(
-    pipeline?.selection?.transcribe && pipeline?.canRun?.transcribe,
-  );
   const visibleStatus =
     autoLyricsBusy || autoTimingBusy
       ? "running"
@@ -149,7 +139,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
     : !upload.asset?.assetId
       ? "Upload an MP3 before running the lyric pipeline."
       : languageRequirementMessage ||
-        (selectedPhaseCount === 0 ? "Select at least one runnable part." : undefined);
+        (selectedPhaseCount === 0 ? "Select a runnable mode." : undefined);
 
   return (
     <div className="grid gap-4">
@@ -260,8 +250,8 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           <div>
             <p className="text-sm font-medium text-[var(--muted)]">Auto-lyrics</p>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              Transcribe the uploaded MP3 and replace the current lyric lines with
-              English translations.
+              Generate translated lyrics from the uploaded MP3, then time the
+              current lyric lines when they are ready.
             </p>
           </div>
           <StatusBadge
@@ -329,7 +319,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
             title={runButtonTitle}
             type="button"
           >
-            {getRunButtonLabel(pipelineBusy, selectedPhaseCount)}
+            {getRunButtonLabel(pipelineBusy, pipeline?.preset, selectedPhaseCount)}
           </button>
         </div>
 
@@ -384,7 +374,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           </div>
         ) : null}
 
-        <div className="phase-row mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline presets">
+        <div className="phase-row mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline mode">
           {PIPELINE_PRESET_OPTIONS.map((option) => {
             const active = pipeline?.preset === option.preset;
 
@@ -406,53 +396,6 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           })}
         </div>
 
-        <div className="mt-4 grid gap-3" aria-label="Lyric pipeline parts">
-          {PIPELINE_PHASE_OPTIONS.map((option) => {
-            const phaseSelected = Boolean(pipeline?.selection?.[option.phase]);
-            const canRunNow = Boolean(pipeline?.canRun?.[option.phase]);
-            const canRunAfterTranscribe =
-              option.phase !== "transcribe" && transcribeWillCreateLines;
-            const disabled = pipelineBusy || (!canRunNow && !canRunAfterTranscribe);
-            const availabilityText = canRunNow
-              ? "Ready"
-              : canRunAfterTranscribe
-                ? "After Part 1"
-                : option.unavailable;
-
-            return (
-              <label
-                className={`grid grid-cols-[auto_minmax(0,1fr)] gap-3 border-t border-[var(--border)] pt-3 ${
-                  disabled
-                    ? "cursor-not-allowed opacity-55"
-                    : "cursor-pointer"
-                }`}
-                key={option.phase}
-              >
-                <input
-                  checked={phaseSelected}
-                  className="mt-1 h-4 w-4 accent-[var(--accent)]"
-                  disabled={disabled}
-                  onChange={() => pipeline?.onToggle?.(option.phase)}
-                  type="checkbox"
-                />
-                <span className="min-w-0">
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-[var(--text)]">
-                      {option.step}. {option.title}
-                    </span>
-                    <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-                      {availabilityText}
-                    </span>
-                  </span>
-                  <span className="mt-1 block text-sm leading-6 text-[var(--muted)]">
-                    {option.description}
-                  </span>
-                </span>
-              </label>
-            );
-          })}
-        </div>
-
         <div className="mt-4 grid gap-3" aria-label="Lyric pipeline status">
           {PIPELINE_PHASE_OPTIONS.map((option) => {
             const phaseStatus = pipeline?.statusByPhase?.[option.phase] ?? {
@@ -468,7 +411,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[var(--text)]">
-                    {option.step}. {option.title}
+                    {option.title}
                   </p>
                   <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
                     {phaseStatus.message}

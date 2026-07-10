@@ -661,7 +661,7 @@ export function EditorShell({
   const [topUpStatus, setTopUpStatus] = useState("idle");
   const [topUpMessage, setTopUpMessage] = useState("");
   // Pointer to the background transcription/timing job that the poll effect
-  // drives: { jobId, phase: "full" | "transcribe" | "enrich" | "time",
+  // drives: { jobId, phase: "full" | "generate" | "transcribe" | "enrich" | "time",
   // status: "running" | "done" | "error", appliedJobId }. Survives
   // sleep/reload via autosave so a job can be resumed (or its finished result
   // recovered) after the editor remounts.
@@ -669,10 +669,10 @@ export function EditorShell({
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [otherSourceLanguage, setOtherSourceLanguage] = useState("");
   const [lyricPipelinePreset, setLyricPipelinePreset] = useState(
-    LYRIC_PIPELINE_PRESETS.all,
+    LYRIC_PIPELINE_PRESETS.both,
   );
   const [lyricPipelineSelection, setLyricPipelineSelection] = useState(() =>
-    getLyricPipelineSelectionForPreset(LYRIC_PIPELINE_PRESETS.all),
+    getLyricPipelineSelectionForPreset(LYRIC_PIPELINE_PRESETS.both),
   );
   const [timingControlsOpen, setTimingControlsOpen] = useState(false);
   const [editingLineId, setEditingLineId] = useState(null);
@@ -692,8 +692,10 @@ export function EditorShell({
   const audioInputRef = useRef(null);
   const backgroundImageInputRef = useRef(null);
   const backgroundVideoInputRef = useRef(null);
+  const appScrollRef = useRef(null);
   const editorScrollRef = useRef(null);
   const previewPlayerRef = useRef(null);
+  const pinnedMediaTouchYRef = useRef(null);
   const programmaticScrollTimeoutRef = useRef(null);
   const suppressManualScrollRef = useRef(false);
   const timingRowRefs = useRef(new Map());
@@ -935,7 +937,9 @@ export function EditorShell({
           message: `${generation.title || "Saved generation"} opened from dashboard.`,
           status: "success",
         });
-        setAudioObjectUrl(`/api/media/generations/${encodeURIComponent(generation.id)}`);
+        setAudioObjectUrl(
+          `/api/media/generations/${encodeURIComponent(generation.id)}?proxy=1`,
+        );
         setCurrentAudioTime(importedProject.audio.startOffset ?? 0);
         setSelectedTimingLineId(null);
         setTimingDrafts({});
@@ -1036,6 +1040,12 @@ export function EditorShell({
   useEffect(() => {
     if (isNarrowWorkspace && activeSection === "words") {
       setSheetSnapIndex(0);
+      if (appScrollRef.current) {
+        appScrollRef.current.scrollTop = 0;
+      }
+      if (editorScrollRef.current) {
+        editorScrollRef.current.scrollTop = 0;
+      }
     }
   }, [activeSection, isNarrowWorkspace]);
 
@@ -1048,12 +1058,6 @@ export function EditorShell({
   }, [activeSection]);
 
   const syncMobileTabForViewTransition = (wasBoardOnly, willBoardOnly) => {
-    if (!wasBoardOnly && willBoardOnly) {
-      setActiveSection("words");
-      setSheetSnapIndex(0);
-      return;
-    }
-
     if (wasBoardOnly && !willBoardOnly) {
       setActiveSection((section) => (section === "words" ? "audio" : section));
     }
@@ -1123,13 +1127,6 @@ export function EditorShell({
     : otherSourceLanguageRequired
       ? "Type the source language to use Other."
       : "";
-  const canGenerateAutoLyrics =
-    audioUpload.status === "success" &&
-    Boolean(audioUpload.asset?.assetId) &&
-    !autoLyricsBusy &&
-    !autoTimingBusy &&
-    !sourceLanguageRequired &&
-    !otherSourceLanguageRequired;
   const lyricPipelineCanRun = getLyricPipelineCanRun({
     hasAudio:
       audioUpload.status === "success" && Boolean(audioUpload.asset?.assetId),
@@ -1139,45 +1136,61 @@ export function EditorShell({
     lyricPipelineSelection,
     lyricPipelineCanRun,
   );
+  const selectedPipelineNeedsSourceLanguage = Boolean(
+    lyricPipelineSelection?.generate,
+  );
+  const lyricPipelineLanguageRequirementMessage =
+    selectedPipelineNeedsSourceLanguage ? autoLyricsLanguageRequirementMessage : "";
+  const canGenerateAutoLyrics =
+    audioUpload.status === "success" &&
+    Boolean(audioUpload.asset?.assetId) &&
+    !autoLyricsBusy &&
+    !autoTimingBusy &&
+    !lyricPipelineLanguageRequirementMessage;
   const transcriptionPhase =
     typeof transcription?.phase === "string" ? transcription.phase : "";
   const transcriptionRunningPhase =
     transcription?.status === "running" ? transcriptionPhase : "";
   const transcriptionFailedPhase =
     transcription?.status === "error" ? transcriptionPhase : "";
-  const enrichedLineCount = getEnrichedLineCount(projectState.lines);
+  const generatedLineCount = getEnrichedLineCount(projectState.lines);
   const lyricPipelineStatusByPhase = {
-    enrich:
-      transcriptionRunningPhase === "enrich"
+    generate:
+      transcriptionRunningPhase === "generate" ||
+      transcriptionRunningPhase === "transcribe" ||
+      transcriptionRunningPhase === "enrich" ||
+      transcriptionRunningPhase === "full"
         ? {
             message:
               autoLyricsState.detail ||
               autoLyricsState.message ||
-              "Adding translations and word meanings.",
+              "Generating translated lyric lines.",
             status: "running",
-            title: autoLyricsState.title || "Part 2 running",
+            title: autoLyricsState.title || "Generate lyrics running",
           }
-        : transcriptionFailedPhase === "enrich"
+        : transcriptionFailedPhase === "generate" ||
+            transcriptionFailedPhase === "transcribe" ||
+            transcriptionFailedPhase === "enrich" ||
+            transcriptionFailedPhase === "full"
           ? {
-              message: autoLyricsState.message || "Part 2 failed.",
+              message: autoLyricsState.message || "Generate lyrics failed.",
               status: "error",
-              title: autoLyricsState.title || "Part 2 failed",
+              title: autoLyricsState.title || "Generate lyrics failed",
             }
-          : enrichedLineCount > 0
+          : generatedLineCount > 0
             ? {
-                message: `${enrichedLineCount} lyric line${
-                  enrichedLineCount === 1 ? "" : "s"
-                } enriched.`,
+                message: `${generatedLineCount} translated lyric line${
+                  generatedLineCount === 1 ? "" : "s"
+                } ready.`,
                 status: "success",
                 title: "Ready",
               }
             : {
-                message:
-                  lineCount > 0
-                    ? "Ready to translate and enrich current lyrics."
-                    : "Run Part 1 or add lyric lines first.",
-                status: lineCount > 0 ? "ready" : "idle",
-                title: lineCount > 0 ? "Ready" : "Waiting",
+                message: lyricPipelineCanRun.generate
+                  ? "Ready to generate translated lyrics from the uploaded MP3."
+                  : "Upload an MP3 first.",
+                status: lyricPipelineCanRun.generate ? "ready" : "idle",
+                title: lyricPipelineCanRun.generate ? "Ready" : "Waiting",
               },
     time:
       transcriptionRunningPhase === "time"
@@ -1187,13 +1200,13 @@ export function EditorShell({
               autoTimingState.message ||
               "Aligning current lyrics to the audio.",
             status: "running",
-            title: autoTimingState.title || "Part 3 running",
+            title: autoTimingState.title || "Time lyrics running",
           }
         : transcriptionFailedPhase === "time"
           ? {
-              message: autoTimingState.message || "Part 3 failed.",
+              message: autoTimingState.message || "Time lyrics failed.",
               status: "error",
-              title: autoTimingState.title || "Part 3 failed",
+              title: autoTimingState.title || "Time lyrics failed",
             }
           : timedLineCount > 0
             ? {
@@ -1207,54 +1220,14 @@ export function EditorShell({
                 message:
                   lineCount > 0
                     ? "Ready to time current lyrics."
-                    : "Run Part 1 or add lyric lines first.",
+                    : "Generate lyrics or add lyric lines first.",
                 status: lineCount > 0 ? "ready" : "idle",
                 title: lineCount > 0 ? "Ready" : "Waiting",
-              },
-    transcribe:
-      transcriptionRunningPhase === "transcribe" ||
-      transcriptionRunningPhase === "full"
-        ? {
-            message:
-              autoLyricsState.detail ||
-              autoLyricsState.message ||
-              "Creating editable lyric lines.",
-            status: "running",
-            title: autoLyricsState.title || "Part 1 running",
-          }
-        : transcriptionFailedPhase === "transcribe" ||
-            transcriptionFailedPhase === "full"
-          ? {
-              message: autoLyricsState.message || "Part 1 failed.",
-              status: "error",
-              title: autoLyricsState.title || "Part 1 failed",
-            }
-          : lineCount > 0
-            ? {
-                message: `${lineCount} lyric line${
-                  lineCount === 1 ? "" : "s"
-                } ready.`,
-                status: "success",
-                title: "Ready",
-              }
-            : {
-                message: lyricPipelineCanRun.transcribe
-                  ? "Ready to transcribe the uploaded MP3."
-                  : "Upload an MP3 first.",
-                status: lyricPipelineCanRun.transcribe ? "ready" : "idle",
-                title: lyricPipelineCanRun.transcribe ? "Ready" : "Waiting",
               },
   };
   const handleLyricPipelinePreset = (preset) => {
     setLyricPipelinePreset(preset);
     setLyricPipelineSelection(getLyricPipelineSelectionForPreset(preset));
-  };
-  const handleLyricPipelineToggle = (phase) => {
-    setLyricPipelinePreset(LYRIC_PIPELINE_PRESETS.custom);
-    setLyricPipelineSelection((currentSelection) => ({
-      ...currentSelection,
-      [phase]: !currentSelection?.[phase],
-    }));
   };
   const clearProgrammaticScrollGuard = () => {
     if (programmaticScrollTimeoutRef.current) {
@@ -1971,6 +1944,100 @@ export function EditorShell({
     setAutoFollowEnabled(false);
   };
 
+  const scrollPinnedMediaSheet = (deltaY) => {
+    const scrollEl = appScrollRef.current;
+
+    if (
+      !isNarrowWorkspace ||
+      activeSection === "words" ||
+      !scrollEl ||
+      !Number.isFinite(deltaY)
+    ) {
+      return false;
+    }
+
+    const maxScrollTop = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+    const nextScrollTop = Math.min(
+      maxScrollTop,
+      Math.max(0, scrollEl.scrollTop + deltaY),
+    );
+
+    scrollEl.scrollTop = nextScrollTop;
+    return maxScrollTop > 0;
+  };
+
+  const isPanelScrollEvent = (event) =>
+    typeof event.target?.closest === "function" &&
+    Boolean(event.target.closest(".side-panel"));
+
+  const shouldTransferPanelScroll = (deltaY) => {
+    if (deltaY >= 0) {
+      return false;
+    }
+
+    const editorScrollEl = editorScrollRef.current;
+    return !editorScrollEl || editorScrollEl.scrollTop <= 0;
+  };
+
+  const handlePinnedMediaWheel = (event) => {
+    if (isPanelScrollEvent(event)) {
+      if (!shouldTransferPanelScroll(event.deltaY)) {
+        return;
+      }
+
+      scrollPinnedMediaSheet(event.deltaY);
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if (!scrollPinnedMediaSheet(event.deltaY)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handlePinnedMediaTouchStart = (event) => {
+    pinnedMediaTouchYRef.current = event.touches?.[0]?.clientY ?? null;
+  };
+
+  const handlePinnedMediaTouchMove = (event) => {
+    const currentY = event.touches?.[0]?.clientY ?? null;
+    const previousY = pinnedMediaTouchYRef.current;
+
+    if (currentY == null || previousY == null) {
+      pinnedMediaTouchYRef.current = currentY;
+      return;
+    }
+
+    pinnedMediaTouchYRef.current = currentY;
+    const deltaY = previousY - currentY;
+
+    if (isPanelScrollEvent(event)) {
+      if (!shouldTransferPanelScroll(deltaY)) {
+        return;
+      }
+
+      scrollPinnedMediaSheet(deltaY);
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if (!scrollPinnedMediaSheet(deltaY)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handlePinnedMediaTouchEnd = () => {
+    pinnedMediaTouchYRef.current = null;
+  };
+
   const handleMarkHotkey = useEffectEvent(() => {
     handleMarkCurrentLine();
   });
@@ -2607,15 +2674,13 @@ export function EditorShell({
       nextLines.length,
     );
 
-    setProjectState((currentProject) => {
-      const nextProject = {
-        ...currentProject,
-        lines: nextLines,
-      };
+    const nextProject = {
+      ...projectStateRef.current,
+      lines: nextLines,
+    };
 
-      projectStateRef.current = nextProject;
-      return nextProject;
-    });
+    projectStateRef.current = nextProject;
+    setProjectState(nextProject);
     setSelectedTimingLineId(null);
     setTimingDrafts({});
     setTimingNotice({
@@ -2705,8 +2770,7 @@ export function EditorShell({
       pipelineRunInFlightRef.current ||
       !audioUpload.asset?.assetId ||
       autoLyricsBusy ||
-      autoTimingBusy ||
-      autoLyricsLanguageRequirementMessage
+      autoTimingBusy
     ) {
       return;
     }
@@ -2717,14 +2781,28 @@ export function EditorShell({
       setAutoLyricsState({
         detail: "",
         lineCount: 0,
-        message: "Select at least one runnable lyric pipeline part.",
+        message: "Select a runnable lyric pipeline mode.",
         status: "error",
         title: "Pipeline unavailable",
       });
       return;
     }
 
-    if (phasesToRun.includes("transcribe") && !confirmLyricRebuildIfNeeded()) {
+    if (
+      phasesToRun.includes("generate") &&
+      autoLyricsLanguageRequirementMessage
+    ) {
+      setAutoLyricsState({
+        detail: "",
+        lineCount: projectStateRef.current.lines.length,
+        message: autoLyricsLanguageRequirementMessage,
+        status: "error",
+        title: "Pipeline unavailable",
+      });
+      return;
+    }
+
+    if (phasesToRun.includes("generate") && !confirmLyricRebuildIfNeeded()) {
       return;
     }
 
@@ -2744,9 +2822,9 @@ export function EditorShell({
 
         if (!currentCanRun[phase]) {
           throw new Error(
-            phase === "transcribe"
-              ? "Upload an MP3 before transcribing lyrics."
-              : "Add lyric lines before running the next lyric pipeline part.",
+            phase === "generate"
+              ? "Upload an MP3 before generating lyrics."
+              : "Generate lyrics or add lyric lines before timing.",
           );
         }
 
@@ -2760,17 +2838,11 @@ export function EditorShell({
           });
         } else {
           setAutoLyricsState({
-            detail:
-              phase === "enrich"
-                ? "Preparing the current lyric lines for translation and word meanings."
-                : "Preparing the uploaded MP3 for transcription.",
+            detail: "Preparing the uploaded MP3 for lyric generation.",
             lineCount: currentProject.lines.length,
             message: "",
             status: "running",
-            title:
-              phase === "enrich"
-                ? "Starting lyric enrichment"
-                : "Starting auto-lyrics",
+            title: "Starting lyric generation",
           });
         }
 
@@ -2780,13 +2852,14 @@ export function EditorShell({
           audio: currentProject.audio,
           audioAssetId: audioUpload.asset.assetId,
           includeRomanization,
-          lines: currentProject.lines,
+          lines: phase === "time" ? currentProject.lines : [],
           otherLanguage: otherSourceLanguage.trim(),
           phase,
           pipelineRunId,
           save: saveGeneration,
           saveOnCompletion: phase === finalPhase,
-          sourceLanguage,
+          sourceLanguage:
+            phase === "time" && !sourceLanguage ? "auto" : sourceLanguage,
           // REP-403 / D-C: project meta title is the user-entered public card title.
           title: currentProject.meta?.title ?? "",
         });
@@ -2835,7 +2908,7 @@ export function EditorShell({
     if (!Array.isArray(payload?.lines) || payload.lines.length === 0) {
       setAutoTimingState({
         detail: "",
-        lineCount,
+        lineCount: projectStateRef.current.lines.length,
         message: "Auto-timing finished without lyric timing results.",
         status: "error",
         title: "Auto-time failed",
@@ -2853,42 +2926,41 @@ export function EditorShell({
         .map((line) => [line.id, line]),
     );
 
-    setProjectState((currentProject) => {
-      const nextLines = currentProject.lines.map((line) => {
-        const timedLine = returnedLinesById.get(line.id);
+    const currentProject = projectStateRef.current;
+    const nextLines = currentProject.lines.map((line) => {
+      const timedLine = returnedLinesById.get(line.id);
 
-        if (!timedLine) {
-          return line;
-        }
+      if (!timedLine) {
+        return line;
+      }
 
-        return {
-          ...line,
-          confidence: String(timedLine?.confidence ?? ""),
-          end: Number.isFinite(timedLine?.end) ? timedLine.end : null,
-          matchRatio: Number.isFinite(timedLine?.matchRatio)
-            ? timedLine.matchRatio
-            : 0,
-          quality: timedLine?.quality ?? null,
-          start: Number.isFinite(timedLine?.start)
-            ? clampTimeToSection(timedLine.start, currentProject.audio)
-            : line.start,
-          timingSource: String(timedLine?.timingSource ?? ""),
-          // Apply new timing without clobbering existing gloss/roman (P3): keep
-          // the line's display words and attach start/end best-effort. When the
-          // line had no gloss words yet, this falls back to the timing words.
-          words: line.words?.length
-            ? mergeMeaningWordsWithTiming(timedLine?.words, line.words)
-            : normalizeLineWords(timedLine?.words),
-        };
-      });
-      const nextProject = {
-        ...currentProject,
-        lines: nextLines,
+      return {
+        ...line,
+        confidence: String(timedLine?.confidence ?? ""),
+        end: Number.isFinite(timedLine?.end) ? timedLine.end : null,
+        matchRatio: Number.isFinite(timedLine?.matchRatio)
+          ? timedLine.matchRatio
+          : 0,
+        quality: timedLine?.quality ?? null,
+        start: Number.isFinite(timedLine?.start)
+          ? clampTimeToSection(timedLine.start, currentProject.audio)
+          : line.start,
+        timingSource: String(timedLine?.timingSource ?? ""),
+        // Apply new timing without clobbering existing gloss/roman (P3): keep
+        // the line's display words and attach start/end best-effort. When the
+        // line had no gloss words yet, this falls back to the timing words.
+        words: line.words?.length
+          ? mergeMeaningWordsWithTiming(timedLine?.words, line.words)
+          : normalizeLineWords(timedLine?.words),
       };
-
-      projectStateRef.current = nextProject;
-      return nextProject;
     });
+    const nextProject = {
+      ...currentProject,
+      lines: nextLines,
+    };
+
+    projectStateRef.current = nextProject;
+    setProjectState(nextProject);
     setTimingDrafts((currentDrafts) => {
       const nextDrafts = { ...currentDrafts };
 
@@ -2899,14 +2971,17 @@ export function EditorShell({
       return nextDrafts;
     });
 
-    const timingSummary = buildPipelineTimingSummary(payload, lineCount);
-    const firstUntimedLine = projectState.lines.find((line) => {
+    const timingSummary = buildPipelineTimingSummary(
+      payload,
+      currentProject.lines.length,
+    );
+    const firstUntimedLine = nextLines.find((line) => {
       const timedLine = returnedLinesById.get(line.id);
 
       return !Number.isFinite(timedLine?.start);
     });
 
-    setSelectedTimingLineId(firstUntimedLine?.id ?? projectState.lines[0]?.id ?? null);
+    setSelectedTimingLineId(firstUntimedLine?.id ?? nextLines[0]?.id ?? null);
     setAutoFollowEnabled(true);
     setAutoTimingState({
       detail:
@@ -3314,6 +3389,16 @@ export function EditorShell({
           throw new Error(
             payload.error ?? "Transcription status could not be refreshed.",
           );
+        }
+
+        if (typeof payload.phase === "string" && payload.phase !== phase) {
+          failTranscription(
+            phase,
+            `Expected a ${phase} lyric job but received ${payload.phase}. Start it again.`,
+          );
+          settle({ status: "error" });
+          resolveTranscriptionWaiter(jobId, { phase, status: "error" });
+          return;
         }
 
         if (payload.status === "done") {
@@ -4142,13 +4227,12 @@ export function EditorShell({
                 canRun: lyricPipelineCanRun,
                 onPreset: handleLyricPipelinePreset,
                 onRun: handleRunPipeline,
-                onToggle: handleLyricPipelineToggle,
                 preset: lyricPipelinePreset,
                 selectedPhases: selectedLyricPipelinePhases,
                 selection: lyricPipelineSelection,
                 statusByPhase: lyricPipelineStatusByPhase,
               },
-              languageRequirementMessage: autoLyricsLanguageRequirementMessage,
+              languageRequirementMessage: lyricPipelineLanguageRequirementMessage,
               onSourceLanguage: (value) => {
                 setSourceLanguage(value);
                 setAutoTimingState((currentState) =>
@@ -4316,12 +4400,18 @@ export function EditorShell({
   return (
     <EditorProvider value={editor}>
     <div className={appFrameClasses} data-snap={currentSheetSnap.key}>
-      <div
-        className="app-responsive mx-auto flex h-full w-full max-w-[1720px] flex-col lg:gap-3 lg:px-5 lg:py-4"
-        style={
-          layoutNoticeCount
-            ? { "--layout-notice-offset": `${layoutNoticeCount * 62}px` }
-            : undefined
+        <div
+          className="app-responsive mx-auto flex h-full w-full max-w-[1720px] flex-col lg:gap-3 lg:px-5 lg:py-4"
+          onTouchCancelCapture={handlePinnedMediaTouchEnd}
+          onTouchEndCapture={handlePinnedMediaTouchEnd}
+          onTouchMoveCapture={handlePinnedMediaTouchMove}
+          onTouchStartCapture={handlePinnedMediaTouchStart}
+          onWheelCapture={handlePinnedMediaWheel}
+          ref={appScrollRef}
+          style={
+            layoutNoticeCount
+              ? { "--layout-notice-offset": `${layoutNoticeCount * 62}px` }
+              : undefined
         }
       >
         <EditorHeader

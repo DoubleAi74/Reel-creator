@@ -5,6 +5,10 @@ import { isCreditsEnabled } from "../../../../../lib/credits/flags.js";
 import { connectToDatabase } from "../../../../../lib/db/mongoose.js";
 import { Generation } from "../../../../../lib/models/Generation.js";
 import {
+  buildGenerationVisibilityFilter,
+  getSessionIdFromRequest,
+} from "../../../../../lib/generations/visibility.js";
+import {
   getR2Object,
   toSafeR2ErrorCode,
 } from "../../../../../lib/r2/r2-client.js";
@@ -26,6 +30,16 @@ function toResponseBody(body) {
   return body;
 }
 
+function shouldProxyMedia(request) {
+  try {
+    const url = new URL(request.url);
+
+    return url.searchParams.get("proxy") === "1";
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(_request, context) {
   if (!isCreditsEnabled()) {
     return NextResponse.json({ enabled: false, error: "credits_disabled" }, { status: 404 });
@@ -39,13 +53,13 @@ export async function GET(_request, context) {
 
   await connectToDatabase();
 
+  const sessionId = getSessionIdFromRequest(_request);
   const generation = await Generation.findOne({
     _id: id,
     deletedAt: null,
-    public: true,
-    userTitled: true,
     r2Status: "created",
     saved: true,
+    ...buildGenerationVisibilityFilter(sessionId),
   }).lean();
 
   if (!generation?.r2ObjectKey) {
@@ -54,7 +68,7 @@ export async function GET(_request, context) {
 
   const publicBaseUrl = getR2PublicBaseUrl();
 
-  if (publicBaseUrl) {
+  if (publicBaseUrl && !shouldProxyMedia(_request)) {
     return NextResponse.redirect(
       buildPublicObjectUrl(publicBaseUrl, generation.r2ObjectKey),
     );

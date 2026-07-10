@@ -18,6 +18,16 @@ vi.mock("../../../../lib/credits/unlock-cookie.js", () => ({
     () => "rc_gen_unlock=cookie-value; Path=/; Max-Age=60; HttpOnly; SameSite=Lax",
   ),
   createGenerationUnlockCookieValue: vi.fn(() => "cookie-value"),
+  getGenerationUnlockCookieValueFromRequest: vi.fn(
+    (request) =>
+      request.headers
+        .get("cookie")
+        ?.split(";")
+        .map((part) => part.trim())
+        .find((part) => part.startsWith("rc_gen_unlock="))
+        ?.slice("rc_gen_unlock=".length) ?? "",
+  ),
+  isGenerationUnlockCookieValid: vi.fn((value) => value === "valid-cookie"),
   verifyGenerationPassword: vi.fn((password) => password === "shared-password"),
 }));
 
@@ -26,7 +36,7 @@ vi.mock("../../../../lib/credits/rate-limit.js", () => ({
   getRequestIp: vi.fn(() => "127.0.0.1"),
 }));
 
-describe("POST /api/credits/unlock", () => {
+describe("/api/credits/unlock", () => {
   beforeEach(() => {
     creditsEnabled = true;
     process.env.CREDITS_ENABLED = "true";
@@ -58,6 +68,26 @@ describe("POST /api/credits/unlock", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ enabled: false });
+  });
+
+  it("reports whether the existing unlock cookie is valid", async () => {
+    const { GET } = await import("./route");
+
+    const unlockedResponse = await GET(
+      new Request("http://localhost/api/credits/unlock", {
+        headers: {
+          cookie: "rc_gen_unlock=valid-cookie",
+        },
+      }),
+    );
+    const lockedResponse = await GET(
+      new Request("http://localhost/api/credits/unlock"),
+    );
+
+    expect(unlockedResponse.status).toBe(200);
+    await expect(unlockedResponse.json()).resolves.toEqual({ unlocked: true });
+    expect(lockedResponse.status).toBe(200);
+    await expect(lockedResponse.json()).resolves.toEqual({ unlocked: false });
   });
 
   it("sets an HttpOnly unlock cookie for the correct password", async () => {

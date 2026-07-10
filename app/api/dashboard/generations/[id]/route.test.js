@@ -1,6 +1,5 @@
-process.env.CREDITS_ENABLED = "true";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { initializeDatabaseIndexes } from "../../../../../lib/db/bootstrap.js";
 import {
@@ -8,12 +7,36 @@ import {
   disconnectFromDatabase,
 } from "../../../../../lib/db/mongoose.js";
 import { Generation } from "../../../../../lib/models/Generation.js";
-import { GET } from "./route";
+import { createGenerationUnlockCookieValue } from "../../../../../lib/credits/unlock-cookie.js";
+import { deleteGenerationAudioObject } from "../../../../../lib/r2/audio-r2-lifecycle.js";
+import { DELETE, GET, PATCH } from "./route";
+
+process.env.CREDITS_ENABLED = "true";
+
+vi.mock("../../../../../lib/r2/audio-r2-lifecycle.js", () => ({
+  deleteGenerationAudioObject: vi.fn(async () => ({ ok: true })),
+}));
 
 const ORIGINAL_MONGODB_URI = process.env.MONGODB_URI;
 const ORIGINAL_MONGODB_DB_NAME = process.env.MONGODB_DB_NAME;
+const ORIGINAL_GENERATION_UNLOCK_SECRET = process.env.GENERATION_UNLOCK_SECRET;
 
 let replSet;
+
+function unlockedRequest(url = "http://localhost", init = {}) {
+  const headers = {
+    ...(init.headers ?? {}),
+  };
+
+  if (!headers.cookie) {
+    headers.cookie = `rc_gen_unlock=${createGenerationUnlockCookieValue()}`;
+  }
+
+  return new Request(url, {
+    ...init,
+    headers,
+  });
+}
 
 async function createGeneration(overrides = {}) {
   return Generation.create({
@@ -28,10 +51,10 @@ async function createGeneration(overrides = {}) {
       priceTableVersion: "test-price-v1",
       totalCostMinor: 1,
     },
-    finalJobId: "job-editor",
+    finalJobId: `job-${crypto.randomUUID()}`,
     jobIds: ["job-secret"],
     pipelineRunId: "run-secret",
-    r2ObjectKey: "generations/secret/audio.mp3",
+    r2ObjectKey: `generations/${crypto.randomUUID()}/audio.mp3`,
     r2Status: "created",
     saved: true,
     public: true,
@@ -75,7 +98,9 @@ describe("GET /api/dashboard/generations/[id]", () => {
   }, 60000);
 
   beforeEach(async () => {
+    process.env.GENERATION_UNLOCK_SECRET = "dashboard-route-test-secret";
     await Generation.deleteMany({});
+    deleteGenerationAudioObject.mockClear();
   });
 
   afterAll(async () => {
@@ -92,6 +117,12 @@ describe("GET /api/dashboard/generations/[id]", () => {
       delete process.env.MONGODB_DB_NAME;
     } else {
       process.env.MONGODB_DB_NAME = ORIGINAL_MONGODB_DB_NAME;
+    }
+
+    if (ORIGINAL_GENERATION_UNLOCK_SECRET == null) {
+      delete process.env.GENERATION_UNLOCK_SECRET;
+    } else {
+      process.env.GENERATION_UNLOCK_SECRET = ORIGINAL_GENERATION_UNLOCK_SECRET;
     }
   });
 
@@ -132,5 +163,228 @@ describe("GET /api/dashboard/generations/[id]", () => {
 
     expect(invalidResponse.status).toBe(404);
     expect(privateResponse.status).toBe(404);
+  });
+
+  it("returns private saved generations owned by the current session", async () => {
+    const generation = await createGeneration({
+      ownerScope: {
+        sessionId: "session-editor",
+        type: "session",
+      },
+      public: false,
+      title: "Untitled generation",
+      userTitled: false,
+    });
+
+    const ownedResponse = await GET(
+      new Request("http://localhost", {
+        headers: {
+          cookie: "reel-creator-session=session-editor",
+        },
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+    const ownedPayload = await ownedResponse.json();
+    const otherSessionResponse = await GET(
+      new Request("http://localhost", {
+        headers: {
+          cookie: "reel-creator-session=other-session",
+        },
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+
+    expect(ownedResponse.status).toBe(200);
+    expect(ownedPayload.generation).toMatchObject({
+      id: generation._id.toString(),
+      title: "Untitled generation",
+    });
+    expect(JSON.stringify(ownedPayload)).not.toContain("ownerScope");
+    expect(JSON.stringify(ownedPayload)).not.toContain("r2ObjectKey");
+    expect(otherSessionResponse.status).toBe(404);
+  });
+
+  it("requires a valid unlock cookie before editing titles", async () => {
+    const generation = await createGeneration();
+
+    const response = await PATCH(
+      new Request("http://localhost", {
+        body: JSON.stringify({ title: "Renamed" }),
+        method: "PATCH",
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: "locked" });
+  });
+
+  it("rejects blank and overlong titles", async () => {
+    const generation = await createGeneration();
+
+    const blankResponse = await PATCH(
+      unlockedRequest("http://localhost", {
+        body: JSON.stringify({ title: "   " }),
+        method: "PATCH",
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+    const longResponse = await PATCH(
+      unlockedRequest("http://localhost", {
+        body: JSON.stringify({ title: "x".repeat(181) }),
+        method: "PATCH",
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+
+    expect(blankResponse.status).toBe(400);
+    expect(longResponse.status).toBe(400);
+  });
+
+  it("does not edit generations outside the current visible dashboard scope", async () => {
+    const generation = await createGeneration({
+      ownerScope: {
+        sessionId: "session-owner",
+        type: "session",
+      },
+      public: false,
+      title: "Generation 1",
+      userTitled: false,
+    });
+
+    const response = await PATCH(
+      unlockedRequest("http://localhost", {
+        body: JSON.stringify({ title: "Should not save" }),
+        headers: {
+          cookie: `reel-creator-session=other-session; rc_gen_unlock=${createGenerationUnlockCookieValue()}`,
+        },
+        method: "PATCH",
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+
+    expect(response.status).toBe(404);
+    await expect(Generation.findById(generation._id).lean()).resolves.toMatchObject({
+      title: "Generation 1",
+    });
+  });
+
+  it("updates title, publishes the generation, and syncs snapshot meta title", async () => {
+    const generation = await createGeneration({
+      ownerScope: {
+        sessionId: "session-editor",
+        type: "session",
+      },
+      public: false,
+      title: "Generation 1",
+      userTitled: false,
+    });
+
+    const response = await PATCH(
+      unlockedRequest("http://localhost", {
+        body: JSON.stringify({ title: "Shared song" }),
+        headers: {
+          cookie: `reel-creator-session=session-editor; rc_gen_unlock=${createGenerationUnlockCookieValue()}`,
+        },
+        method: "PATCH",
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+    const payload = await response.json();
+    const storedGeneration = await Generation.findById(generation._id).lean();
+
+    expect(response.status).toBe(200);
+    expect(payload.generation).toMatchObject({
+      id: generation._id.toString(),
+      title: "Shared song",
+    });
+    expect(storedGeneration).toMatchObject({
+      public: true,
+      title: "Shared song",
+      userTitled: true,
+    });
+    expect(storedGeneration.snapshot.project.meta.title).toBe("Shared song");
+  });
+
+  it("requires a valid unlock cookie before deleting generations", async () => {
+    const generation = await createGeneration();
+
+    const response = await DELETE(new Request("http://localhost"), {
+      params: { id: generation._id.toString() },
+    });
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: "locked" });
+  });
+
+  it("does not delete generations outside the current visible dashboard scope", async () => {
+    const generation = await createGeneration({
+      ownerScope: {
+        sessionId: "delete-owner",
+        type: "session",
+      },
+      public: false,
+      title: "Generation 1",
+      userTitled: false,
+    });
+
+    const response = await DELETE(
+      unlockedRequest("http://localhost", {
+        headers: {
+          cookie: `reel-creator-session=other-session; rc_gen_unlock=${createGenerationUnlockCookieValue()}`,
+        },
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+
+    expect(response.status).toBe(404);
+    await expect(Generation.findById(generation._id).lean()).resolves.toMatchObject({
+      deletedAt: null,
+      saved: true,
+    });
+    expect(deleteGenerationAudioObject).not.toHaveBeenCalled();
+  });
+
+  it("soft deletes visible generations and requests audio cleanup", async () => {
+    const generation = await createGeneration();
+
+    const response = await DELETE(unlockedRequest(), {
+      params: { id: generation._id.toString() },
+    });
+    const payload = await response.json();
+    const storedGeneration = await Generation.findById(generation._id).lean();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual({
+      deleted: true,
+      id: generation._id.toString(),
+    });
+    expect(storedGeneration).toMatchObject({
+      public: false,
+      saved: false,
+    });
+    expect(storedGeneration.deletedAt).toBeInstanceOf(Date);
+    expect(storedGeneration.deleteRequestedAt).toBeInstanceOf(Date);
+    expect(deleteGenerationAudioObject).toHaveBeenCalledWith({
+      generation: expect.objectContaining({
+        r2ObjectKey: generation.r2ObjectKey,
+      }),
+    });
   });
 });
