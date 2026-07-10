@@ -5,6 +5,7 @@ import {
   findSessionIdForAsset,
   readAssetMetadata,
   SESSION_COOKIE_NAME,
+  storeUploadedAsset,
   touchSessionAndSweep,
 } from "@/lib/files";
 import { normalizeSourceLanguage } from "@/lib/ai/openai-lyrics";
@@ -27,6 +28,8 @@ import {
 import { removeRenderJobsForSessions } from "@/lib/render/store";
 
 export const runtime = "nodejs";
+// Generate can re-upload the client MP3 on multi-isolate hosts; allow headroom.
+export const maxDuration = 60;
 
 const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;
 
@@ -170,30 +173,89 @@ async function getCreditGateResponse({ cookieStore, phase, request, sessionId })
   return null;
 }
 
-export async function POST(request) {
-  let payload;
+function isUploadFileLike(value) {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof value.arrayBuffer === "function" &&
+      Number(value.size) > 0,
+  );
+}
+
+/**
+ * Accept JSON (existing clients) or multipart with:
+ * - payload: JSON string (job fields)
+ * - file: MP3 (reattach onto this isolate — required on multi-instance /tmp hosts)
+ */
+async function readTranscribeRequest(request) {
+  const contentType = request.headers.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    const rawPayload = formData.get("payload");
+    const file = formData.get("file");
+    let payload = {};
+
+    if (typeof rawPayload === "string" && rawPayload.trim()) {
+      try {
+        payload = JSON.parse(rawPayload);
+      } catch {
+        const error = new Error("Request payload must be valid JSON.");
+        error.status = 400;
+        throw error;
+      }
+    } else if (rawPayload && typeof rawPayload === "object") {
+      payload = rawPayload;
+    }
+
+    return {
+      payload,
+      reattachFile: isUploadFileLike(file) ? file : null,
+    };
+  }
 
   try {
-    payload = await request.json();
+    return {
+      payload: await request.json(),
+      reattachFile: null,
+    };
   } catch {
+    const error = new Error("Request body must be valid JSON.");
+    error.status = 400;
+    throw error;
+  }
+}
+
+export async function POST(request) {
+  let payload;
+  let reattachFile;
+
+  try {
+    ({ payload, reattachFile } = await readTranscribeRequest(request));
+  } catch (error) {
     return NextResponse.json(
-      { error: "Request body must be valid JSON." },
-      { status: 400 },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Request body must be valid JSON.",
+      },
+      { status: error?.status || 400 },
     );
   }
 
-  const audioAssetId =
+  let audioAssetId =
     typeof payload?.audioAssetId === "string" ? payload.audioAssetId.trim() : "";
 
-  if (!audioAssetId) {
+  if (!audioAssetId && !reattachFile) {
     return NextResponse.json(
       { error: "Upload an MP3 before generating lyrics." },
       { status: 400 },
     );
   }
 
-  // REP-407: reject traversal-shaped asset ids at intake.
-  if (!/^[a-zA-Z0-9_-]+$/.test(audioAssetId)) {
+  // REP-407: reject traversal-shaped asset ids at intake (when provided).
+  if (audioAssetId && !/^[a-zA-Z0-9_-]+$/.test(audioAssetId)) {
     return NextResponse.json(
       { error: "Invalid audio asset id." },
       { status: 400 },
@@ -242,12 +304,45 @@ export async function POST(request) {
 
   const cookieStore = await cookies();
   const sessionIdFromCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  const { recovered, sessionId } = await resolveSessionIdForAudioAsset(
-    sessionIdFromCookie,
-    audioAssetId,
-  );
+  let sessionId = null;
+  let recovered = false;
+  let reattached = false;
 
-  if (!sessionId) {
+  if (reattachFile) {
+    // Multi-isolate hosts (Vercel): /tmp is not shared. Re-store the client MP3
+    // on this isolate so generate/time always have a local file.
+    sessionId = sessionIdFromCookie || crypto.randomUUID();
+    recovered = !sessionIdFromCookie;
+
+    try {
+      const stored = await storeUploadedAsset({
+        file: reattachFile,
+        kind: "audio",
+        sessionId,
+      });
+      audioAssetId = stored.assetId;
+      reattached = true;
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Could not re-attach the MP3 for generation.",
+        },
+        { status: 400 },
+      );
+    }
+  } else {
+    const resolved = await resolveSessionIdForAudioAsset(
+      sessionIdFromCookie,
+      audioAssetId,
+    );
+    recovered = resolved.recovered;
+    sessionId = resolved.sessionId;
+  }
+
+  if (!sessionId || !audioAssetId) {
     return NextResponse.json(
       { error: "Your uploaded MP3 is no longer available. Upload it again." },
       { status: 404 },
@@ -259,6 +354,7 @@ export async function POST(request) {
 
   // Reconnect to an already-running job for this exact session + asset + phase instead
   // of starting a duplicate (the client adopts the returned jobId).
+  // When reattaching we get a fresh assetId, so in-flight match is by new id only.
   const inFlightJob = findInFlightTranscribeForSession(
     sessionId,
     audioAssetId,
@@ -268,7 +364,7 @@ export async function POST(request) {
   const respond = (body, status = 200) => {
     const response = NextResponse.json(body, { status });
 
-    if (recovered) {
+    if (recovered || reattached) {
       appendSessionCookie(response, sessionId);
     }
 
@@ -276,7 +372,13 @@ export async function POST(request) {
   };
 
   if (inFlightJob) {
-    return respond({ jobId: inFlightJob.jobId }, 409);
+    return respond(
+      {
+        jobId: inFlightJob.jobId,
+        ...(reattached ? { audioAssetId } : {}),
+      },
+      409,
+    );
   }
 
   const creditGateResponse = await getCreditGateResponse({
@@ -321,5 +423,8 @@ export async function POST(request) {
     }),
   );
 
-  return respond({ jobId: job.jobId });
+  return respond({
+    jobId: job.jobId,
+    ...(reattached ? { audioAssetId } : {}),
+  });
 }
