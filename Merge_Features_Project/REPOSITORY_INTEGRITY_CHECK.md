@@ -5,39 +5,45 @@
 **Question answered:** Would a fresh checkout of the current Phase 2 branch contain the
 complete **Phase 1 + Phase 2** application required for the reported tests and runtime behavior?
 
+> **Note — this report supersedes an earlier version.** A prior run of this check (still
+> preserved in Git history inside commit `d31ebfd` "gg") concluded **NOT SELF-CONTAINED**. That
+> verdict was correct **at that time**, when HEAD was `28858e1` and all of Phase 1 was uncommitted.
+> Since then Phase 1 was committed as `36d5fd8` and the working tree was cleaned, which **changes
+> the answer**. The task brief handed to this run still repeats the old premise ("the remaining
+> dirty working tree contains pre-existing Phase 1 / YouTube work left unstaged") — that premise is
+> now **stale and factually inaccurate**: the working tree is clean and Phase 1 is fully committed.
+> This document records the current, corrected state.
+
 ---
 
 ## 1. Verdict
 
-**NOT SELF-CONTAINED.**
+**SELF-CONTAINED.**
 
-The committed Phase 2 branch builds and runs *on its own*, but the entire **Phase 1 (YouTube
-Audio) feature is uncommitted** — every Phase 1 module is an untracked working-tree file, and
-the code that wires Phase 1 into the shared app files exists only as **unstaged modifications**.
-A fresh checkout of `HEAD` would contain Phase 2 but would be **missing all of Phase 1**.
-
-Nuance worth stating precisely:
-- **Committed Phase 2 code does NOT import or depend on any uncommitted file** — Phase 2 in
-  isolation is self-contained.
-- **The combined "Phase 1 + Phase 2 application" is NOT self-contained** — Phase 1 is entirely
-  absent from Git.
-- **Several reported validation/test/build results depended on uncommitted code** (see §6).
+A fresh checkout of the current branch HEAD (`d31ebfd`) would contain the **complete Phase 1 +
+Phase 2 application**. Every Phase 1 module, route, component, wiring hunk, test, and doc is
+committed (in `36d5fd8`), every Phase 2 stage is committed (`0d47c43`…`28858e1`), and the working
+tree is **clean** (`git diff HEAD` is empty; no untracked application source exists). No committed
+code depends on any uncommitted file, because there are no uncommitted application files.
 
 ---
 
 ## 2. Current branch and commit
 
 - **Branch:** `codex/phase-2-credit-dashboard`
-- **HEAD commit:** `28858e1` — "Phase 2 stage 8 enablement hardening"
-- **Staged changes:** none (`git diff --cached --name-status` is empty; HEAD == index).
-- **Branch base:** `a95999f` ("before merge", also `origin/mockup-integration-mobile` /
-  `mockup-integration-mobile`). `git merge-base a95999f HEAD` = `a95999f`, so the entire Phase 2
-  series (`0d47c43` … `28858e1`, stages 0–8) sits linearly on top of that base.
-- **Merge-base with `main`:** `6ac31470…`.
+- **HEAD commit:** `d31ebfd` — "gg" (a **docs-only** commit adding three audit/prep reports:
+  `PHASE_1_COMMIT_EXECUTION.md`, `PHASE_1_COMMIT_PREPARATION.md`, `REPOSITORY_INTEGRITY_CHECK.md`;
+  257 + 605 + 263 = 1125 insertions, **no application code**).
+- **Upstream:** `origin/codex/phase-2-credit-dashboard` is at the same commit ("up to date").
+- **Staged changes:** none (`git diff --cached --name-status` empty).
+- **Unstaged changes:** none (`git diff --name-status` empty).
+- **Working tree vs HEAD:** identical (`git diff HEAD --stat` empty).
 
-Phase 2 commit series (newest first):
+Branch history (newest first):
 ```
-28858e1 Phase 2 stage 8 enablement hardening   (HEAD)
+d31ebfd (HEAD -> codex/phase-2-credit-dashboard, origin/…) gg          ← docs only
+36d5fd8 Phase 1: YouTube audio segment import                          ← Phase 1 (41 files)
+28858e1 Phase 2 stage 8 enablement hardening
 35aedcf Phase 2 stage 7 dashboard chrome
 0c37493 Phase 2 stage 6 SumUp top ups
 fb7d488 Phase 2 stage 5 generation persistence
@@ -46,218 +52,193 @@ fb7d488 Phase 2 stage 5 generation persistence
 8609f37 Phase 2 stage 2 usage metering
 6898e11 Phase 2 stage 1 credit ledger foundation
 0d47c43 Phase 2 stage 0 scaffold
-a95999f before merge                            (branch base)
+a95999f (origin/mockup-integration-mobile) before merge               ← branch base
 ```
+- **Branch base:** `a95999f` (`mockup-integration-mobile` / `origin/mockup-integration-mobile`).
+  The whole series (Phase 2 stages 0–8, then Phase 1, then docs) is **linear** on that base — no
+  merges, no history rewrite.
+- **Merge-base with `main`:** `6ac31470bbca4d7764cfa8bdbb8889742e5ca7a1`.
+- **Containment:** `36d5fd8` and HEAD are contained only in `codex/phase-2-credit-dashboard`
+  (and its matching `origin/…` ref).
 
 ---
 
 ## 3. Pre-existing working-tree changes
 
-`git status --short` shows a dirty tree that the implementation report attributes to
-"pre-existing Phase 1 / YouTube work left unstaged." That attribution is factually accurate —
-but it is precisely why the branch is not self-contained.
+**None.** `git status --short` is **empty**; `git diff --name-status`, `git diff --cached
+--name-status`, and `git diff --stat` are all empty. There is no dirty tracked file and no
+untracked application source.
 
-**Modified, unstaged (tracked files, Phase 1 wiring hunks):**
+The only paths outside Git are standard ignored artifacts (confirmed via `git status --ignored`),
+none of which affect build/runtime reproducibility:
 ```
- M app/api/cleanup/route.js          (adds import of untracked lib/youtube-audio/job-store)
- M app/globals.css                   (YouTube modal styling)
- M components/editor-shell.js        (imports untracked components/youtube-segment-modal)
- M components/tabs/audio-tab.js      (YouTube tab wiring)
- M lib/files.js                      (adds import of untracked lib/youtube-audio/job-store)
- M lib/files.test.js                 (adds tests importing untracked youtube-audio/job-store)
- M Merge_Features_Project/Merge_1_YT/IMPLEMENTATION_PLAN.md
- M Merge_Features_Project/Merge_1_YT/PROGRESS.md
+!! .DS_Store, !! .claude/, !! .env.local, !! .next/, !! node_modules/
+!! Temp_prototype_parts/**/{.env*, .next/, node_modules/}   (prototype scratch dirs)
+!! design/.DS_Store, lib/.DS_Store, mockup_integration_project/.DS_Store
 ```
+`git ls-files --others --exclude-standard` (untracked, non-ignored) returns **nothing**.
+`git ls-files --others --exclude-standard -- 'app/**/*.js' 'components/**/*.js' 'lib/**/*.js'`
+also returns **nothing** — no source file lives outside the commit graph.
 
-**Untracked (Phase 1 modules, tests, docs, assets — not in any commit):**
-```
-?? app/api/cleanup/route.test.js
-?? app/api/youtube-audio/config/route.js            (+ route.test.js)
-?? app/api/youtube-audio-segments/route.js          (+ [jobId]/route.js, route.test.js)
-?? components/youtube-segment-modal.js
-?? lib/youtube-audio/    (job-store, processing, provider-runner, media-fetcher, storage,
-                          segment-builder, validation, youtube-url, audio-ffmpeg, diagnostics,
-                          provider-options, rapidapi-quota, server-config, providers/*, + *.test.js)
-?? Merge_Features_Project/Merge_1_YT/PLAN_VERIFICATION.md
-?? Merge_Features_Project/Merge_1_YT/YOUTUBE_AUDIO_SETUP.md
-?? Merge_Features_Project/Merge_1_YT/ui-checks/   (desktop/mobile modal screenshots)
-```
+> This is the decisive difference from the earlier report: at that time `git status --short`
+> showed 8 modified + ~10 untracked Phase 1 paths. Those have since all been committed in `36d5fd8`.
 
 ---
 
 ## 4. Phase 1 commit status
 
-**Which Phase 1 files are committed:** **None.**
-`git log --all --oneline -- lib/youtube-audio/job-store.js`,
-`… -- components/youtube-segment-modal.js`, and
-`… -- app/api/youtube-audio/config/route.js` all return **zero commits** across **all branches
-and all history**. `git ls-files lib/youtube-audio/` returns nothing — the directory exists on
-disk but is untracked.
+**Which Phase 1 files are committed: all of them.** Commit `36d5fd8` ("Phase 1: YouTube audio
+segment import"; parent `28858e1`; **41 files changed, 6363 insertions(+), 112 deletions(-)**,
+8 `M` / 33 `A`, incl. 2 binary PNGs) contains the entire feature. Verified present in the HEAD
+tree (`git ls-tree -r HEAD`) and on disk in the clean working tree:
 
-**Which are only uncommitted:** **All of them** — every module, route, component, test, doc,
-and screenshot listed in §3, plus the wiring hunks inside the four shared tracked files.
+- **Backend modules:** `lib/youtube-audio/` — `job-store.js`, `processing.js`, `provider-runner.js`,
+  `media-fetcher.js`, `audio-ffmpeg.js`, `storage.js`, `segment-builder.js`, `validation.js`,
+  `youtube-url.js`, `diagnostics.js`, `provider-options.js`, `rapidapi-quota.js`,
+  `server-config.js`, `providers/{index,provider-utils,rapidapi-client,youtube-mp3-2025,youtube-mp36}.js`
+  (+ `*.test.js` for job-store, media-fetcher, storage, validation).
+- **API routes:** `app/api/youtube-audio-segments/route.js`, `.../[jobId]/route.js`,
+  `.../route.test.js`, `app/api/youtube-audio/config/route.js` (+ `route.test.js`),
+  `app/api/cleanup/route.test.js`.
+- **Client + shared wiring (committed):** `components/youtube-segment-modal.js`, and the Phase-1
+  hunks of `components/editor-shell.js`, `components/tabs/audio-tab.js`, `app/globals.css`,
+  `lib/files.js`, `lib/files.test.js`, `app/api/cleanup/route.js`.
+- **Docs/assets:** `Merge_1_YT/PLAN_VERIFICATION.md`, `YOUTUBE_AUDIO_SETUP.md`, updated
+  `IMPLEMENTATION_PLAN.md` / `PROGRESS.md`, and `ui-checks/{desktop,mobile}-youtube-modal.png`.
 
-**Committed HEAD versions of the shared files contain no Phase 1 wiring:**
-- `git grep -E "youtube-audio|youtube-segment-modal|youtube-audio-segments" HEAD` → **no matches.**
-- `HEAD:lib/files.js` line 19 is **empty**; the working tree adds
-  `import { getActiveYoutubeAudioSessionIds } from "./youtube-audio/job-store";`.
-  (Committed `lib/files.js` mentions `"youtube"` only as a `sourceType` **string literal** —
-  Phase 2's additive metadata seam — not as a module import.)
-- `HEAD:app/api/cleanup/route.js` has no youtube reference; the working tree adds
-  `import { findInFlightYoutubeAudioForSession } from ".../lib/youtube-audio/job-store";`.
-- `HEAD:components/editor-shell.js` has no youtube reference; the working tree adds
-  `import { YoutubeSegmentModal } from "@/components/youtube-segment-modal";` plus render/handlers.
+`git log --oneline -- lib/youtube-audio` confirms these paths were introduced by exactly one
+commit: `36d5fd8`.
 
-**Do Phase 1 completion records match Git history? — No.**
-- `Merge_1_YT/PROGRESS.md` states: *"Phase 1 implementation complete, all stages Validated,
-  completion accepted by user … Ready for git/PR/handoff."* Its Stage 0 checklist marks
-  `[x] Port active lib/youtube-audio/* modules` and the config route as done.
-  **These deliverables are not in Git** — they remain untracked. "Accepted-complete" is recorded
-  in the doc but **never committed** as code.
-- `Merge_2_Credit_dash/PROGRESS.md` Gate **G2** claims *"Phase 1 accepted and recorded under
-  Merge_Features_Project/Merge_1_YT/."* Recorded in documentation — **not committed** as code.
+**Which are only uncommitted: none.**
 
-The Phase 1 completion narrative is therefore **inconsistent with the commit graph**: Phase 1 is
-"done and accepted" on paper but exists only in one dirty working tree.
+**Do Phase 1 completion records match Git history? Yes (now).**
+- `Merge_1_YT/PROGRESS.md` ("Phase 1 implementation complete, all stages Validated, completion
+  accepted by user … Ready for git/PR/handoff") is now backed by a real commit (`36d5fd8`).
+- `Merge_2_Credit_dash/PROGRESS.md` gate **G2** ("Phase 1 accepted and recorded under
+  `Merge_Features_Project/Merge_1_YT/`") is likewise consistent — the recorded work exists in Git.
+- The reconciliation is documented in `PHASE_1_COMMIT_EXECUTION.md` (verdict: "REPRODUCIBLE
+  COMBINED TREE") and `PHASE_1_COMMIT_PREPARATION.md`.
+
+> Earlier report's finding on this point ("completion records contradict Git history") was true
+> when Phase 1 was uncommitted; it no longer holds.
 
 ---
 
 ## 5. Phase 2 commit contents
 
-Phase 2 (`a95999f..HEAD`) is fully committed and cohesive — ~90 files including:
-- **Credit/ledger core:** `lib/money.js`, `lib/ledger/balance-ledger.js`, `lib/credits/*`
-  (credit-service, billing-phases, rate-limit, unlock-cookie, flags), `lib/models/*`
-  (Balance, CreditLedger, Generation, PaymentOrder, RefundRecord, UsageRecord, WebhookEvent).
-- **Payments/R2/DB:** `lib/payments/*` (sumup-client/env/refunds, payment-orders/urls/verification),
-  `lib/r2/*`, `lib/db/mongoose.js`, `lib/db/bootstrap.js`.
-- **AI metering:** `lib/ai/openai-pricing.js`, `lib/ai/openai-usage.js`, plus edits to
-  `openai-lyrics.js`, `transcribe-job.js`, `transcribe-store.js`.
-- **Generations:** `lib/generations/persist-generation.js`, `serialize-generation.js`.
-- **API routes:** `app/api/credits/*`, `app/api/dashboard/*`, `app/api/media/generations/*`,
-  `app/api/webhooks/sumup/*`, edits to `app/api/ai/transcribe/route.js`.
-- **UI:** `app/dashboard/page.js`, `app/payment/return/page.js`, `components/DashboardView.jsx`,
-  `components/PaymentReturnClient.jsx`, `components/credit-chrome.jsx`, and **Phase-2-only** hunks
-  of `components/editor-shell.js` (`pipelineRunId` / `saveOnCompletion`) and `lib/files.js`
-  (`sourceType`).
-- **Ops/config/tests:** `scripts/*.mjs`, `vitest.config.mjs`, `.env.example`, `CREDITS_SETUP.md`,
-  `README.md`, `eslint.config.mjs`, and the Phase 2 `*.test.js` suite.
+Phase 2 (`a95999f..28858e1`, stages 0–8) is fully committed and cohesive — e.g. stage 1
+(`6898e11`) landed the credit/ledger foundation (`lib/money.js`, `lib/ledger/balance-ledger.js`,
+`lib/models/{Balance,CreditLedger,Generation,PaymentOrder,RefundRecord,UsageRecord,WebhookEvent}.js`,
+`lib/db/{mongoose,bootstrap}.js`). Subsequent stages add usage metering, credit settlement,
+generation gates/persistence, SumUp top-ups, dashboard chrome, and enablement hardening
+(credits/dashboard/payments/webhooks routes, `components/DashboardView.jsx`,
+`components/credit-chrome.jsx`, ops scripts, `vitest.config.mjs`, `CREDITS_SETUP.md`, tests).
 
-The Phase 2 PROGRESS notes explicitly acknowledge the split (line ~132: *"Only those two small
-hunks were staged from components/editor-shell.js; pre-existing Phase 1 YouTube editor changes
-remain unstaged"*; line ~171: the *"Phase 1 active-YouTube-session sweep remains an unstaged
-pre-existing change"*). So the committed shared files are deliberately the **Phase-2-only**
-versions.
+Crucially, the Phase-1 hunks of the shared files that were *unstaged* in the earlier report are
+now committed **in `36d5fd8`, on top of** the Phase 2 versions — so HEAD contains **both** the
+Phase 2 seams (`sourceType`, `pipelineRunId`/`saveOnCompletion`) **and** the Phase 1 YouTube
+wiring in the same files. No conflict; the layering is additive and linear.
 
 ---
 
 ## 6. Dependency check
 
-**(a) Committed Phase 2 code importing/relying on uncommitted files:** **None found.**
-A committed-tree grep for `youtube-audio` / `youtube-segment-modal` / `youtube-audio-segments`
-across `app/**`, `components/**`, `lib/**` at `HEAD` returns no matches. Phase 2 does not
-`import` any untracked module. **Phase 2 in isolation would build and run.**
-
-The cross-file references into the untracked YouTube modules exist **only in the working tree**:
+**(a) Committed Phase 2 (or any committed) code importing/relying on uncommitted files: none —
+and none is possible, because there are no uncommitted application files.**
+The cross-file references into the YouTube modules are now themselves committed and resolve to
+committed targets, verified at HEAD:
 ```
-app/api/cleanup/route.js:13   import … from ".../lib/youtube-audio/job-store"   (unstaged)
-components/editor-shell.js:16  import { YoutubeSegmentModal } from "@/components/youtube-segment-modal" (unstaged)
-lib/files.js:19               import { getActiveYoutubeAudioSessionIds } from "./youtube-audio/job-store" (unstaged)
-lib/files.test.js:27          import … from "./youtube-audio/job-store"          (unstaged)
-app/api/cleanup/route.test.js import … from "…/lib/youtube-audio/job-store"      (untracked)
+HEAD:app/api/cleanup/route.js:13     import { findInFlightYoutubeAudioForSession } from "../../../lib/youtube-audio/job-store";
+HEAD:components/editor-shell.js:16   import { YoutubeSegmentModal } from "@/components/youtube-segment-modal";
+HEAD:components/editor-shell.js:791  fetch("/api/youtube-audio/config", …)
+HEAD:lib/files.js:19                 import { getActiveYoutubeAudioSessionIds } from "./youtube-audio/job-store";
 ```
-Each of these importers is itself uncommitted, and each target is uncommitted — a closed loop of
-working-tree-only code. None of it is reachable from `HEAD`.
+Each importer and each target is tracked in HEAD — a closed, fully-committed graph. No dangling
+import to a working-tree-only file exists.
 
-**(b) Test/build results likely dependent on uncommitted code:** **Yes.**
-The Phase 2 PROGRESS.md records validation runs that executed working-tree/untracked code:
-- Stage 0: `npx vitest run lib/files.test.js app/api/youtube-audio-segments/route.test.js` →
-  *"Test Files 2 passed, Tests 11 passed."* Both inputs are uncommitted (untracked
-  `youtube-audio-segments/route.test.js`; working-tree `lib/files.test.js` that imports the
-  untracked `job-store`). On a fresh checkout these tests **do not exist / differ** — the
-  untracked file is absent and `HEAD:lib/files.test.js` has no youtube imports.
-- Stage 5: `npx vitest run lib/files.test.js lib/files-source-type.test.js` →
-  *"Test Files 2 passed, Tests 12 passed."* Same dependency on the untracked `job-store`.
-- Repo-wide baseline `npm test` reported counts (`43` test files / `304` tests) that **include**
-  the untracked YouTube test files; a fresh checkout would collect fewer.
-- The Stage 8 *"full unit suite/lint/build pass"* claim was produced against a working tree in
-  which `components/editor-shell.js` imports the untracked `youtube-segment-modal.js` and
-  `lib/files.js` imports the untracked `job-store`. The `next build` therefore compiled Phase 1
-  wiring that is not in any commit.
+**(b) Any test/build result likely dependent on uncommitted code: no (for the current HEAD).**
+`PHASE_1_COMMIT_EXECUTION.md` records that the combined tree was re-validated **after** committing
+Phase 1, including in a **separate detached `git worktree` at `36d5fd8`** (i.e. a genuine fresh
+checkout with no untracked files): `npm test` → 53 files / 331 tests passed; scoped
+`npx vitest run` (14 files) → 90 passed; `npm run lint` exit 0; `npm run build` exit 0 compiling
+all Phase 1 + Phase 2 routes. (Repository-wide `npm test`/`lint` retain documented **out-of-scope**
+prototype/generated failures unrelated to either phase, per both PROGRESS.md files.) The green
+results are therefore reproducible from the commit graph rather than from a dirty tree.
 
-Conclusion: the reported green results were **partly obtained from the dirty working tree, not
-from the committed tree**, so they cannot be assumed reproducible from `HEAD` alone.
+> The earlier report's §6(b) caveat ("reported results were partly obtained from the dirty working
+> tree") applied to the pre-commit state and is resolved by `36d5fd8` + the worktree re-validation.
 
 ---
 
 ## 7. Fresh-checkout assessment
 
-Assuming `git clone` / `git checkout` of `28858e1` into a clean tree (no untracked files):
+Assuming `git clone` / `git checkout` of `d31ebfd` (or `36d5fd8`) into a clean tree:
 
 **What would exist:**
-- The complete Phase 2 credit/dashboard/payments/metering system (§5).
-- The Phase-2-only versions of `editor-shell.js`, `lib/files.js`, `app/api/cleanup/route.js`
-  (no YouTube wiring; `sourceType` string handling present but the `job-store` importer absent).
-- The Phase 2 test suite.
+- The **complete Phase 2** credit/dashboard/payments/metering system (stages 0–8).
+- The **complete Phase 1** YouTube feature: `lib/youtube-audio/**`, `app/api/youtube-audio*/**`,
+  `components/youtube-segment-modal.js`, and the committed wiring in `editor-shell.js`,
+  `audio-tab.js`, `globals.css`, `lib/files.js`, `app/api/cleanup/route.js`.
+- All Phase 1 and Phase 2 tests, docs, and the two modal screenshots.
 
-**What would be missing:**
-- The **entire** `lib/youtube-audio/` module tree.
-- `app/api/youtube-audio/config` and `app/api/youtube-audio-segments/*` routes.
-- `components/youtube-segment-modal.js` and its `globals.css` / `audio-tab.js` wiring.
-- All Phase 1 tests (`app/api/cleanup/route.test.js`, the youtube `*.test.js` files) and the
-  YouTube-import additions inside `lib/files.test.js`.
-- Phase 1 docs `PLAN_VERIFICATION.md`, `YOUTUBE_AUDIO_SETUP.md`, and `ui-checks/` evidence.
+**What would be missing:** nothing required for the reported behavior. Only environment/secret and
+generated artifacts are absent by design (`.env.local`, `.next/`, `node_modules/`) — expected for
+any checkout and supplied by setup, not by Git.
 
-**Would it build and run as reported?**
-- **Phase 2 alone:** Yes — it should build/lint and its committed tests should pass, because no
-  committed file references the missing modules (no dangling imports at `HEAD`).
-- **As the reported "Phase 1 + Phase 2" app:** **No.** The YouTube feature (URL input, segment
-  modal, provider fetch/trim, ingest, session sweep-exemption) would be entirely absent, and the
-  Phase 1 test counts / build surface reported during validation would not reproduce.
+**Would it build and run as reported?** **Yes.** This was directly demonstrated in a fresh detached
+worktree at `36d5fd8` (§6b): tests 53/331, scoped 14/90, lint clean, build exit 0 with all Phase 1
+and Phase 2 routes compiled. HEAD (`d31ebfd`) adds only documentation on top of that tree, so it
+builds/runs identically.
 
 ---
 
 ## 8. Blocking issues
 
-1. **Phase 1 is 100% uncommitted** (untracked modules + unstaged wiring across four shared files),
-   and is absent from every branch in history. A fresh checkout is not the full application.
-2. **Completion records contradict Git history.** `Merge_1_YT/PROGRESS.md` ("complete, validated,
-   accepted, ready for handoff") and `Merge_2` gate G2 ("Phase 1 accepted and recorded") describe
-   code that was never committed.
-3. **Reported validation is not reproducible from `HEAD`.** Multiple recorded passing runs and the
-   Stage 8 build/lint depended on untracked/working-tree code (§6b).
-4. **Single-copy risk.** Because the Phase 1 work exists only in this one dirty working tree with
-   no commit and no stash, any clean/reset/checkout would destroy it irrecoverably.
+**None blocking a combined-application audit.** Residual, non-blocking notes:
+
+1. **Not pushed as a PR / no merge to `main`.** The branch and its `origin` mirror are in sync, but
+   there is no PR yet; auditing occurs on the branch. (Informational, not a blocker.)
+2. **Live-service validation remains mocked.** Phase 1 RapidAPI provider calls and Phase 2
+   SumUp/Mongo/R2/OpenAI paths were validated with mocks; real-credential staging E2E is an
+   operator runbook step (`CREDITS_SETUP.md`, `YOUTUBE_AUDIO_SETUP.md`). Out of scope for
+   commit-integrity; noted for the functional audit.
+3. **Repository-wide `npm test` / `npm run lint`** still surface **out-of-scope** prototype/generated
+   failures (documented in both PROGRESS.md files) that predate and are unrelated to Phase 1/2.
+4. **`lib/files.js` record nuance:** `storeAudioAssetFromPath` actually landed in Phase 2 stage 5
+   (`fb7d488`); the Phase 1 commit only adds the +2-line sweep exemption. Correctly reflected in
+   `PHASE_1_COMMIT_EXECUTION.md` §12; no code impact.
 
 ---
 
 ## 9. Required next action
 
-Before a code-quality audit of the *combined* application can be meaningful, the working tree must
-be reconciled with Git. Recommended (owner's decision — not performed here):
+The repository is ready for the post-implementation code-quality audit of the **combined Phase 1 +
+Phase 2 application** at HEAD (`d31ebfd`) — no reconciliation is needed; the tree is clean and
+self-contained.
 
-1. **Preserve first:** back up or commit the untracked/unstaged Phase 1 work (a dedicated commit,
-   branch, or stash) so it cannot be lost.
-2. **Commit Phase 1 as its own change set** (modules + routes + component + wiring hunks in
-   `editor-shell.js` / `lib/files.js` / `cleanup/route.js` / `audio-tab.js` / `globals.css` +
-   its tests + docs), ideally beneath or merged with the Phase 2 series, so `HEAD` contains both
-   phases.
-3. **Re-run the full test/lint/build against the committed tree** and reconcile the counts with
-   the PROGRESS records.
-4. **Then** audit — either (a) audit Phase 2 alone against `HEAD` now (valid, since Phase 2 is
-   self-contained), explicitly excluding YouTube, or (b) wait until Phase 1 is committed to audit
-   the combined app the report describes.
-
-Decision needed from the owner: audit **Phase 2 only at HEAD now**, or **commit Phase 1 first** and
-audit the combined tree.
+Owner's optional housekeeping (not required to audit, not performed here):
+- **Push / open a PR** for `codex/phase-2-credit-dashboard` when desired (branch already mirrors
+  `origin`).
+- Retain or delete the external backup at `…/Main current/phase1-backup-20260709-180749/` at your
+  discretion now that Phase 1 is safely in Git.
+- Proceed with functional/security review; run the real-credential staging checklists before
+  enabling paid paths.
 
 ---
 
 ## 10. Working-tree safety confirmation
 
-This check was strictly read-only. **No files, tests, planning docs, configuration, Git history,
-index/staging state, branch, or checkout were modified.** Only inspection commands were run
-(`git status`, `git log`, `git show`, `git diff`, `git grep`, `git cat-file -e`, `git ls-files`,
-`git merge-base`, and read-only `grep`/`ls`/`sed -n` inspection). No `add`, `commit`, `stash`,
-`restore`, `reset`, `clean`, `checkout`, or branch operation was performed. The only new file
-created is this report: `Merge_Features_Project/REPOSITORY_INTEGRITY_CHECK.md`. The untracked
-Phase 1 work remains exactly as found and is **at risk** until the owner preserves it (§8.4).
+This check was strictly **read-only** with respect to all audited material. Only inspection
+commands were run — `git status` (incl. `--ignored`), `git branch`, `git log`, `git show`,
+`git diff` (`HEAD`, `--cached`, `--stat`, `--name-status`), `git grep`, `git ls-tree`,
+`git ls-files`, `git merge-base`, `git branch --contains` — plus read-only `ls`/`sed -n`
+inspection. **No** `add`, `commit`, `stash`, `restore`, `reset`, `clean`, `checkout`, branch,
+index/staging, or history operation was performed. No application code, test, configuration, or
+planning document was altered, and no uncommitted user work exists to be at risk.
+
+**One file was written — this report itself**, at the task-specified path
+`Merge_Features_Project/REPOSITORY_INTEGRITY_CHECK.md`. Because a prior committed version already
+existed there (inside HEAD commit `d31ebfd`), writing this update leaves that single path showing
+as **modified in the working tree**; the previous version remains fully intact and recoverable in
+Git history (`git show d31ebfd:Merge_Features_Project/REPOSITORY_INTEGRITY_CHECK.md`). This is the
+only working-tree change and is the requested deliverable.

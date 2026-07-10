@@ -1,13 +1,19 @@
 # Credit Dashboard Merge — Phase 2 Implementation Plan
 
-**Status**: **AMENDED v3 (2026-07-09) — IMPLEMENTATION-READY PENDING RECORDED PHASE 1 ACCEPTANCE.** G1 plan approval is closed by the user request to make the corrected plan ready. The only remaining pre-implementation gate is explicit, recorded **Phase 1 acceptance** (Phase 1 is technically complete/validated but not accepted — see §26). Foundational + follow-up product decisions are confirmed (§5). No `[DEFAULT — confirm]` placeholders remain except items deliberately deferred (§6).
-**Owner of execution**: A future, fresh Phase 2 *implementation* agent.
-**Dates**: drafted 2026-07-08; amended v2 2026-07-09 after Codex plan-verification (`PLAN_VERIFICATION.md`) and user decisions; amended v3 2026-07-09 after Codex re-verification found A6 false.
-**Authoring agent**: Phase 2 planning agent (no application/prototype code changed).
+**Status**: **AMENDED v4 (2026-07-10) — reconciled with the built + audited implementation (post-implementation repair programme).** Phase 1+2 are implemented, audited (`../POST_IMPLEMENTATION_AUDIT.md`, PASS with non-blocking issues) and under repair (`../REPAIR_PLAN.md`). v4 aligns this plan's charging model with the **owner-approved clamp-to-zero policy (D-A / repair DV-1)** now implemented in REP-201/REP-201a. Product decisions confirmed (§5). No `[DEFAULT — confirm]` placeholders remain except items deliberately deferred (§6).
+**Owner of execution**: the repair-implementation agent (executing `../REPAIR_PLAN.md`); this plan is the architecture-of-record.
+**Dates**: drafted 2026-07-08; v2 2026-07-09 (Codex plan-verification); v3 2026-07-09 (A6 false → per-phase billing); **v4 2026-07-10 (clamp-to-zero charging + block-boundary gating, reconciled to built code).**
+**Authoring agent**: Phase 2 planning agent (no application/prototype code changed in producing this doc).
 
-> **CRITICAL SEQUENCING**: Phase 2 implementation **may not begin until Phase 1 (YouTube audio) is complete AND accepted** (§26). This plan has been reconciled against the **post-Phase-1** live code (§4, §20); the implementation agent must still re-confirm §20 before Stage 1 and escalate any drift per PROJECT_OVERVIEW §6/§10.
+> **CRITICAL SEQUENCING**: Phase 1 is accepted and Phase 2 is built; this plan is now the architecture-of-record that the repair programme keeps in sync. Where this plan and `../REPAIR_PLAN.md` describe the same behaviour, they must agree (v4 closes the prior divergence).
 
 ### Amendment log
+- **v4 CHARGING MODEL — clamp-to-zero (D-A / DV-1), 2026-07-10.** Overrun is no longer a hard-reject; it **clamps to the available balance**:
+  - **Clamp settlement (AI debits only):** when a phase's computed cost exceeds the current balance, debit the *remaining* balance (→ 0), **keep/deliver/persist** the work, and record the full computed cost, the clamped debit, and `writeOffMinor` (the written-off remainder) on the `UsageRecord`/ledger metadata. **Never-negative is preserved as a floor, not a rejection.** A fully-written-off phase (balance already 0) writes **no ledger row** (0-amount forbidden) — its write-off is audited on the `UsageRecord` only. **Top-up and all non-AI debits keep the reject semantics unchanged.**
+  - **Block-boundary gating:** the balance floor + password + rate-limit gate is enforced at **block boundaries** — **Block A = `transcribe`+`enrich`, Block B = `time`** — i.e. before `transcribe` and before `time`, **but not before `enrich`** (`enrich` is an authorised continuation of Block A). So a "run all" whose Block A zeroes the balance still finishes translation, then `time` is blocked (402).
+  - **`full` phase rejected when credits enabled (REP-201a):** because a single `full` job settles after running all phases (it cannot stop Block B mid-job), `POST /api/ai/transcribe` returns `400 full_phase_disabled` when `isCreditsEnabled()`. The live client already uses staged per-phase jobs; `full` is unchanged when credits are off.
+  - **`unresolved` narrowed:** insufficient balance no longer produces `accountingStatus:"unresolved"` (clamp always succeeds); `unresolved` now signals only a transient settlement/DB error, remediated by the dry-run `credits:ai-settle-repair` script (REP-202).
+  - **Supersedes** the v3 per-phase never-negative-**reject** wording wherever it appears — specifically **D6, §11.2, §11.3, §15, §16** (and the §3 goal). Per-phase billing/rounding (D3/D4/D10) and idempotency keys (`ai_debit:{jobId}:{phase}`) are **unchanged**.
 - **v3 A6 correction (ready-to-build change)**: live client verification confirms selected pipeline parts run as **separate phase jobs** (`transcribe`, then `enrich`, then `time`) rather than as one `core` invocation. This plan now treats those live phase jobs as authoritative: **billing units are individual phases**, each debited/rounded independently with key `ai_debit:{jobId}:{phase}`. A lightweight `pipelineRunId` groups the jobs from one Run button press only for audit and final `Generation` persistence. No `core` billing aggregate remains. (§5 D3/D10, §7 A6, §10.1–10.3, §11.1–11.4)
 - **D9 confirmed**: a completed generation is **one `Generation` document**; the public card is a **serializer projection** (no separate `Card` model). (§10.2, §11.4, §11.6)
 - **D10 confirmed (phase billing + rounding)**: charging/rounding unit is a **billing phase** — `transcribe`, `enrich`, or `time`. Rounding to integer pence happens **once per phase job at phase completion**. A Run button flow that executes multiple phases rounds each completed phase independently because the live client starts them as independent jobs; this preserves charge-completed-work-only and resume-safe exactly-once behavior. Mitigated by **round-half-up to nearest pence** + retained sub-penny remainder. (§5 D3/D4, §10.1, §10.3, §11.1–11.2)
@@ -43,7 +49,7 @@ Add a monetization + accounting + persistence + public-dashboard layer on top of
 ### Goals
 - Reuse the prototype's proven money/ledger/payment/R2 abstractions with minimal change.
 - Capture OpenAI cost at the real call sites; charge per **billing phase** on success only.
-- Never let the shared balance go negative; hard-block generation when it is too low.
+- Never let the shared balance go negative (a **floor**, via clamp-to-zero — v4/D-A); block further generations once exhausted.
 - Persist generations + MP3s durably without disturbing the ephemeral session-asset system used during active editing.
 - Keep the app fully functional (feature-flagged off) when Mongo/R2/SumUp are not configured.
 
@@ -93,7 +99,7 @@ Add a monetization + accounting + persistence + public-dashboard layer on top of
 | D3 | Charge unit & timing | **Per billing phase, on that phase job's success.** Units: **`transcribe`**, **`enrich`**, **`time`**. This intentionally matches the live client, which posts separate jobs for selected phases. |
 | D4 | Partial failure | **Charge only completed phases.** A failed/unrun phase is not debited; its real usage is still recorded (`UsageRecord`) for audit. |
 | D5 | Cost method | **Config price table × usage** (Responses `input/output` tokens) **+ per-audio-minute rates** (audio endpoints when usage is duration/absent). Store **raw usage + raw sub-penny cost + computed pence + price-table version.** |
-| D6 | Low balance | **Hard-block** starting a generation when balance ≤ `MIN_GENERATION_BALANCE_MINOR`; never negative; prompt to top up. **Export stays free.** |
+| D6 | Low balance / overrun (**v4 clamp**) | **Clamp-to-zero, keep the work.** Balance gate at **block boundaries** (before `transcribe` = Block A, before `time` = Block B; **not** before `enrich`): balance ≤ `MIN_GENERATION_BALANCE_MINOR` blocks that block (402). A phase whose cost exceeds the balance **clamps the debit to the remaining balance (→ 0), keeps/delivers/persists the work, records `writeOffMinor`**; never negative (floor). `phase:"full"` is **rejected (400) when credits enabled** (REP-201a). **Export stays free.** |
 | D7 | Persistence trigger | On the **final selected phase** of a client Run button flow, **auto-persist** one `Generation` + MP3→R2, controlled by a per-generation **"save" toggle (default ON)**. Toggle OFF ⇒ no persistence, no R2 write (any AI debits already applied still stand). |
 | D8 | Card content | **Title + lyric preview + audio player + open-in-editor** (requires persisted project/lyric snapshot). |
 | **D9** | Generation vs Card | **One `Generation` document.** The public card is a **serializer projection** of it (no separate `Card` model). Deletion + R2 cleanup act on the single doc. |
@@ -212,7 +218,8 @@ Adapted from prototype into the main app's import style (`@/lib/...`). Module fo
 ### 10.1 CreditLedger (extend enum)
 `CREDIT_LEDGER_TYPES = ["TOP_UP","AI_TRANSCRIBE","AI_ENRICH","AI_TIMING","REFUND_ADJUSTMENT","MANUAL_ADJUSTMENT"]` (dropped the unused `CARD_CREATE`; AI entries map one-to-one to completed billing phases).
 - Unique index on `idempotencyKey`; keep `balanceAfterMinor`, `metadata`.
-- AI entries: `amountMinor` negative (integer pence); `idempotencyKey = ai_debit:{jobId}:{phase}`; `metadata = { jobId, pipelineRunId, phase, models:[…], usageSummary:{…}, rawCostMicros, priceTableVersion, callIds:[…] }`.
+- AI entries: `amountMinor` negative (integer pence); `idempotencyKey = ai_debit:{jobId}:{phase}`; `metadata = { jobId, pipelineRunId, phase, models:[…], usageSummary:{…}, rawCostMicros, priceTableVersion, callIds:[…], settlementMode:"clamp", fullCostMinor, writeOffMinor }`.
+- **v4 clamp mode:** the ledger settlement helper takes `mode:"clamp"|"reject"` (default `reject`). AI settlement uses `mode:"clamp"` — it debits `min(cost, balance)`, floors the balance at 0, and stamps `fullCostMinor`/`writeOffMinor`. Top-up and all other debits keep `mode:"reject"` (unchanged never-negative rejection). A fully-written-off phase (debit would be 0) writes **no ledger row** (0-amount forbidden); the write-off is audited on the `UsageRecord`.
 
 ### 10.2 Generation (new — single doc = record + public card, D9)
 ```
@@ -252,8 +259,10 @@ usageType ("tokens"|"duration"|"none"),
 inputTokens, outputTokens, totalTokens,   // Responses / token-audio
 audioSeconds,                             // duration-audio or fallback
 rawCostMicros (integer micro-pence),
+chargedMinor, fullCostMinor, writeOffMinor,   // v4 clamp audit (chargedMinor ≤ fullCostMinor; writeOffMinor = fullCostMinor − chargedMinor)
 priceTableVersion, attemptFinal (bool), charged (bool), createdAt
 ```
+- **v4:** `charged:true` with `writeOffMinor>0` marks a clamped/written-off phase. Reconciliation and the `credits:ai-settle-repair` tool (REP-202) must read `writeOffMinor` here — a fully-written-off phase has **no** ledger row, so the ledger alone under-reports true incurred cost.
 - `callId` = `${jobId}:${phase}:${sequence}` (stable within a job; retries of the same logical call reuse the same `callId`, last finalized write wins). Unique index on `callId` prevents duplicate rows under retry/re-adoption.
 - Indexes `{jobId:1, phase:1}`, `{pipelineRunId:1, phase:1}`. A phase debit is the **immutable aggregate** of that phase job's finalized (`attemptFinal:true`) UsageRecords (§11.2).
 
@@ -285,20 +294,22 @@ priceTableVersion, attemptFinal (bool), charged (bool), createdAt
 ### 11.2 Billing-phase settlement (D3/D4/D10)
 - **Phase boundaries**: the live client starts one job per selected phase. A phase completes when that job's AI work succeeds. Direct `phase:"full"` usage, if invoked outside the current client flow, still settles `transcribe`, `enrich`, and `time` independently as each sub-phase succeeds.
 - On a phase's successful completion, `runTranscribeJob` calls `creditService.settlePhase({jobId, pipelineRunId, phase, usageRecords: collector.finalizedUsageForPhase(phase)})`:
-  1. `sumMicros = Σ rawCostMicros` over finalized UsageRecords for the phase; `amountMinor = roundMicrosToPenceHalfUp(sumMicros)`.
-  2. If `amountMinor === 0` → no ledger entry (record phase as settled, cost 0).
-  3. Else one transaction: `applyLedgeredBalanceChange({ type: LEDGER_TYPE_OF_PHASE[phase], amountMinor: -amountMinor, idempotencyKey: "ai_debit:${jobId}:${phase}", metadata })` **and** set `charged:true` on those UsageRecords. Idempotent across polling/re-adoption/resume.
-  4. **Replay divergence guard**: if the idempotent key already exists but the newly computed `sumMicros` differs from the stored aggregate, do **not** silently accept — mark the job `accountingStatus:"unresolved"`, log an accounting-conflict, and surface to admin (`MANUAL_ADJUSTMENT`). The existing ledger entry is authoritative; no second debit.
-- **Partial failure (D4)**: on job/phase error, settle only phases that fully completed; leave the failed phase's UsageRecords `charged:false`. In the normal client flow this means earlier completed phase jobs are already charged, and later failed/unrun phase jobs are not.
-- **Rounding note (D10)**: a Run button flow that executes all parts rounds `transcribe`, `enrich`, and `time` separately because the live client runs three jobs. This is intentional and keeps billing aligned with exactly what completed.
+  1. `sumMicros = Σ rawCostMicros` over finalized UsageRecords for the phase; `fullAmountMinor = roundMicrosToPenceHalfUp(sumMicros)`.
+  2. If `fullAmountMinor === 0` → no ledger entry (record phase as settled, cost 0).
+  3. Else one transaction with **`mode:"clamp"`** (v4/D-A): `applyLedgeredBalanceChange({ type: LEDGER_TYPE_OF_PHASE[phase], amountMinor: -fullAmountMinor, mode:"clamp", idempotencyKey: "ai_debit:${jobId}:${phase}", metadata })`. The helper debits `min(fullAmountMinor, balance)`, floors the balance at 0, stamps `chargedMinor`/`fullCostMinor`/`writeOffMinor`, and sets `charged:true` on those UsageRecords. If the clamped debit is 0 (balance already 0), **no ledger row is written** but the UsageRecords still record `writeOffMinor = fullAmountMinor`. Returns `{ clamped, balanceExhausted, writeOffMinor }`. Idempotent across polling/re-adoption/resume.
+  4. **Replay divergence guard**: if the idempotent key already exists but the newly computed aggregate differs from the stored one, do **not** silently accept — mark the job `accountingStatus:"unresolved"`, log an accounting-conflict, and surface to the `credits:ai-settle-repair` tool / `MANUAL_ADJUSTMENT`. The existing ledger entry is authoritative; no second debit.
+- **Overrun is clamped, not rejected (v4):** insufficient balance never fails the AI settlement — it clamps and keeps the work; it does **not** produce `unresolved`. The job surfaces `balanceExhausted:true` + `writeOffMinor` (poll response + client copy), and the next block boundary (§11.3) blocks further work.
+- **Partial failure (D4)**: on job/phase error, settle only phases that fully completed; leave the failed phase's UsageRecords `charged:false`. Earlier completed phase jobs are already charged (or clamped); later failed/unrun phase jobs are not.
+- **Rounding note (D10, unchanged):** a Run flow that executes all parts rounds `transcribe`, `enrich`, and `time` separately (three jobs). Intentional; keeps billing aligned with exactly what completed.
 
 ### 11.3 Generation-start gating (D2/D6/D10/D12)
 In `POST /api/ai/transcribe`, before enqueue, **only when `isCreditsEnabled()`** and this is a **new** job (not a 409 re-adopt):
+0. **Reject `full` (v4/REP-201a):** `phase:"full"` (or the default resolving to `full`) → `400 {error:"full_phase_disabled"}` (a single `full` job can't stop Block B mid-run). Clients use staged per-phase jobs.
 1. **Password**: valid `rc_gen_unlock` cookie or `403 {error:"locked"}`.
 2. **Rate limit**: per-session + per-IP fixed window (`GEN_RATE_MAX`, `GEN_RATE_WINDOW_SECONDS`); exceed → `429`.
-3. **Price precheck (D10 fail-closed)**: every model that the requested phase will use must have `hasPrice(model)`; for direct `phase:"full"`, every model for all sub-phases must be priced. Missing price → `500 {error:"pricing_unavailable", model}` (no untracked spend).
-4. **Balance floor (D6)**: `balanceMinor <= MIN_GENERATION_BALANCE_MINOR` → `402`. (Per-run cost is unknown up front; never-negative is still enforced atomically at settlement.)
-When disabled, or on a 409 re-adopt of an already-authorized job: skip 1–4 → today's behavior.
+3. **Price precheck (D10 fail-closed)**: every model the requested phase will use must have `hasPrice(model)`; missing → `500 {error:"pricing_unavailable", model}` (no untracked spend).
+4. **Block-boundary balance floor (D6, v4):** applied only at **block-entry phases** — `transcribe` (Block A) and `time` (Block B). `balanceMinor <= MIN_GENERATION_BALANCE_MINOR` → `402`. **`enrich` is gate-exempt** (authorised continuation of Block A; still price-checked). Per-run cost is unknown up front; overrun is handled by **clamp at settlement** (§11.2), not by a start-time estimate.
+When disabled, or on a 409 re-adopt of an already-authorized job: skip 0–4 → today's behavior.
 
 ### 11.4 Persistence + R2 promotion (D7/D8/D9)
 - **Provenance stamping (blocking fix)**: add `sourceType` to asset metadata at write time — `storeUploadedAsset` sets `sourceType:"upload"`; the Phase-1 YT ingest (`storeAudioAssetFromPath` caller) sets `sourceType:"youtube"`. Pre-existing assets read back as `"unknown"`. `persistGeneration` reads it from `readAssetMetadata`.
@@ -353,8 +364,8 @@ All secrets server-side only. **Partial-config policy**: with `CREDITS_ENABLED=t
 ---
 
 ## 15. Lifecycle, Concurrency, Idempotency
-- **Balance**: singleton; mutated only inside ledger txns; never < 0 (conditional update).
-- **AI debit**: exactly-once per `ai_debit:{jobId}:{phase}` — safe under 409 re-adoption, polling, resume-after-reload, concurrent duplicate submits; replay-divergence guarded (§11.2). `pipelineRunId` is audit/persistence metadata and is never the debit idempotency key.
+- **Balance**: singleton; mutated only inside ledger txns; **never < 0 — a floor via clamp for AI debits (v4), a conditional reject for top-ups/other debits.**
+- **AI debit (v4 clamp)**: exactly-once per `ai_debit:{jobId}:{phase}` — safe under 409 re-adoption, polling, resume-after-reload, concurrent duplicate submits; replay-divergence guarded (§11.2). Overrun clamps to the available balance (records `writeOffMinor`), never rejects the AI settlement; a concurrent clamp race throws a retryable `CLAMP_RACE` handled by `withTransaction` (does not reject the AI work). `pipelineRunId` is audit/persistence metadata and is never the debit idempotency key.
 - **Top-up credit**: exactly-once via dual-path re-query + `balanceCredited:false` claim + `top_up:{orderId}` key.
 - **Generation/R2**: doc in txn; R2 after commit; status machine + reconcile handle both failure directions; never blocks the ledger or user result.
 - **Accounting honesty**: job carries `accountingStatus` (`none`/`settled`/`unresolved`) + `accountingError`; a "done" job with `unresolved` accounting is explicit, never silently "complete".
@@ -363,8 +374,9 @@ All secrets server-side only. **Partial-config policy**: with `CREDITS_ENABLED=t
 ---
 
 ## 16. Error, Recovery, Reconciliation
-- Pipeline errors: unchanged UX; only completed phases debited (D4); all usage in `UsageRecord`.
-- **Accounting-unresolved recovery**: if a phase's AI calls succeeded but its ledger settlement fails (txn error, divergence), the job is marked `accountingStatus:"unresolved"` with the result preserved; an admin path re-runs `settlePhase` idempotently or applies `MANUAL_ADJUSTMENT`. No real cost is silently lost or hidden.
+- Pipeline errors: unchanged UX; only completed phases debited/clamped (D4); all usage in `UsageRecord`.
+- **Overrun (v4):** insufficient balance is **not** an error — it clamps to zero, keeps the work, records `writeOffMinor`, and blocks the next block. It does **not** set `unresolved`.
+- **Accounting-unresolved recovery**: `unresolved` now signals only a **transient** settlement/DB error or a replay divergence (not insufficient balance). The result is preserved; the dry-run `credits:ai-settle-repair` script (REP-202) re-runs `settlePhase` idempotently or applies `MANUAL_ADJUSTMENT`. Because a fully-written-off phase writes no ledger row, reconciliation reads `UsageRecord.writeOffMinor` for true incurred cost. No real cost is silently lost or hidden.
 - Ledger-succeeds-but-persistence-fails: debit stands (it reflects real work); Generation persistence is retried; if `save` off, no persistence expected.
 - R2 failures: `create_failed`/`delete_failed` + `scripts/r2-reconcile` (HEAD/PUT idempotent) sweeps both directions.
 - SumUp: webhook + return converge (both re-query); safe events retained; admin refresh/refund if `ENABLE_ADMIN_TOOLS`.

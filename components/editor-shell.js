@@ -3,7 +3,6 @@
 import { startTransition, useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { EditorProvider } from "@/components/editor-context";
-import { CreditChrome } from "@/components/credit-chrome";
 import { useEditorState } from "@/components/editor-state";
 import { EditorHeader } from "@/components/editor-header";
 import { EditorModals } from "@/components/editor-modals";
@@ -4075,6 +4074,18 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
                 url: youtubeUrl,
               },
             }}
+            credit={{
+              enabled: creditState.enabled,
+              onSaveGenerationChange: setSaveGeneration,
+              onUnlockPasswordChange: setUnlockPassword,
+              onUnlockSubmit: (event) => {
+                void handleUnlockSubmit(event);
+              },
+              saveGeneration,
+              unlockMessage,
+              unlockPassword,
+              unlockStatus,
+            }}
             lyricsSource={{
               auto: autoLyricsState,
               autoLyricsBusy,
@@ -4259,33 +4270,23 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
       >
         <EditorHeader
           artist={projectState.meta.artist}
+          credit={{
+            balanceMinor: creditState.balanceMinor,
+            enabled: creditState.enabled,
+            onTopUpAmountChange: setTopUpAmount,
+            onTopUpSubmit: (event) => {
+              void handleTopUpSubmit(event);
+            },
+            status: creditState.status,
+            topUpAmount,
+            topUpMessage,
+            topUpStatus,
+          }}
           onTogglePreview={handleTogglePreview}
           onToggleWordBoard={handleToggleWordBoard}
           showPreview={showPreview}
           showWordBoard={showWordBoard}
           title={projectState.meta.title}
-        />
-
-        <CreditChrome
-          balanceMinor={creditState.balanceMinor}
-          enabled={creditState.enabled}
-          onSaveGenerationChange={setSaveGeneration}
-          onTopUpAmountChange={setTopUpAmount}
-          onTopUpSubmit={(event) => {
-            void handleTopUpSubmit(event);
-          }}
-          onUnlockPasswordChange={setUnlockPassword}
-          onUnlockSubmit={(event) => {
-            void handleUnlockSubmit(event);
-          }}
-          saveGeneration={saveGeneration}
-          status={creditState.status}
-          topUpAmount={topUpAmount}
-          topUpMessage={topUpMessage}
-          topUpStatus={topUpStatus}
-          unlockMessage={unlockMessage}
-          unlockPassword={unlockPassword}
-          unlockStatus={unlockStatus}
         />
 
         {!sectionWithinLimit || showGlobalJsonNotice ? (

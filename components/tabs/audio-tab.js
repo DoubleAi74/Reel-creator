@@ -91,7 +91,7 @@ function getRunButtonLabel(isBusy, selectedCount) {
   return `Run ${selectedCount} part${selectedCount === 1 ? "" : "s"}`;
 }
 
-export function AudioTab({ audio, lyricsSource, project }) {
+export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
   const {
     isLoadingSample,
     objectUrl,
@@ -332,6 +332,57 @@ export function AudioTab({ audio, lyricsSource, project }) {
             {getRunButtonLabel(pipelineBusy, selectedPhaseCount)}
           </button>
         </div>
+
+        {credit?.enabled ? (
+          <div className="credit-generation-controls mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+            <label className="inline-flex items-center gap-2 text-sm font-semibold">
+              <input
+                checked={Boolean(credit.saveGeneration)}
+                className="h-4 w-4 accent-[var(--accent)]"
+                onChange={(event) =>
+                  credit.onSaveGenerationChange?.(event.target.checked)
+                }
+                type="checkbox"
+              />
+              Save generation
+            </label>
+
+            <form
+              className="ml-auto flex items-center gap-2"
+              onSubmit={(event) => credit.onUnlockSubmit?.(event)}
+            >
+              <input
+                aria-label="Generation password"
+                className="min-h-9 w-40 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm outline-none focus:border-[var(--accent)]"
+                onChange={(event) =>
+                  credit.onUnlockPasswordChange?.(event.target.value)
+                }
+                placeholder="Password"
+                type="password"
+                value={credit.unlockPassword ?? ""}
+              />
+              <button
+                className="min-h-9 whitespace-nowrap rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 text-xs font-semibold text-[var(--text)] transition hover:bg-[var(--surface)] disabled:opacity-60"
+                disabled={credit.unlockStatus === "submitting"}
+                type="submit"
+              >
+                {credit.unlockStatus === "submitting" ? "Unlocking…" : "Unlock"}
+              </button>
+            </form>
+
+            {credit.unlockMessage ? (
+              <p
+                className={`w-full text-xs ${
+                  credit.unlockStatus === "error"
+                    ? "text-[var(--danger)]"
+                    : "text-[var(--muted)]"
+                }`}
+              >
+                {credit.unlockMessage}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="phase-row mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline presets">
           {PIPELINE_PRESET_OPTIONS.map((option) => {
