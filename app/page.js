@@ -85,6 +85,15 @@ import { createDefaultProject } from "@/lib/project";
  * ============================================================================
  */
 
-export default function Home() {
-  return <EditorShell project={createDefaultProject()} />;
+export default async function Home({ searchParams }) {
+  const params = await searchParams;
+  const openGenerationId =
+    typeof params?.generation === "string" ? params.generation : "";
+
+  return (
+    <EditorShell
+      openGenerationId={openGenerationId}
+      project={createDefaultProject()}
+    />
+  );
 }

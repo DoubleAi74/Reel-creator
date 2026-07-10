@@ -12,6 +12,7 @@ import { AudioTab } from "@/components/tabs/audio-tab";
 import { LyricsTab } from "@/components/tabs/lyrics-tab";
 import { StyleTab } from "@/components/tabs/style-tab";
 import { WaveformTimeline } from "@/components/waveform-timeline";
+import { YoutubeSegmentModal } from "@/components/youtube-segment-modal";
 import {
   getExportReadiness,
   getRenderPollDelayMs,
@@ -24,6 +25,7 @@ import {
   importProjectJson,
   importProjectValue,
 } from "@/lib/project";
+import { parseGbpInputToMinor } from "@/lib/money";
 import {
   AUTOSAVE_STORAGE_KEY,
   decodeAutosave,
@@ -78,9 +80,8 @@ const LYRIC_REBUILD_CONFIRM_MESSAGE =
 
 // Mobile-only bottom-sheet snap heights (ignored at lg+, where the editor fills its grid column).
 const SHEET_SNAPS = [
-  { height: "120px", label: "Peek · tap to expand" },
-  { height: "44vh", label: "Half · tap to expand" },
-  { height: "74vh", label: "Full · tap to collapse" },
+  { key: "peek", label: "Expand settings panel" },
+  { key: "full", label: "Collapse settings panel" },
 ];
 
 const BACKGROUND_UPLOAD_COPY = {
@@ -199,6 +200,20 @@ async function verifyAssetExists(assetId) {
   } catch {
     return false;
   }
+}
+
+async function fetchCreditBalancePayload() {
+  const response = await fetch("/api/credits/balance", {
+    cache: "no-store",
+    credentials: "same-origin",
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error ?? "Credit balance is unavailable.");
+  }
+
+  return payload;
 }
 
 function createBackgroundUploadEntry(kind, assetName = null) {
@@ -530,8 +545,9 @@ function getLineNumber(lines = [], lineId) {
   return index === -1 ? null : index + 1;
 }
 
-export function EditorShell({ debugProbe = null, project }) {
+export function EditorShell({ debugProbe = null, openGenerationId = "", project }) {
   const [activeSection, setActiveSection] = useState("audio");
+  const previousActiveSectionRef = useRef(activeSection);
   const [audioUpload, setAudioUpload] = useState({
     asset: null,
     message: "Upload an MP3 to replace the sample track metadata.",
@@ -541,11 +557,26 @@ export function EditorShell({ debugProbe = null, project }) {
     createBackgroundUploadState(project.background),
   );
   const [audioObjectUrl, setAudioObjectUrl] = useState(null);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeAudioEnabled, setYoutubeAudioEnabled] = useState(false);
+  const [youtubeConfigError, setYoutubeConfigError] = useState("");
+  const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
   const [isLoadingSample, setIsLoadingSample] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(
     getInitialTransportTime(project),
   );
+  const [lyricSeekTime, setLyricSeekTime] = useState(null);
   const [isTransportPlaying, setIsTransportPlaying] = useState(false);
+
+  // Clear the pending lyric seek signal shortly after it's consumed by the waveform.
+  // This prevents it from accidentally forcing seeks on future playback updates
+  // that happen to land on the same time value.
+  useEffect(() => {
+    if (lyricSeekTime !== null) {
+      const id = setTimeout(() => setLyricSeekTime(null), 0);
+      return () => clearTimeout(id);
+    }
+  }, [lyricSeekTime]);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState("");
   const [jsonImportError, setJsonImportError] = useState("");
@@ -565,7 +596,7 @@ export function EditorShell({ debugProbe = null, project }) {
     createIdleTapTimingSession,
   );
   const [autoFollowEnabled, setAutoFollowEnabled] = useState(true);
-  const [sheetSnapIndex, setSheetSnapIndex] = useState(1);
+  const [sheetSnapIndex, setSheetSnapIndex] = useState(0);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
   const [exportState, setExportState] = useState(createIdleExportState);
   const [autoLyricsState, setAutoLyricsState] = useState(
@@ -574,6 +605,18 @@ export function EditorShell({ debugProbe = null, project }) {
   const [autoTimingState, setAutoTimingState] = useState(
     createIdleAutoTimingState,
   );
+  const [creditState, setCreditState] = useState({
+    balanceMinor: 0,
+    enabled: false,
+    status: "idle",
+  });
+  const [saveGeneration, setSaveGeneration] = useState(true);
+  const [unlockPassword, setUnlockPassword] = useState("");
+  const [unlockStatus, setUnlockStatus] = useState("idle");
+  const [unlockMessage, setUnlockMessage] = useState("");
+  const [topUpAmount, setTopUpAmount] = useState("5.00");
+  const [topUpStatus, setTopUpStatus] = useState("idle");
+  const [topUpMessage, setTopUpMessage] = useState("");
   // Pointer to the background transcription/timing job that the poll effect
   // drives: { jobId, phase: "full" | "transcribe" | "enrich" | "time",
   // status: "running" | "done" | "error", appliedJobId }. Survives
@@ -599,11 +642,10 @@ export function EditorShell({ debugProbe = null, project }) {
   const [showPreview, setShowPreview] = useState(true);
   const [showWordBoard, setShowWordBoard] = useState(true);
   const [isNarrowWorkspace, setIsNarrowWorkspace] = useState(false);
+  const previousNarrowWorkspaceRef = useRef(false);
   const [projectState, setProjectState] = useState(() => cloneProject(project));
   const projectStateRef = useRef(projectState);
-  const [selectedTimingLineId, setSelectedTimingLineId] = useState(() =>
-    getDefaultTimingLineId(project.lines),
-  );
+  const [selectedTimingLineId, setSelectedTimingLineId] = useState(null);
   const audioInputRef = useRef(null);
   const backgroundImageInputRef = useRef(null);
   const backgroundVideoInputRef = useRef(null);
@@ -683,7 +725,7 @@ export function EditorShell({ debugProbe = null, project }) {
     selectedTimingLineId &&
     projectState.lines.some((line) => line.id === selectedTimingLineId)
       ? selectedTimingLineId
-      : getDefaultTimingLineId(projectState.lines);
+      : null;
   const selectedTimingLine =
     projectState.lines.find((line) => line.id === resolvedSelectedTimingLineId) ?? null;
   const tapTimingStartLineId = getTapTimingStartLineId(
@@ -720,7 +762,7 @@ export function EditorShell({ debugProbe = null, project }) {
   const activeTimingLineId =
     tapTimingSession.active && tapTimingCursorLine
       ? tapTimingCursorLine.id
-      : resolvedSelectedTimingLineId;
+      : (activeSection === "lyrics" ? resolvedSelectedTimingLineId : null);
   const heardLineNumber = getLineNumber(projectState.lines, heardLine?.id);
   // While the audio plays, follow the currently-heard line so the list scrolls
   // in sync with playback (works for already-timed lines being reviewed too);
@@ -741,6 +783,143 @@ export function EditorShell({ debugProbe = null, project }) {
   useEffect(() => {
     projectStateRef.current = projectState;
   }, [projectState]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/youtube-audio/config", {
+      cache: "no-store",
+      credentials: "same-origin",
+    })
+      .then((response) => (response.ok ? response.json() : { enabled: false }))
+      .then((payload) => {
+        if (cancelled) {
+          return;
+        }
+
+        setYoutubeAudioEnabled(Boolean(payload?.enabled));
+        setYoutubeConfigError("");
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setYoutubeAudioEnabled(false);
+        setYoutubeConfigError("");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  useEffect(() => {
+    let cancelled = false;
+
+    setCreditState((currentState) => ({
+      ...currentState,
+      status: "loading",
+    }));
+    fetchCreditBalancePayload()
+      .then((payload) => {
+        if (cancelled) {
+          return;
+        }
+
+        setCreditState({
+          balanceMinor: Number.isInteger(payload.balanceMinor)
+            ? payload.balanceMinor
+            : 0,
+          currency: payload.currency ?? "GBP",
+          enabled: payload.enabled === true,
+          status: "ready",
+        });
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setCreditState({
+          balanceMinor: 0,
+          enabled: false,
+          status: "error",
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  useEffect(() => {
+    if (!openGenerationId) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    fetch(`/api/dashboard/generations/${encodeURIComponent(openGenerationId)}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? "Saved generation could not be opened.");
+        }
+
+        return payload.generation;
+      })
+      .then((generation) => {
+        if (cancelled || !generation?.snapshot) {
+          return;
+        }
+
+        const importedProject = importProjectValue(
+          generation.snapshot.project ?? generation.snapshot,
+        );
+
+        setProjectState(importedProject);
+        projectStateRef.current = importedProject;
+        setBackgroundUpload(createBackgroundUploadState(importedProject.background));
+        setAudioUpload({
+          asset: {
+            assetId: "",
+            durationSec: importedProject.audio.duration,
+            name: importedProject.audio.name || generation.title,
+          },
+          message: `${generation.title || "Saved generation"} opened from dashboard.`,
+          status: "success",
+        });
+        setAudioObjectUrl(`/api/media/generations/${encodeURIComponent(generation.id)}`);
+        setCurrentAudioTime(importedProject.audio.startOffset ?? 0);
+        setSelectedTimingLineId(null);
+        setTimingDrafts({});
+        setTranscription(null);
+        setJsonNotice({
+          message: `${generation.title || "Saved generation"} opened.`,
+          status: "success",
+        });
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        setJsonNotice({
+          message:
+            error instanceof Error
+              ? error.message
+              : "Saved generation could not be opened.",
+          status: "error",
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [openGenerationId]);
   useEffect(() => {
     editorActions.setLines(projectState.lines);
   }, [editorActions, projectState.lines]);
@@ -774,7 +953,7 @@ export function EditorShell({ debugProbe = null, project }) {
     if (typeof window === "undefined" || !window.matchMedia) {
       return undefined;
     }
-    const query = window.matchMedia("(max-width: 999.98px)");
+    const query = window.matchMedia("(max-width: 1023.98px)");
     const update = () => setIsNarrowWorkspace(query.matches);
     update();
     query.addEventListener("change", update);
@@ -786,23 +965,89 @@ export function EditorShell({ debugProbe = null, project }) {
   useEffect(() => {
     if (isNarrowWorkspace && showPreview && showWordBoard) {
       setShowPreview(false);
+      setActiveSection("words");
+      setSheetSnapIndex(0);
     }
   }, [isNarrowWorkspace, showPreview, showWordBoard]);
+
+  useEffect(() => {
+    const wasNarrow = previousNarrowWorkspaceRef.current;
+    if (wasNarrow === isNarrowWorkspace) {
+      return;
+    }
+    previousNarrowWorkspaceRef.current = isNarrowWorkspace;
+
+    if (isNarrowWorkspace) {
+      if (showWordBoard && !showPreview) {
+        setActiveSection("words");
+        setSheetSnapIndex(0);
+      }
+      return;
+    }
+
+    setShowPreview(true);
+    setShowWordBoard(true);
+    setActiveSection((section) => (section === "words" ? "audio" : section));
+  }, [isNarrowWorkspace, showPreview, showWordBoard]);
+
+  useEffect(() => {
+    if (isNarrowWorkspace && activeSection === "words") {
+      setSheetSnapIndex(0);
+    }
+  }, [activeSection, isNarrowWorkspace]);
+
+  useEffect(() => {
+    const prev = previousActiveSectionRef.current;
+    if (prev === "lyrics" && activeSection !== "lyrics") {
+      setSelectedTimingLineId(null);
+    }
+    previousActiveSectionRef.current = activeSection;
+  }, [activeSection]);
+
+  const syncMobileTabForViewTransition = (wasBoardOnly, willBoardOnly) => {
+    if (!wasBoardOnly && willBoardOnly) {
+      setActiveSection("words");
+      setSheetSnapIndex(0);
+      return;
+    }
+
+    if (wasBoardOnly && !willBoardOnly) {
+      setActiveSection((section) => (section === "words" ? "audio" : section));
+    }
+  };
 
   // Each pane toggles independently on wide desktop; on narrow, turning one on
   // turns the other off (and turning the only-on one off shows neither).
   const handleTogglePreview = () => {
-    const next = !showPreview;
-    setShowPreview(next);
-    if (next && isNarrowWorkspace) {
+    const wasBoardOnly = isNarrowWorkspace && showWordBoard && !showPreview;
+    const nextPreview = !showPreview;
+    const nextWordBoard =
+      nextPreview && isNarrowWorkspace ? false : showWordBoard;
+    const willBoardOnly = isNarrowWorkspace && nextWordBoard && !nextPreview;
+
+    setShowPreview(nextPreview);
+    if (nextPreview && isNarrowWorkspace) {
       setShowWordBoard(false);
     }
+    syncMobileTabForViewTransition(wasBoardOnly, willBoardOnly);
   };
   const handleToggleWordBoard = () => {
-    const next = !showWordBoard;
-    setShowWordBoard(next);
-    if (next && isNarrowWorkspace) {
+    const wasBoardOnly = isNarrowWorkspace && showWordBoard && !showPreview;
+    const nextWordBoard = !showWordBoard;
+    const nextPreview =
+      nextWordBoard && isNarrowWorkspace ? false : showPreview;
+    const willBoardOnly = isNarrowWorkspace && nextWordBoard && !nextPreview;
+
+    setShowWordBoard(nextWordBoard);
+    if (nextWordBoard && isNarrowWorkspace) {
       setShowPreview(false);
+    }
+    syncMobileTabForViewTransition(wasBoardOnly, willBoardOnly);
+  };
+  const handleSelectSection = (sectionId) => {
+    setActiveSection(sectionId);
+    if (sectionId === "words" && isNarrowWorkspace) {
+      setSheetSnapIndex(0);
     }
   };
 
@@ -1251,6 +1496,15 @@ export function EditorShell({ debugProbe = null, project }) {
     startTransition(() => {
       setSelectedTimingLineId(nextLineId);
     });
+
+    // Also move the playhead to the next line if it already has a time
+    // (consistent with explicit lyric selection in the tab).
+    const nextLine = projectState.lines.find((l) => l.id === nextLineId);
+    if (nextLine && Number.isFinite(nextLine.start)) {
+      const t = clampTimeToSection(nextLine.start, projectState.audio);
+      setCurrentAudioTime(t);
+      setLyricSeekTime(t);
+    }
   };
 
   const runDebugMarkCurrentLine = () => {
@@ -1529,7 +1783,7 @@ export function EditorShell({ debugProbe = null, project }) {
     const maxMarkMs = Math.max(...debugProbe.autoMarkAtMs);
 
     setProjectState(cloneProject(debugProbe.project));
-    setSelectedTimingLineId(getDefaultTimingLineId(debugProbe.project.lines));
+    setSelectedTimingLineId(null);
     setCurrentAudioTime(startOffset);
     setIsTransportPlaying(false);
     setDebugMarkEvents([]);
@@ -1573,7 +1827,10 @@ export function EditorShell({ debugProbe = null, project }) {
   };
 
   const handleTimingLineSelect = (line) => {
-    setSelectedTimingLineId(line.id);
+    const isDeselect = selectedTimingLineId === line.id;
+    const nextId = isDeselect ? null : line.id;
+
+    setSelectedTimingLineId(nextId);
     setEditingLineId((currentLineId) =>
       currentLineId && currentLineId !== line.id ? null : currentLineId,
     );
@@ -1581,7 +1838,7 @@ export function EditorShell({ debugProbe = null, project }) {
       currentSession.active
         ? {
             ...currentSession,
-            cursorLineId: line.id,
+            cursorLineId: nextId,
           }
         : currentSession,
     );
@@ -1590,8 +1847,11 @@ export function EditorShell({ debugProbe = null, project }) {
       status: "idle",
     });
 
-    if (Number.isFinite(line.start)) {
-      setCurrentAudioTime(clampTimeToSection(line.start, projectState.audio));
+    // Only seek to the line's start time when selecting (not when deselecting)
+    if (!isDeselect && Number.isFinite(line.start)) {
+      const targetTime = clampTimeToSection(line.start, projectState.audio);
+      setCurrentAudioTime(targetTime);
+      setLyricSeekTime(targetTime);
     }
   };
 
@@ -1762,7 +2022,7 @@ export function EditorShell({ debugProbe = null, project }) {
       setBackgroundUpload(createBackgroundUploadState(importedProject.background));
       setCurrentAudioTime(getInitialTransportTime(importedProject));
       setIsTransportPlaying(false);
-      setSelectedTimingLineId(getDefaultTimingLineId(importedProject.lines));
+      setSelectedTimingLineId(null);
       setTimingDrafts({});
       setAutoFollowEnabled(true);
       setTimingNotice({
@@ -1807,7 +2067,7 @@ export function EditorShell({ debugProbe = null, project }) {
     setBackgroundUpload(createBackgroundUploadState(blankProject.background));
     setCurrentAudioTime(getInitialTransportTime(blankProject));
     setIsTransportPlaying(false);
-    setSelectedTimingLineId(getDefaultTimingLineId(blankProject.lines));
+    setSelectedTimingLineId(null);
     setTimingDrafts({});
     setTranscription(null);
     setAutoFollowEnabled(true);
@@ -1857,7 +2117,7 @@ export function EditorShell({ debugProbe = null, project }) {
       lines: [],
     }));
     editorActions.clearSelectedWord();
-    setSelectedTimingLineId(getDefaultTimingLineId([]));
+    setSelectedTimingLineId(null);
     setTimingDrafts({});
     setAutoLyricsState(createIdleAutoLyricsState());
     setTimingNotice({ message: "", status: "idle" });
@@ -1949,7 +2209,7 @@ export function EditorShell({ debugProbe = null, project }) {
       setBackgroundUpload(createBackgroundUploadState(nextProject.background));
       setCurrentAudioTime(getInitialTransportTime(nextProject));
       setIsTransportPlaying(false);
-      setSelectedTimingLineId(getDefaultTimingLineId(nextProject.lines));
+      setSelectedTimingLineId(null);
       setTimingDrafts({});
       setTranscription(null);
       setAutoFollowEnabled(true);
@@ -2146,6 +2406,17 @@ export function EditorShell({ debugProbe = null, project }) {
     }
 
     if (!response.ok || typeof payload.jobId !== "string" || !payload.jobId) {
+      if (
+        response.status === 402 ||
+        payload.error === "insufficient_balance"
+      ) {
+        throw new Error(
+          body?.phase === "time"
+            ? "Credit balance exhausted — timing was skipped. Top up to continue."
+            : "Credit balance is too low to start generation. Top up to continue.",
+        );
+      }
+
       throw new Error(payload.error ?? "Transcription could not be started.");
     }
 
@@ -2172,6 +2443,88 @@ export function EditorShell({ debugProbe = null, project }) {
 
     transcriptionWaitersRef.current.delete(jobId);
     window.setTimeout(() => waiter.resolve(outcome), 0);
+  };
+
+  const refreshCreditBalance = async () => {
+    const payload = await fetchCreditBalancePayload();
+
+    setCreditState({
+      balanceMinor: Number.isInteger(payload.balanceMinor) ? payload.balanceMinor : 0,
+      currency: payload.currency ?? "GBP",
+      enabled: payload.enabled === true,
+      status: "ready",
+    });
+  };
+
+  const handleUnlockSubmit = async (event) => {
+    event.preventDefault();
+
+    setUnlockStatus("submitting");
+    setUnlockMessage("");
+
+    try {
+      const response = await fetch("/api/credits/unlock", {
+        body: JSON.stringify({ password: unlockPassword }),
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unlock failed.");
+      }
+
+      setUnlockPassword("");
+      setUnlockMessage("Generation unlocked.");
+      setUnlockStatus("success");
+    } catch (error) {
+      setUnlockStatus("error");
+      setUnlockMessage(
+        error instanceof Error ? error.message : "Unlock failed.",
+      );
+    }
+  };
+
+  const handleTopUpSubmit = async (event) => {
+    event.preventDefault();
+
+    const amountMinor = parseGbpInputToMinor(topUpAmount);
+
+    if (amountMinor == null) {
+      setTopUpStatus("error");
+      setTopUpMessage("Enter an amount like 5.00.");
+      return;
+    }
+
+    setTopUpStatus("submitting");
+    setTopUpMessage("");
+
+    try {
+      const response = await fetch("/api/credits/checkout", {
+        body: JSON.stringify({ amountMinor }),
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || !payload.checkoutUrl) {
+        throw new Error(payload.error ?? "Checkout could not be started.");
+      }
+
+      window.location.href = payload.checkoutUrl;
+    } catch (error) {
+      setTopUpStatus("error");
+      setTopUpMessage(
+        error instanceof Error ? error.message : "Checkout could not be started.",
+      );
+      await refreshCreditBalance().catch(() => {});
+    }
   };
 
   // Apply a completed auto-lyrics result by replacing all lines with the
@@ -2220,7 +2573,7 @@ export function EditorShell({ debugProbe = null, project }) {
       projectStateRef.current = nextProject;
       return nextProject;
     });
-    setSelectedTimingLineId(getDefaultTimingLineId(nextLines));
+    setSelectedTimingLineId(null);
     setTimingDrafts({});
     setTimingNotice({
       message: timingSummary.timedCount > 0 ? timingSummary.message : "",
@@ -2334,6 +2687,8 @@ export function EditorShell({ debugProbe = null, project }) {
 
     pipelineRunInFlightRef.current = true;
     let runningPhase = null;
+    const pipelineRunId = crypto.randomUUID();
+    const finalPhase = phasesToRun.at(-1);
 
     try {
       for (const phase of phasesToRun) {
@@ -2385,7 +2740,12 @@ export function EditorShell({ debugProbe = null, project }) {
           lines: currentProject.lines,
           otherLanguage: otherSourceLanguage.trim(),
           phase,
+          pipelineRunId,
+          save: saveGeneration,
+          saveOnCompletion: phase === finalPhase,
           sourceLanguage,
+          // REP-403 / D-C: project meta title is the user-entered public card title.
+          title: currentProject.meta?.title ?? "",
         });
 
         beginTranscriptionTracking(jobId, phase);
@@ -2716,6 +3076,90 @@ export function EditorShell({ debugProbe = null, project }) {
     }
   };
 
+  const handleOpenYoutubeModal = () => {
+    if (!youtubeAudioEnabled) {
+      return;
+    }
+
+    if (!youtubeUrl.trim()) {
+      setYoutubeConfigError("Enter a YouTube URL.");
+      return;
+    }
+
+    setYoutubeConfigError("");
+    setIsYoutubeModalOpen(true);
+  };
+
+  const handleYoutubeSegmentComplete = (asset) => {
+    const durationSec = Number(asset?.durationSec);
+
+    if (!asset?.assetId || !Number.isFinite(durationSec) || durationSec <= 0) {
+      setAudioUpload({
+        asset: null,
+        message: "YouTube import completed without a usable audio asset.",
+        status: "error",
+      });
+      return;
+    }
+
+    appliedTranscribeJobIdRef.current = null;
+    const currentProject = projectStateRef.current;
+    const nextAsset = {
+      ...asset,
+      durationSec,
+      kind: "audio",
+    };
+    const nextAudio = normalizeAudioSection({
+      ...currentProject.audio,
+      duration: durationSec,
+      endOffset: null,
+      name: asset.name,
+      startOffset: 0,
+    });
+    const { clampedCount, lines } = clampLineStartsToSection(
+      currentProject.lines,
+      nextAudio,
+    );
+
+    if (audioObjectUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(audioObjectUrl);
+    }
+
+    setProjectState({
+      ...currentProject,
+      audio: nextAudio,
+      lines,
+    });
+    setAudioUpload({
+      asset: nextAsset,
+      message: `${asset.name} added.`,
+      status: "success",
+    });
+    setTimingNotice(
+      clampedCount > 0
+        ? {
+            message: `${clampedCount} timed ${
+              clampedCount === 1 ? "line was" : "lines were"
+            } clamped inside the active section.`,
+            status: "danger",
+          }
+        : {
+            message: "",
+            status: "idle",
+          },
+    );
+    setAudioObjectUrl(buildSessionAssetUrl(asset.assetId));
+    setIsTransportPlaying(false);
+    setCurrentAudioTime(0);
+    setAutoFollowEnabled(true);
+    setSelectedTimingLineId(null);
+    setTimingDrafts({});
+    setTranscription(null);
+    setAutoLyricsState(createIdleAutoLyricsState());
+    setAutoTimingState(createIdleAutoTimingState());
+    setIsYoutubeModalOpen(false);
+  };
+
   useEffect(() => {
     // Only object URLs created from an uploaded File need revoking. Restored
     // sessions point audio playback at the server asset URL (/api/assets/...),
@@ -2842,10 +3286,41 @@ export function EditorShell({ debugProbe = null, project }) {
             } else {
               applyAutoLyricsResult(payload.result);
             }
+
+            // REP-201: clamp may zero the balance while still delivering work.
+            if (payload.balanceExhausted === true) {
+              const exhaustedMessage =
+                "Credit balance exhausted. Completed work was kept; further phases need a top-up.";
+
+              if (phase === "time") {
+                setTimingNotice({
+                  message: exhaustedMessage,
+                  status: "success",
+                });
+              } else {
+                // Apply handlers also write lyric state; merge after they settle.
+                window.setTimeout(() => {
+                  setAutoLyricsState((currentState) => ({
+                    ...currentState,
+                    detail: exhaustedMessage,
+                    message: currentState.message
+                      ? `${currentState.message} ${exhaustedMessage}`
+                      : exhaustedMessage,
+                  }));
+                }, 0);
+              }
+
+              void refreshCreditBalance().catch(() => {});
+            }
           }
 
           settle({ appliedJobId: jobId, status: "done" });
-          resolveTranscriptionWaiter(jobId, { phase, status: "done" });
+          resolveTranscriptionWaiter(jobId, {
+            balanceExhausted: payload.balanceExhausted === true,
+            phase,
+            status: "done",
+            writeOffMinor: payload.writeOffMinor ?? 0,
+          });
           return;
         }
 
@@ -2915,7 +3390,7 @@ export function EditorShell({ debugProbe = null, project }) {
       const restoredProject = cloneProject(restored.project);
 
       setProjectState(restoredProject);
-      setSelectedTimingLineId(getDefaultTimingLineId(restoredProject.lines));
+      setSelectedTimingLineId(null);
       setCurrentAudioTime(getInitialTransportTime(restoredProject));
 
       if (restored.audioAsset?.assetId) {
@@ -3240,7 +3715,7 @@ export function EditorShell({ debugProbe = null, project }) {
     setBackgroundUpload(createBackgroundUploadState(debugProbe.project.background));
     setCurrentAudioTime(getInitialTransportTime(debugProbe.project));
     setIsTransportPlaying(false);
-    setSelectedTimingLineId(getDefaultTimingLineId(debugProbe.project.lines));
+    setSelectedTimingLineId(null);
     setDebugMarkEvents([]);
     setDebugProbeRunStatus("idle");
     setDebugWaveSurferOnsets(null);
@@ -3300,7 +3775,7 @@ export function EditorShell({ debugProbe = null, project }) {
       setBackgroundUpload(createBackgroundUploadState(importedProject.background));
       setCurrentAudioTime(getInitialTransportTime(importedProject));
       setIsTransportPlaying(false);
-      setSelectedTimingLineId(getDefaultTimingLineId(importedProject.lines));
+      setSelectedTimingLineId(null);
       setActiveSection("lyrics");
       setTimingDrafts({});
       setAutoFollowEnabled(true);
@@ -3586,6 +4061,30 @@ export function EditorShell({ debugProbe = null, project }) {
               onClear: handleClearAudio,
               onLoadSample: handleLoadSample,
               onPickFile: () => audioInputRef.current?.click(),
+              youtube: {
+                enabled: youtubeAudioEnabled,
+                error: youtubeConfigError,
+                onOpen: handleOpenYoutubeModal,
+                onUrlChange: (value) => {
+                  setYoutubeUrl(value);
+                  if (youtubeConfigError) {
+                    setYoutubeConfigError("");
+                  }
+                },
+                url: youtubeUrl,
+              },
+            }}
+            credit={{
+              enabled: creditState.enabled,
+              onSaveGenerationChange: setSaveGeneration,
+              onUnlockPasswordChange: setUnlockPassword,
+              onUnlockSubmit: (event) => {
+                void handleUnlockSubmit(event);
+              },
+              saveGeneration,
+              unlockMessage,
+              unlockPassword,
+              unlockStatus,
             }}
             lyricsSource={{
               auto: autoLyricsState,
@@ -3724,6 +4223,14 @@ export function EditorShell({ debugProbe = null, project }) {
             }}
           />
         );
+      case "words":
+        return (
+          <div
+            aria-label="Word board controls"
+            className="board-tools-card"
+            data-board-tools-card
+          />
+        );
       default:
         return null;
     }
@@ -3740,10 +4247,19 @@ export function EditorShell({ debugProbe = null, project }) {
     audioUpload.status === "uploading" &&
     Boolean(audioUpload.asset?.assetId) &&
     !audioObjectUrl;
+  const appFrameClasses = [
+    "app-frame relative flex h-dvh flex-col overflow-hidden bg-[var(--page)] text-[var(--text)]",
+    showPreview ? "show-preview" : "",
+    showWordBoard ? "show-board" : "",
+    activeSection === "words" ? "words-tab-active" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const currentSheetSnap = SHEET_SNAPS[sheetSnapIndex] ?? SHEET_SNAPS[0];
 
   return (
     <EditorProvider value={editor}>
-    <div className="app-frame relative flex h-dvh flex-col overflow-hidden bg-[var(--page)] text-[var(--text)]">
+    <div className={appFrameClasses} data-snap={currentSheetSnap.key}>
       <div
         className="app-responsive mx-auto flex h-full w-full max-w-[1720px] flex-col lg:gap-3 lg:px-5 lg:py-4"
         style={
@@ -3754,6 +4270,18 @@ export function EditorShell({ debugProbe = null, project }) {
       >
         <EditorHeader
           artist={projectState.meta.artist}
+          credit={{
+            balanceMinor: creditState.balanceMinor,
+            enabled: creditState.enabled,
+            onTopUpAmountChange: setTopUpAmount,
+            onTopUpSubmit: (event) => {
+              void handleTopUpSubmit(event);
+            },
+            status: creditState.status,
+            topUpAmount,
+            topUpMessage,
+            topUpStatus,
+          }}
           onTogglePreview={handleTogglePreview}
           onToggleWordBoard={handleToggleWordBoard}
           showPreview={showPreview}
@@ -3762,7 +4290,7 @@ export function EditorShell({ debugProbe = null, project }) {
         />
 
         {!sectionWithinLimit || showGlobalJsonNotice ? (
-        <div className="absolute inset-x-3 top-[4.25rem] z-30 space-y-2 lg:static lg:inset-auto lg:space-y-3">
+        <div className="layout-notices absolute inset-x-3 top-[4.25rem] z-30 space-y-2 lg:static lg:inset-auto lg:space-y-3">
           {!sectionWithinLimit ? (
             <div className="rounded-2xl border border-[var(--danger)]/35 bg-[var(--danger-soft)] px-4 py-2.5 text-sm text-[var(--danger)]">
               Export stays blocked: the selected section is{" "}
@@ -3813,25 +4341,34 @@ export function EditorShell({ debugProbe = null, project }) {
           </section>
 
           <section
-            className="side-panel relative z-20 -mt-[18vh] flex flex-none flex-col overflow-visible rounded-t-[1.5rem] border-t border-[var(--border)] bg-[var(--shell)] shadow-[0_-20px_60px_rgba(28,26,24,0.18)] backdrop-blur-xl lg:static lg:mt-0 lg:min-h-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:shadow-[var(--shadow-panel)] lg:backdrop-blur-none xl:w-[420px] lg:w-[420px]"
-            style={{ minHeight: SHEET_SNAPS[sheetSnapIndex].height }}
+            className="side-panel flex flex-none flex-col lg:static lg:mt-0 lg:min-h-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-[var(--border)] lg:bg-[var(--shell)] lg:shadow-[var(--shadow-panel)] lg:backdrop-blur-none xl:w-[420px] lg:w-[420px]"
           >
             <button
-              className="flex flex-none flex-col items-center gap-1 pb-1 pt-2.5 lg:hidden"
-              onClick={() =>
-                setSheetSnapIndex((index) => (index + 1) % SHEET_SNAPS.length)
-              }
+              aria-label={currentSheetSnap.label}
+              className="sheet-handle lg:hidden"
+              onClick={() => {
+                if (activeSection === "words" && isNarrowWorkspace) {
+                  return;
+                }
+                setSheetSnapIndex((index) => (index + 1) % SHEET_SNAPS.length);
+              }}
               type="button"
             >
-              <span className="h-1 w-10 rounded-full bg-[var(--border-strong)]" />
-              <span className="text-[9px] uppercase tracking-[0.3em] text-[var(--muted)]">
-                {SHEET_SNAPS[sheetSnapIndex].label}
-              </span>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path
+                  d="m6 13 6-6 6 6M6 17l6-6 6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                />
+              </svg>
             </button>
 
             <EditorTabBar
               activeSection={activeSection}
-              onSelectSection={setActiveSection}
+              onSelectSection={handleSelectSection}
             />
 
             <input
@@ -3867,6 +4404,7 @@ export function EditorShell({ debugProbe = null, project }) {
 
             <div
               className="editor-panel-content overflow-x-hidden px-4 pb-4 pt-3 lg:no-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-3.5 lg:py-4"
+              data-active-tab={activeSection}
               onTouchMove={handleManualTimingScroll}
               onWheel={handleManualTimingScroll}
               ref={editorScrollRef}
@@ -3876,10 +4414,11 @@ export function EditorShell({ debugProbe = null, project }) {
           </section>
         </main>
 
-        <section className="flex-none">
+        <section className="transport-slot flex-none">
           <WaveformTimeline
             activeLineId={activeTimingLineId}
             audio={projectState.audio}
+            lyricSeekTime={lyricSeekTime}
             audioAssetDurationSec={
               audioUpload.asset?.durationSec ?? projectState.audio.duration
             }
@@ -3893,9 +4432,13 @@ export function EditorShell({ debugProbe = null, project }) {
             lines={projectState.lines}
             onDurationChange={handleWaveformDuration}
             onMark={handleMarkCurrentLine}
+            onTogglePreview={handleTogglePreview}
+            onToggleWordBoard={handleToggleWordBoard}
             onPlayingChange={setIsTransportPlaying}
             onTimeChange={setCurrentAudioTime}
             onWaveformPeaks={handleWaveformPeaks}
+            showPreview={showPreview}
+            showWordBoard={showWordBoard}
           />
         </section>
 
@@ -3978,6 +4521,15 @@ export function EditorShell({ debugProbe = null, project }) {
           statusNote: exportState.statusNote,
         }}
       />
+
+      {isYoutubeModalOpen ? (
+        <YoutubeSegmentModal
+          isOpen={isYoutubeModalOpen}
+          onClose={() => setIsYoutubeModalOpen(false)}
+          onComplete={handleYoutubeSegmentComplete}
+          sourceUrl={youtubeUrl}
+        />
+      ) : null}
     </div>
     </EditorProvider>
   );

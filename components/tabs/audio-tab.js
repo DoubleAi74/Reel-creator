@@ -91,7 +91,7 @@ function getRunButtonLabel(isBusy, selectedCount) {
   return `Run ${selectedCount} part${selectedCount === 1 ? "" : "s"}`;
 }
 
-export function AudioTab({ audio, lyricsSource, project }) {
+export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
   const {
     isLoadingSample,
     objectUrl,
@@ -100,6 +100,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
     onLoadSample,
     onPickFile,
     upload,
+    youtube = {},
   } = audio;
 
   const {
@@ -153,7 +154,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
   return (
     <div className="grid gap-4">
       <div
-        className="rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
+        className="upload-card rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
         onDragOver={(event) => {
           event.preventDefault();
         }}
@@ -162,24 +163,24 @@ export function AudioTab({ audio, lyricsSource, project }) {
           onFile(event.dataTransfer.files?.[0] ?? null);
         }}
       >
-        <p className="text-sm font-medium text-[var(--text)]">
+        <h2 className="text-sm font-medium text-[var(--text)]">
           Drag an MP3 here or choose one from your computer
-        </p>
+        </h2>
         <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
           Up to 25 MB. The uploaded track drives the persistent waveform dock,
           timing workflow, and later export.
         </p>
 
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+        <div className="button-row mt-5 flex flex-wrap items-center justify-center gap-3">
           <button
-            className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
+            className="pill primary rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
             onClick={() => onPickFile()}
             type="button"
           >
             Choose MP3
           </button>
           <button
-            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isLoadingSample}
             onClick={() => {
               void onLoadSample();
@@ -189,6 +190,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
             {isLoadingSample ? "Loading sample…" : "Load sample"}
           </button>
           <StatusBadge
+            className="status-badge"
             tone={
               upload.status === "success"
                 ? "success"
@@ -200,10 +202,40 @@ export function AudioTab({ audio, lyricsSource, project }) {
             {upload.status}
           </StatusBadge>
         </div>
+
+        {youtube.enabled ? (
+          <div className="youtube-import mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <label className="field-label text-left">
+              <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
+                YouTube URL
+              </span>
+              <input
+                className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                onChange={(event) => youtube.onUrlChange?.(event.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                type="url"
+                value={youtube.url ?? ""}
+              />
+            </label>
+            <button
+              className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!String(youtube.url ?? "").trim()}
+              onClick={() => youtube.onOpen?.()}
+              type="button"
+            >
+              Choose segment
+            </button>
+            {youtube.error ? (
+              <p className="text-left text-sm leading-6 text-[var(--danger)] sm:col-span-2">
+                {youtube.error}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <p
-        className={`truncate rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
+        className={`track-status truncate rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
           upload.status === "error"
             ? "text-[var(--danger)]"
             : "text-[var(--muted)]"
@@ -223,8 +255,8 @@ export function AudioTab({ audio, lyricsSource, project }) {
         </span>
       </p>
 
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="auto-card rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
+        <div className="auto-top flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-[var(--muted)]">Auto-lyrics</p>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
@@ -233,6 +265,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
             </p>
           </div>
           <StatusBadge
+            className="status-badge"
             tone={
               visibleStatus === "running"
                 ? "accent"
@@ -247,9 +280,9 @@ export function AudioTab({ audio, lyricsSource, project }) {
           </StatusBadge>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="auto-grid mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div className="grid gap-3">
-            <label className="block">
+            <label className="field-label block">
               <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
                 Source language
               </span>
@@ -288,7 +321,7 @@ export function AudioTab({ audio, lyricsSource, project }) {
           </div>
 
           <button
-            className="min-w-[8.5rem] rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+            className="run-button min-w-[8.5rem] rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
             disabled={!canRunSelectedPipeline}
             onClick={() => {
               void pipeline?.onRun?.();
@@ -300,15 +333,66 @@ export function AudioTab({ audio, lyricsSource, project }) {
           </button>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline presets">
+        {credit?.enabled ? (
+          <div className="credit-generation-controls mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+            <label className="inline-flex items-center gap-2 text-sm font-semibold">
+              <input
+                checked={Boolean(credit.saveGeneration)}
+                className="h-4 w-4 accent-[var(--accent)]"
+                onChange={(event) =>
+                  credit.onSaveGenerationChange?.(event.target.checked)
+                }
+                type="checkbox"
+              />
+              Save generation
+            </label>
+
+            <form
+              className="ml-auto flex items-center gap-2"
+              onSubmit={(event) => credit.onUnlockSubmit?.(event)}
+            >
+              <input
+                aria-label="Generation password"
+                className="min-h-9 w-40 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm outline-none focus:border-[var(--accent)]"
+                onChange={(event) =>
+                  credit.onUnlockPasswordChange?.(event.target.value)
+                }
+                placeholder="Password"
+                type="password"
+                value={credit.unlockPassword ?? ""}
+              />
+              <button
+                className="min-h-9 whitespace-nowrap rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 text-xs font-semibold text-[var(--text)] transition hover:bg-[var(--surface)] disabled:opacity-60"
+                disabled={credit.unlockStatus === "submitting"}
+                type="submit"
+              >
+                {credit.unlockStatus === "submitting" ? "Unlocking…" : "Unlock"}
+              </button>
+            </form>
+
+            {credit.unlockMessage ? (
+              <p
+                className={`w-full text-xs ${
+                  credit.unlockStatus === "error"
+                    ? "text-[var(--danger)]"
+                    : "text-[var(--muted)]"
+                }`}
+              >
+                {credit.unlockMessage}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="phase-row mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline presets">
           {PIPELINE_PRESET_OPTIONS.map((option) => {
             const active = pipeline?.preset === option.preset;
 
             return (
               <button
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                className={`phase-chip rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
                   active
-                    ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
+                    ? "is-active border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
                     : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
                 }`}
                 disabled={pipelineBusy}

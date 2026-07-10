@@ -183,15 +183,20 @@ export function WaveformTimeline({
   audioSrc,
   cachedWaveformPeaks = null,
   currentTime,
+  lyricSeekTime = null,
   isAudioRestoring = false,
   isPlaying,
   isTimingActive,
   lines,
   onDurationChange,
   onMark,
+  onTogglePreview,
+  onToggleWordBoard,
   onPlayingChange,
   onTimeChange,
   onWaveformPeaks,
+  showPreview = false,
+  showWordBoard = false,
 }) {
   const containerRef = useRef(null);
   const waveSurferRef = useRef(null);
@@ -339,9 +344,6 @@ export function WaveformTimeline({
       // rebuffer-free seeks, so the preview (which is slaved to this clock)
       // stays locked to the music after mid-song seeks and ±2s jumps.
       backend: "WebAudio",
-      barGap: 2,
-      barRadius: 999,
-      barWidth: 2,
       container: containerRef.current,
       cursorColor: "#2C9B3F",
       dragToSeek: true,
@@ -350,8 +352,10 @@ export function WaveformTimeline({
       // it below centre. "auto" also adapts to the per-breakpoint padding.
       height: "auto",
       normalize: true,
-      progressColor: "rgba(44, 155, 63, 0.85)",
-      waveColor: "rgba(99, 91, 77, 0.32)",
+      // barHeight still scales amplitude for the continuous filled waveform.
+      barHeight: 0.7,
+      progressColor: "rgba(44, 155, 63, 0.72)",
+      waveColor: "rgba(99, 91, 77, 0.22)",
       url: audioSrc,
       ...(cachedWaveform
         ? {
@@ -533,22 +537,26 @@ export function WaveformTimeline({
 
     const nextTime = clampTimeToSection(currentTime, audio);
 
+    const isLyricSeek = lyricSeekTime !== null && lyricSeekTime === currentTime;
+
     // Only push EXTERNAL/programmatic `currentTime` changes into the engine; an
     // engine time echoed back through the parent is left alone so it can't fight
     // live playback. See lib/waveform-sync for the full rationale.
     if (
+      isLyricSeek ||
       shouldSeekEngineToCurrentTime({
         currentTime,
         engineTime: waveSurfer.getCurrentTime(),
         audio,
         emittedTimes: emittedTimesRef.current,
+        force: isLyricSeek,
       })
     ) {
       waveSurfer.setTime(nextTime);
     }
 
     lastClockFrameRef.current = getClockFrame(nextTime);
-  }, [audio, currentTime, status]);
+  }, [audio, currentTime, status, lyricSeekTime]);
 
   // Apply the playback rate to the engine. preservePitch keeps 0.5× from dropping an
   // octave. The rAF clock reads the engine's own time, so half-rate playback needs no
@@ -682,15 +690,15 @@ export function WaveformTimeline({
     sectionDuration > 0 ? currentSectionTime / sectionDuration : 0;
 
   return (
-    <div className="transport overflow-hidden border-t border-[var(--border)] bg-[var(--surface)] lg:rounded-[1.75rem] lg:border lg:border-[var(--border)] lg:bg-[var(--surface-2)]">
+    <div className="transport lg:rounded-[1.75rem] lg:border lg:border-[var(--border)] lg:bg-[var(--surface-2)]">
       <div className="transport-inner">
-      <div className="transport-wave-wrap px-4 pb-3 pt-2.5 lg:px-4 lg:pb-2 lg:pt-3">
+      <div className="transport-wave-wrap lg:px-4 lg:pb-2 lg:pt-3">
         <div className="relative">
           <div
             aria-busy={isWaveformBusy}
             className={`waveform waveform-surface ${
               hasReadyWaveform ? "is-wave-ready" : "is-wave-loading"
-            } relative overflow-hidden rounded-xl bg-[var(--surface)] px-2.5 py-2 lg:rounded-[1rem] lg:px-3 lg:py-2.5`}
+            } lg:rounded-[1rem] lg:px-3 lg:py-2.5`}
           >
             {/* Content-box wrapper: markers (CSS %) and the wavesurfer
                 waveform/cursor share this exact coordinate space. */}
@@ -746,20 +754,11 @@ export function WaveformTimeline({
         ) : null}
       </div>
 
-      <div className="transport-controls flex items-center gap-2 border-t border-[var(--border)] px-4 pb-5 pt-3 lg:flex-wrap lg:justify-between lg:gap-4 lg:px-4 lg:py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2 lg:flex-none lg:flex-wrap">
-          <button
-            aria-label="Rewind to section start"
-            className="rewind-button hidden rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:inline-flex"
-            disabled={!isReady}
-            onClick={() => jumpTo(startOffset)}
-            type="button"
-          >
-            ⏮ Rewind
-          </button>
+      <div className="transport-controls lg:flex-wrap lg:justify-between lg:gap-4 lg:px-4 lg:py-3">
+        <div className="transport-main-controls lg:flex-none lg:flex-wrap">
           <button
             aria-label="Jump to previous lyric"
-            className="nav-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[13px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
+            className="transport-button nav-button prev-button transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
             data-dir="prev"
             disabled={!isReady || previousLyricStart === null}
             onClick={() => jumpTo(previousLyricStart)}
@@ -771,17 +770,17 @@ export function WaveformTimeline({
           <button
             aria-label={isPlaying ? "Pause" : "Play"}
             aria-pressed={isPlaying}
-            className={`play-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:w-auto lg:gap-2 lg:rounded-full lg:bg-[var(--accent)] lg:px-5 lg:py-1.5 lg:text-sm lg:font-semibold lg:text-[var(--on-accent)] lg:hover:opacity-90 ${isPlaying ? "is-playing" : ""} ${isReady ? "" : "is-not-ready"}`}
+            className={`transport-button play-button transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:w-auto lg:gap-2 lg:rounded-full lg:bg-[var(--accent)] lg:px-5 lg:py-1.5 lg:text-sm lg:font-semibold lg:text-[var(--on-accent)] ${isPlaying ? "is-playing" : ""} ${isReady ? "" : "is-not-ready"}`}
             disabled={!isReady}
             onClick={togglePlayback}
             type="button"
           >
             <span aria-hidden>{isPlaying ? "❚❚" : "▶"}</span>
-            <span className="hidden lg:inline">{isPlaying ? "Pause" : "Play"}</span>
+            <span className="play-label hidden lg:inline">{isPlaying ? "Pause" : "Play"}</span>
           </button>
           <button
             aria-label="Jump to next lyric"
-            className="nav-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[13px] text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
+            className="transport-button nav-button next-button transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
             data-dir="next"
             disabled={!isReady || nextLyricStart === null}
             onClick={() => jumpTo(nextLyricStart)}
@@ -793,7 +792,7 @@ export function WaveformTimeline({
           <button
             aria-label={`Playback speed ${speed === 1 ? "normal" : "half"}`}
             aria-pressed={speed !== 1}
-            className="speed-button flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[var(--surface-2)] text-[11px] font-semibold text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
+            className="transport-button speed-button transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 lg:h-auto lg:w-auto lg:rounded-full lg:border lg:border-[var(--border)] lg:bg-[var(--surface)] lg:px-3 lg:py-1.5 lg:text-xs"
             disabled={!isReady}
             onClick={() => setSpeed((current) => (current === 1 ? 0.5 : 1))}
             title="Toggle half-speed playback (keeps pitch)"
@@ -804,7 +803,7 @@ export function WaveformTimeline({
           {isTimingActive ? (
             <button
               aria-label="Mark current lyric time"
-              className="mark-button flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] text-sm font-bold text-[var(--on-accent)] shadow-[0_8px_24px_rgba(251,191,36,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:h-auto lg:flex-none lg:border lg:border-[var(--accent)] lg:bg-[var(--surface-active)] lg:px-4 lg:py-1.5 lg:text-xs lg:font-semibold lg:uppercase lg:tracking-[0.18em] lg:text-[var(--accent)] lg:shadow-none lg:hover:bg-[var(--surface-hover)]"
+              className="mark-button flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] text-sm font-bold text-[var(--on-accent)] shadow-[0_8px_24px_rgba(251,191,36,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--surface-2)] disabled:text-[var(--muted)] lg:hidden lg:h-auto lg:flex-none lg:border lg:border-[var(--accent)] lg:bg-[var(--surface-active)] lg:px-4 lg:py-1.5 lg:text-xs lg:font-semibold lg:uppercase lg:tracking-[0.18em] lg:text-[var(--accent)] lg:shadow-none lg:hover:bg-[var(--surface-hover)]"
               disabled={!canMark}
               onClick={onMark}
               type="button"
@@ -816,6 +815,54 @@ export function WaveformTimeline({
               </span>
             </button>
           ) : null}
+        </div>
+
+        <div
+          className="transport-view-toggle hidden"
+          role="group"
+          aria-label="Show or hide the preview and word board"
+        >
+          <button
+            aria-label="Preview"
+            aria-pressed={showPreview}
+            className={showPreview ? "is-active" : ""}
+            data-view="preview"
+            data-wsview="preview"
+            onClick={onTogglePreview}
+            type="button"
+          >
+            <svg className="view-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <rect
+                x="6.5"
+                y="3"
+                width="11"
+                height="18"
+                rx="2.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path d="M11 9.2v5.6l4.4-2.8z" fill="currentColor" />
+            </svg>
+            <span className="view-label">Preview</span>
+          </button>
+          <button
+            aria-label="Word board"
+            aria-pressed={showWordBoard}
+            className={showWordBoard ? "is-active" : ""}
+            data-view="board"
+            data-wsview="board"
+            onClick={onToggleWordBoard}
+            type="button"
+          >
+            <svg className="view-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <rect x="4" y="5" width="7" height="5" rx="1.5" fill="currentColor" />
+              <rect x="13" y="5" width="7" height="5" rx="1.5" fill="currentColor" />
+              <rect x="4" y="14" width="7" height="5" rx="1.5" fill="currentColor" />
+              <rect x="13" y="14" width="7" height="5" rx="1.5" fill="currentColor" />
+            </svg>
+            <span className="view-label">Word board</span>
+          </button>
         </div>
 
         <div className="transport-time">

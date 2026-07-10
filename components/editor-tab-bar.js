@@ -5,7 +5,7 @@ import { SECTIONS } from "@/lib/editor-format";
 export function EditorTabBar({ activeSection, onSelectSection }) {
   return (
     <div className="panel-tabs flex flex-none flex-col gap-1.5 border-b border-[var(--border)] px-4 pb-2.5 pt-2 lg:px-3 lg:py-3">
-      <div className="no-scrollbar flex flex-wrap items-center gap-1.5">
+      <div className="tab-row no-scrollbar flex flex-wrap items-center gap-1.5">
         {SECTIONS.map((section) => {
           const selected = section.id === activeSection;
 
@@ -15,7 +15,7 @@ export function EditorTabBar({ activeSection, onSelectSection }) {
                 selected
                   ? "active-tab bg-[var(--accent)] text-[var(--on-accent)]"
                   : "tab-link text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-              }`}
+              } ${section.id === "words" ? "board-tools-tab hidden" : ""}`}
               aria-selected={selected}
               key={section.id}
               onClick={() => onSelectSection(section.id)}

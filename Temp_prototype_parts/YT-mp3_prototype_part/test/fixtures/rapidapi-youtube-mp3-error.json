@@ -1,0 +1,7 @@
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Required query parameter 'url' is not present.",
+  "instance": "/conversis/api/download"
+}

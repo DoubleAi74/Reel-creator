@@ -1,0 +1,317 @@
+{
+  "target": "app",
+  "authoritativeMockup": null,
+  "viewport": "390x844",
+  "browser": "chromium-headless",
+  "deviceScaleFactor": 1,
+  "uiState": "default",
+  "urlOrPath": "http://localhost:3000",
+  "note": "app at http://localhost:3000",
+  "timestamp": "2026-07-07T15:47:05.525Z",
+  "selectors": {
+    ".app-frame": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "styles": {
+        "position": "relative",
+        "top": "0px",
+        "height": "844px",
+        "minHeight": "0px",
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "zIndex": "auto",
+        "background": "rgb(240, 240, 234)",
+        "borderRadius": "0px"
+      }
+    },
+    ".app-responsive": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "styles": {
+        "position": "static",
+        "top": "auto",
+        "height": "844px",
+        "minHeight": "auto",
+        "overflow": "hidden auto",
+        "overflowY": "auto",
+        "zIndex": "auto",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    ".top-frame": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 122
+      },
+      "styles": {
+        "position": "absolute",
+        "top": "0px",
+        "height": "122px",
+        "minHeight": "0px",
+        "overflow": "visible",
+        "overflowY": "visible",
+        "zIndex": "30",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    ".work-area": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 108,
+        "width": 390,
+        "height": 736
+      },
+      "styles": {
+        "position": "relative",
+        "top": "0px",
+        "height": "736px",
+        "minHeight": "0px",
+        "overflow": "visible",
+        "overflowY": "visible",
+        "zIndex": "auto",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    ".workspace-panel": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 108,
+        "width": 390,
+        "height": 523.265625
+      },
+      "styles": {
+        "position": "static",
+        "top": "auto",
+        "height": "523.266px",
+        "minHeight": "auto",
+        "overflow": "visible",
+        "overflowY": "visible",
+        "zIndex": "auto",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    ".workspace-grid": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 108,
+        "width": 390,
+        "height": 523.265625
+      },
+      "styles": {
+        "position": "static",
+        "top": "auto",
+        "height": "523.266px",
+        "minHeight": "0px",
+        "overflow": "visible",
+        "overflowY": "visible",
+        "zIndex": "auto",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    ".preview-col": {
+      "present": true,
+      "rect": null,
+      "styles": {
+        "position": "relative",
+        "top": "auto",
+        "height": "auto",
+        "minHeight": "624.56px",
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "zIndex": "0",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    ".preview-screen": {
+      "present": true,
+      "rect": null,
+      "styles": {
+        "position": "relative",
+        "top": "auto",
+        "height": "523.28px",
+        "minHeight": "0px",
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "zIndex": "auto",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "24px"
+      }
+    },
+    ".wb-slot": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 108,
+        "width": 390,
+        "height": 523.265625
+      },
+      "styles": {
+        "position": "static",
+        "top": "auto",
+        "height": "523.266px",
+        "minHeight": "523.28px",
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "zIndex": "auto",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    ".side-panel": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 631.265625,
+        "width": 390,
+        "height": 211
+      },
+      "styles": {
+        "position": "relative",
+        "top": "0px",
+        "height": "211px",
+        "minHeight": "211px",
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "zIndex": "20",
+        "background": "rgb(253, 253, 252)",
+        "borderRadius": "24px"
+      }
+    },
+    ".sheet-handle": {
+      "present": true,
+      "rect": {
+        "x": 342,
+        "y": 645.265625,
+        "width": 34,
+        "height": 34
+      },
+      "styles": {
+        "position": "absolute",
+        "top": "13px",
+        "height": "34px",
+        "minHeight": "0px",
+        "overflow": "visible",
+        "overflowY": "visible",
+        "zIndex": "2",
+        "background": "rgb(255, 255, 255)",
+        "borderRadius": "999px"
+      }
+    },
+    ".transport": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 108
+      },
+      "styles": {
+        "position": "fixed",
+        "top": "0px",
+        "height": "108px",
+        "minHeight": "0px",
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "zIndex": "40",
+        "background": "rgb(255, 255, 255)",
+        "borderRadius": "0px"
+      }
+    },
+    ".transport-inner": {
+      "present": true,
+      "rect": {
+        "x": 14,
+        "y": 10,
+        "width": 362,
+        "height": 87
+      },
+      "styles": {
+        "position": "static",
+        "top": "auto",
+        "height": "87px",
+        "minHeight": "0px",
+        "overflow": "visible",
+        "overflowY": "visible",
+        "zIndex": "auto",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    ".editor-panel-content": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 687.265625,
+        "width": 390,
+        "height": 155
+      },
+      "styles": {
+        "position": "static",
+        "top": "auto",
+        "height": "155px",
+        "minHeight": "0px",
+        "overflow": "hidden auto",
+        "overflowY": "auto",
+        "zIndex": "auto",
+        "background": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px"
+      }
+    },
+    "[data-snap]": {
+      "present": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "styles": {
+        "position": "relative",
+        "top": "0px",
+        "height": "844px",
+        "minHeight": "0px",
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "zIndex": "auto",
+        "background": "rgb(240, 240, 234)",
+        "borderRadius": "0px"
+      }
+    }
+  },
+  "extra": {
+    "innerHeight": 844,
+    "scrollHeight": 844,
+    "appFrameRect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844,
+      "top": 0,
+      "right": 390,
+      "bottom": 844,
+      "left": 0
+    }
+  }
+}

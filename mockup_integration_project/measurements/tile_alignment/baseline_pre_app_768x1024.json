@@ -1,0 +1,46 @@
+{
+  "viewport": "768x1024",
+  "timestamp": "2026-07-08T06:04:26.278Z",
+  "data": {
+    "rootClass": "prototype-shell version-sketch is-page-mode",
+    "tileScale": "1",
+    "tileLayoutScale": "0.8742216687422167",
+    "wordRowStep": "calc(49.2px * 0.8742216687422167)",
+    "buttonRect": {
+      "x": 37,
+      "y": 147.046875,
+      "width": 59,
+      "height": 29.71875,
+      "top": 147.046875,
+      "bottom": 176.765625,
+      "left": 37,
+      "right": 96
+    },
+    "buttonText": "आजtoday",
+    "buttonStyles": {
+      "height": "29.7188px",
+      "minHeight": "29.7235px",
+      "width": "59px",
+      "fontSize": "15.736px",
+      "fontWeight": "760",
+      "lineHeight": "17.3096px"
+    },
+    "groupRect": {
+      "x": 37,
+      "y": 147.046875,
+      "width": 505.265625,
+      "height": 31.28125,
+      "top": 147.046875,
+      "bottom": 178.328125,
+      "left": 37,
+      "right": 542.265625
+    },
+    "groupStyles": {
+      "gap": "2.62266px",
+      "flexWrap": "nowrap"
+    },
+    "visualRowCount": 13,
+    "lineCount": 13,
+    "wrappedLineCount": 0
+  }
+}

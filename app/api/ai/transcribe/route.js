@@ -17,6 +17,13 @@ import {
   enqueueTranscribeJob,
   findInFlightTranscribeForSession,
 } from "@/lib/ai/transcribe-store";
+import { assertCanStartGeneration } from "@/lib/credits/credit-service";
+import { isCreditsEnabled } from "@/lib/credits/flags";
+import { checkGenerationRateLimit } from "@/lib/credits/rate-limit";
+import {
+  GENERATION_UNLOCK_COOKIE,
+  isGenerationUnlockCookieValid,
+} from "@/lib/credits/unlock-cookie";
 import { removeRenderJobsForSessions } from "@/lib/render/store";
 
 export const runtime = "nodejs";
@@ -59,6 +66,12 @@ function normalizeLines(lines) {
     .filter((line) => line.original.trim());
 }
 
+function normalizePipelineRunId(value) {
+  return typeof value === "string" && value.trim()
+    ? value.trim()
+    : crypto.randomUUID();
+}
+
 async function resolveSessionIdForAudioAsset(sessionIdFromCookie, audioAssetId) {
   if (sessionIdFromCookie) {
     try {
@@ -88,6 +101,75 @@ function appendSessionCookie(response, sessionId) {
   );
 }
 
+function getRequestIp(request) {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  return request.headers.get("x-real-ip")?.trim() ?? "";
+}
+
+function mapCreditGateError(error) {
+  if (error?.code === "PRICING_UNAVAILABLE") {
+    return NextResponse.json(
+      { error: "pricing_unavailable", model: error.details?.model },
+      { status: 500 },
+    );
+  }
+
+  if (error?.code === "INSUFFICIENT_BALANCE") {
+    return NextResponse.json(
+      {
+        balanceMinor: error.details?.balanceMinor,
+        error: "insufficient_balance",
+      },
+      { status: 402 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      error: "credits_unavailable",
+      message: error instanceof Error ? error.message : "Credits are unavailable.",
+    },
+    { status: 500 },
+  );
+}
+
+async function getCreditGateResponse({ cookieStore, phase, request, sessionId }) {
+  if (!isCreditsEnabled()) {
+    return null;
+  }
+
+  const unlockCookie = cookieStore.get(GENERATION_UNLOCK_COOKIE)?.value;
+
+  if (!isGenerationUnlockCookieValid(unlockCookie)) {
+    return NextResponse.json({ error: "locked" }, { status: 403 });
+  }
+
+  const rateLimit = checkGenerationRateLimit({
+    ip: getRequestIp(request),
+    sessionId,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited", retryAfter: rateLimit.retryAfter },
+      { status: 429 },
+    );
+  }
+
+  try {
+    await assertCanStartGeneration({ phase });
+  } catch (error) {
+    return mapCreditGateError(error);
+  }
+
+  return null;
+}
+
 export async function POST(request) {
   let payload;
 
@@ -110,6 +192,14 @@ export async function POST(request) {
     );
   }
 
+  // REP-407: reject traversal-shaped asset ids at intake.
+  if (!/^[a-zA-Z0-9_-]+$/.test(audioAssetId)) {
+    return NextResponse.json(
+      { error: "Invalid audio asset id." },
+      { status: 400 },
+    );
+  }
+
   const includeRomanization = payload?.includeRomanization === true;
   let phase;
 
@@ -118,6 +208,20 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json(
       { error: getPublicErrorMessage(error) },
+      { status: 400 },
+    );
+  }
+
+  // REP-201a: a single "full" job settles only after all OpenAI work, so Block A
+  // exhaustion cannot stop Block B mid-job. When credits are on, require the
+  // staged transcribe → enrich → time flow (already used by the client).
+  if (isCreditsEnabled() && phase === "full") {
+    return NextResponse.json(
+      {
+        error: "full_phase_disabled",
+        message:
+          "When credits are enabled, run staged phases: transcribe, enrich, then time.",
+      },
       { status: 400 },
     );
   }
@@ -171,7 +275,29 @@ export async function POST(request) {
     return respond({ jobId: inFlightJob.jobId }, 409);
   }
 
-  const job = createTranscribeJob({ assetId: audioAssetId, sessionId });
+  const creditGateResponse = await getCreditGateResponse({
+    cookieStore,
+    phase,
+    request,
+    sessionId,
+  });
+
+  if (creditGateResponse) {
+    return creditGateResponse;
+  }
+
+  const pipelineRunId = normalizePipelineRunId(payload?.pipelineRunId);
+  const save = payload?.save !== false;
+  const saveOnCompletion = payload?.saveOnCompletion === true;
+  const title =
+    typeof payload?.title === "string" ? payload.title.trim().slice(0, 180) : "";
+  const job = createTranscribeJob({
+    assetId: audioAssetId,
+    pipelineRunId,
+    save,
+    saveOnCompletion,
+    sessionId,
+  });
 
   enqueueTranscribeJob(job.jobId, () =>
     runTranscribeJob({
@@ -181,8 +307,12 @@ export async function POST(request) {
       jobId: job.jobId,
       lines: normalizeLines(payload?.lines),
       phase,
+      pipelineRunId,
+      save,
+      saveOnCompletion,
       sessionId,
       sourceLanguage,
+      title,
     }),
   );
 

@@ -101,9 +101,12 @@ async function measureTarget({ browser, target, viewportStr, state, appUrl }) {
       if (await btn.count()) { await btn.click(); await page.waitForTimeout(1600); }
     }
     if (state && state.includes("sheet")) {
-      const h = page.locator(".side-panel > button").first();
-      if (await h.count()) await h.click();
-      if (state.includes("full")) { await page.waitForTimeout(200); if (await h.count()) await h.click(); }
+      await page.evaluate(() => {
+        const app = document.querySelector(".app-frame");
+        if (app) app.dataset.snap = "full";
+        const handle = document.querySelector(".sheet-handle");
+        if (handle) handle.setAttribute("aria-label", "Collapse settings panel");
+      });
     }
     await page.waitForTimeout(400);
   }

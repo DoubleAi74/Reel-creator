@@ -6,7 +6,8 @@
 // gloss is missing (P1/P3). Selection can be controlled (editor context, P6) or
 // internal (standalone demo / tests).
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import "./word-board.css";
 import { useWordBoard } from "./use-word-board";
@@ -65,6 +66,7 @@ function LineRow({
       }`}
       style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
       data-line-id={line.id}
+      data-source-line-id={line.sourceId ?? undefined}
       data-line-number={line.number}
       onPointerOver={() => onHover(line.id)}
       onPointerOut={() => onHover(null)}
@@ -193,12 +195,110 @@ function BoardControls({
   );
 }
 
+function BoardToolsStrip({
+  className,
+  ready,
+  selectedWord,
+  showRoman,
+  followAudioEnabled,
+  canFollowAudio,
+  canDecreaseSize,
+  canIncreaseSize,
+  tileStep,
+  onToggleRoman,
+  onToggleFollowAudio,
+  onStepSize,
+}) {
+  return (
+    <div className={className}>
+      {/* Empty (outline-only) until measured so the translation box shows
+          in the initial skeleton; populates once the words are revealed. */}
+      <SelectionPanel word={ready ? selectedWord : null} />
+      <BoardControls
+        showRoman={showRoman}
+        followAudioEnabled={followAudioEnabled}
+        canFollowAudio={canFollowAudio}
+        canDecreaseSize={canDecreaseSize}
+        canIncreaseSize={canIncreaseSize}
+        tileStep={tileStep}
+        onToggleRoman={onToggleRoman}
+        onToggleFollowAudio={onToggleFollowAudio}
+        onStepSize={onStepSize}
+      />
+    </div>
+  );
+}
+
+function BoardPageNav({
+  canPage,
+  currentPage,
+  pageCount,
+  showRefollowButton,
+  onPreviousPage,
+  onRefollow,
+  onNextPage,
+}) {
+  return (
+    <div className="board-page-nav" aria-label="Word board page controls">
+      <button
+        className="board-page-button"
+        type="button"
+        data-board-page="prev"
+        aria-label={`Previous word page (${currentPage + 1} of ${pageCount})`}
+        disabled={!canPage}
+        onClick={onPreviousPage}
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="m15 6-6 6 6 6"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.4"
+          />
+        </svg>
+      </button>
+      {showRefollowButton ? (
+        <button
+          className="board-page-refollow-button"
+          type="button"
+          aria-label="Re-follow current audio line"
+          onClick={onRefollow}
+        >
+          Re-follow
+        </button>
+      ) : null}
+      <button
+        className="board-page-button"
+        type="button"
+        data-board-page="next"
+        aria-label={`Next word page (${currentPage + 1} of ${pageCount})`}
+        disabled={!canPage}
+        onClick={onNextPage}
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="m9 6 6 6-6 6"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.4"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export function WordBoard({
   lines,
   selectedWordId,
   onSelectWord,
   currentTime = 0,
   followAudioResetKey = null,
+  boardToolsPortalSelector = null,
 }) {
   const board = useWordBoard(lines, {
     currentTime,
@@ -213,9 +313,14 @@ export function WordBoard({
     getWordRows,
     getLineMinHeight,
     visibleLines,
+    isPagedMode,
+    currentPage,
+    pageCount,
+    canPage,
     hoveredLineId,
     setHoveredLineId,
     activeDisplayLineId,
+    activeSourceLineId,
     canFollowAudio,
     followAudioEnabled,
     followScrollPaused,
@@ -229,6 +334,8 @@ export function WordBoard({
     toggleRoman,
     toggleFollowAudio,
     handleRefollow,
+    goToPreviousPage,
+    goToNextPage,
     handleStageScroll,
   } = board;
 
@@ -256,6 +363,34 @@ export function WordBoard({
 
   const selectedWord = activeSelectedId ? wordsById.get(activeSelectedId) ?? null : null;
   const selectedLineId = selectedWord?.lineId ?? null;
+  const [boardToolsPortalTarget, setBoardToolsPortalTarget] = useState(null);
+
+  useEffect(() => {
+    if (!boardToolsPortalSelector || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const updatePortalTarget = () => {
+      const nextTarget = document.querySelector(boardToolsPortalSelector);
+      // This state mirrors whether the shell's Words card is mounted.
+      setBoardToolsPortalTarget((currentTarget) =>
+        currentTarget === nextTarget ? currentTarget : nextTarget,
+      );
+    };
+
+    updatePortalTarget();
+
+    if (typeof MutationObserver !== "function") {
+      return undefined;
+    }
+
+    const observer = new MutationObserver(updatePortalTarget);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [boardToolsPortalSelector]);
 
   const handleSelect = (word) => {
     // Toggle: clicking the selected word clears it (prototype behavior).
@@ -266,14 +401,72 @@ export function WordBoard({
       setInternalSelectedId(nextId);
     }
   };
+  const clearSelection = () => {
+    if (controlled) {
+      onSelectWord(null);
+    } else {
+      setInternalSelectedId(null);
+    }
+  };
+  const handlePreviousPage = () => {
+    if (!canPage) {
+      return;
+    }
+    clearSelection();
+    goToPreviousPage();
+  };
+  const handleNextPage = () => {
+    if (!canPage) {
+      return;
+    }
+    clearSelection();
+    goToNextPage();
+  };
+  const boardToolsStrip = (
+    <BoardToolsStrip
+      className="pager-strip"
+      ready={ready}
+      selectedWord={selectedWord}
+      showRoman={showRoman}
+      followAudioEnabled={followAudioEnabled}
+      canFollowAudio={canFollowAudio}
+      canDecreaseSize={canDecreaseSize}
+      canIncreaseSize={canIncreaseSize}
+      tileStep={tileStep}
+      onToggleRoman={toggleRoman}
+      onToggleFollowAudio={toggleFollowAudio}
+      onStepSize={stepTileScale}
+    />
+  );
 
   return (
     <div className="wb" ref={hostRef}>
+      {boardToolsPortalTarget
+        ? createPortal(
+            <BoardToolsStrip
+              className="board-tools-layout"
+              ready={ready}
+              selectedWord={selectedWord}
+              showRoman={showRoman}
+              followAudioEnabled={followAudioEnabled}
+              canFollowAudio={canFollowAudio}
+              canDecreaseSize={canDecreaseSize}
+              canIncreaseSize={canIncreaseSize}
+              tileStep={tileStep}
+              onToggleRoman={toggleRoman}
+              onToggleFollowAudio={toggleFollowAudio}
+              onStepSize={stepTileScale}
+            />,
+            boardToolsPortalTarget,
+          )
+        : null}
       {/* The frame is contain-fit by CSS and can paint immediately. The
           scale-sensitive lyric rows stay hidden until the client measurement
           pass lands, so the first visible words already have their final size. */}
       <section
-        className={`prototype-shell version-sketch is-scroll-mode${
+        className={`prototype-shell version-sketch ${
+          isPagedMode ? "is-page-mode" : "is-scroll-mode"
+        }${
           showRoman ? " show-inline-roman" : ""
         }`}
         aria-busy={!ready}
@@ -286,16 +479,6 @@ export function WordBoard({
             ref={stageRef}
             onScroll={handleStageScroll}
           >
-            {showRefollowButton ? (
-              <button
-                className="refollow-button"
-                type="button"
-                aria-label="Re-follow current audio line"
-                onClick={handleRefollow}
-              >
-                re-follow
-              </button>
-            ) : null}
             <div
               className="line-stack"
               style={ready ? undefined : { visibility: "hidden" }}
@@ -307,7 +490,11 @@ export function WordBoard({
                   selectedWordId={activeSelectedId}
                   selectedLineId={selectedLineId}
                   hovered={hoveredLineId === line.id}
-                  followActive={activeDisplayLineId === line.id}
+                  followActive={
+                    activeSourceLineId
+                      ? line.sourceId === activeSourceLineId
+                      : activeDisplayLineId === line.id
+                  }
                   getTileWidth={getTileWidth}
                   getWordRows={getWordRows}
                   getLineMinHeight={getLineMinHeight}
@@ -318,22 +505,26 @@ export function WordBoard({
               ))}
             </div>
           </div>
-          <div className="pager-strip">
-            {/* Empty (outline-only) until measured so the translation box shows
-                in the initial skeleton; populates once the words are revealed. */}
-            <SelectionPanel word={ready ? selectedWord : null} />
-            <BoardControls
-              showRoman={showRoman}
-              followAudioEnabled={followAudioEnabled}
-              canFollowAudio={canFollowAudio}
-              canDecreaseSize={canDecreaseSize}
-              canIncreaseSize={canIncreaseSize}
-              tileStep={tileStep}
-              onToggleRoman={toggleRoman}
-              onToggleFollowAudio={toggleFollowAudio}
-              onStepSize={stepTileScale}
-            />
-          </div>
+          {showRefollowButton && !isPagedMode ? (
+            <button
+              className="refollow-button"
+              type="button"
+              aria-label="Re-follow current audio line"
+              onClick={handleRefollow}
+            >
+              re-follow
+            </button>
+          ) : null}
+          <BoardPageNav
+            canPage={canPage}
+            currentPage={currentPage}
+            pageCount={pageCount}
+            showRefollowButton={isPagedMode && showRefollowButton}
+            onPreviousPage={handlePreviousPage}
+            onRefollow={handleRefollow}
+            onNextPage={handleNextPage}
+          />
+          {boardToolsStrip}
         </div>
       </section>
     </div>

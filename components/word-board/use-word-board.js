@@ -12,21 +12,26 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import {
+  buildPageLinesByHeight,
   buildScrollLines,
   clamp,
   COMPACT_DESKTOP_MEDIA_QUERY,
   DEFAULT_BOARD_SCALE,
+  DESKTOP_LYRIC_LINE_STEP,
+  DESKTOP_LYRIC_LINE_STEP_ROMAN,
   estimateWrappedLineHeight,
   fitLayoutScale,
+  getTileScaleDefault,
+  getTileScaleLimits,
   measureBoardMetrics,
   measureTileWidth,
+  MOBILE_LYRIC_LINE_STEP,
+  MOBILE_LYRIC_LINE_STEP_ROMAN,
   MOBILE_MEDIA_QUERY,
   prepareBoardLines,
   SKETCH_IDEAL_BOARD_WIDTH,
   splitWordsIntoRows,
   stageContentWidth,
-  TILE_SCALE_MAX,
-  TILE_SCALE_MIN,
   TILE_SCALE_STEP,
 } from "@/lib/word-board";
 import {
@@ -40,6 +45,8 @@ function matchesQuery(query) {
   }
   return window.matchMedia(query).matches;
 }
+
+const NARROW_WORKSPACE_MEDIA_QUERY = MOBILE_MEDIA_QUERY;
 
 // Canvas-backed rendered-text measurement (P2). Created in an effect (not during
 // render) and stored in state; until then the heuristic fallback applies.
@@ -74,7 +81,8 @@ export function useWordBoard(rawLines, options = {}) {
   const programmaticScrollRef = useRef(false);
   const pendingScrollTopRef = useRef(0);
 
-  const [tileScale, setTileScale] = useState(1);
+  const [tileScale, setTileScale] = useState(() => getTileScaleDefault(false));
+  const [page, setPage] = useState(0);
   const [showRoman, setShowRoman] = useState(false);
   const [followAudioEnabled, setFollowAudioEnabled] = useState(false);
   const [followScrollPaused, setFollowScrollPaused] = useState(false);
@@ -82,17 +90,21 @@ export function useWordBoard(rawLines, options = {}) {
   // Lazily create the canvas measurer once (client only; null under SSR).
   const [measureText] = useState(() => createTextMeasurer());
   const [stageWidth, setStageWidth] = useState(null);
+  const [stageHeight, setStageHeight] = useState(null);
   // Inline tile widths are only applied after mount so SSR and the first client
   // render agree (the canvas measurer would otherwise produce different widths
   // than SSR's heuristic → hydration mismatch).
   const [hydrated, setHydrated] = useState(false);
   const [metrics, setMetrics] = useState(() => ({
     boardWidth: SKETCH_IDEAL_BOARD_WIDTH,
+    boardHeight: SKETCH_IDEAL_BOARD_WIDTH / (1094 / 922),
     boardScale: DEFAULT_BOARD_SCALE,
     isMobile: false,
+    isNarrow: false,
     isCompactDesktop: false,
     hostWidth: SKETCH_IDEAL_BOARD_WIDTH,
   }));
+  const lastIsMobileRef = useRef(false);
 
   const boardLines = useMemo(() => prepareBoardLines(rawLines), [rawLines]);
 
@@ -102,20 +114,36 @@ export function useWordBoard(rawLines, options = {}) {
     const slot = host?.parentElement || host;
     const rect = slot?.getBoundingClientRect?.() ?? {};
     const next = measureBoardMetrics(rect);
+    const nextIsMobile = matchesQuery(MOBILE_MEDIA_QUERY);
+    const previousIsMobile = lastIsMobileRef.current;
     setMetrics({
       boardWidth: next.boardWidth,
+      boardHeight: next.boardHeight,
       boardScale: next.boardScale,
-      isMobile: matchesQuery(MOBILE_MEDIA_QUERY),
+      isMobile: nextIsMobile,
+      isNarrow: matchesQuery(NARROW_WORKSPACE_MEDIA_QUERY),
       isCompactDesktop: matchesQuery(COMPACT_DESKTOP_MEDIA_QUERY),
       hostWidth: host?.getBoundingClientRect?.().width || next.boardWidth,
     });
+    setTileScale((current) => {
+      const limits = getTileScaleLimits(nextIsMobile);
+      const nextScale =
+        nextIsMobile !== previousIsMobile
+          ? getTileScaleDefault(nextIsMobile)
+          : clamp(current, limits.min, limits.max);
+      return nextScale === current ? current : nextScale;
+    });
+    lastIsMobileRef.current = nextIsMobile;
 
     const stage = stageRef.current;
     if (stage && stage.clientWidth > 0) {
       const style = window.getComputedStyle(stage);
       const padX =
         parseFloat(style.paddingLeft || "0") + parseFloat(style.paddingRight || "0");
+      const padY =
+        parseFloat(style.paddingTop || "0") + parseFloat(style.paddingBottom || "0");
       setStageWidth(Math.max(120, stage.clientWidth - padX));
+      setStageHeight(Math.max(96, stage.clientHeight - padY));
     }
   }, []);
 
@@ -148,6 +176,10 @@ export function useWordBoard(rawLines, options = {}) {
 
   // ---- Layout (pure, render path) ----
   const availableWidth = stageWidth ?? stageContentWidth(metrics);
+  const tileScaleLimits = useMemo(
+    () => getTileScaleLimits(metrics.isMobile),
+    [metrics.isMobile],
+  );
 
   const fittedLayoutScale = useMemo(() => {
     const fittedBaseScale = fitLayoutScale(boardLines, {
@@ -159,18 +191,63 @@ export function useWordBoard(rawLines, options = {}) {
     });
     return fittedBaseScale * tileScale;
   }, [availableWidth, boardLines, measureText, metrics, tileScale]);
-  const tileSizeRatio = tileScale / TILE_SCALE_MAX;
+  const layoutScale = fittedLayoutScale;
+  const tileSizeRatio = tileScale / tileScaleLimits.max;
+  const allDisplayLines = useMemo(() => buildScrollLines(boardLines), [boardLines]);
 
-  const visibleLines = useMemo(() => buildScrollLines(boardLines), [boardLines]);
+  const isPagedMode = metrics.isNarrow;
+  const pageData = useMemo(() => {
+    if (!isPagedMode) {
+      return {
+        lines: allDisplayLines,
+        page: 0,
+        pageCount: 1,
+        sourceLinePageMap: new Map(),
+        start: 0,
+      };
+    }
+
+    return buildPageLinesByHeight(boardLines, {
+      page,
+      availableHeight: stageHeight,
+      availableWidth,
+      boardScale: metrics.boardScale,
+      boardWidth: metrics.boardWidth,
+      isCompactDesktop: metrics.isCompactDesktop,
+      isMobile: metrics.isMobile,
+      measureText,
+      showRoman,
+      tileSizeRatio,
+      tileScale: layoutScale,
+    });
+  }, [
+    availableWidth,
+    allDisplayLines,
+    boardLines,
+    isPagedMode,
+    layoutScale,
+    measureText,
+    metrics.boardScale,
+    metrics.boardWidth,
+    metrics.isCompactDesktop,
+    metrics.isMobile,
+    page,
+    showRoman,
+    stageHeight,
+    tileSizeRatio,
+  ]);
+  const visibleLines = pageData.lines;
+  const currentPage = pageData.page ?? 0;
+  const pageCount = pageData.pageCount ?? 1;
   const canFollowAudio = useMemo(
-    () => hasFollowAudioTiming(visibleLines),
-    [visibleLines],
+    () => hasFollowAudioTiming(allDisplayLines),
+    [allDisplayLines],
   );
   const effectiveFollowAudioEnabled = followAudioEnabled && canFollowAudio;
   const followAudioState = useMemo(
     () =>
       effectiveFollowAudioEnabled
-        ? resolveFollowAudioState(visibleLines, currentTime)
+        ? resolveFollowAudioState(allDisplayLines, currentTime)
         : {
             activeDisplayLineId: null,
             activeSourceLineId: null,
@@ -178,7 +255,7 @@ export function useWordBoard(rawLines, options = {}) {
             currentWordKeys: [],
             passedWordKeys: [],
           },
-    [canFollowAudio, currentTime, effectiveFollowAudioEnabled, visibleLines],
+    [allDisplayLines, canFollowAudio, currentTime, effectiveFollowAudioEnabled],
   );
   const currentWordKeySet = useMemo(
     () => new Set(followAudioState.currentWordKeys),
@@ -189,6 +266,19 @@ export function useWordBoard(rawLines, options = {}) {
     [followAudioState.passedWordKeys],
   );
   const activeDisplayLineId = followAudioState.activeDisplayLineId;
+  const activeSourceLineId = followAudioState.activeSourceLineId;
+  const followTargetPage =
+    isPagedMode && activeSourceLineId
+      ? (pageData.sourceLinePageMap?.get(activeSourceLineId) ?? null)
+      : null;
+
+  useEffect(() => {
+    if (!isPagedMode || page === currentPage) {
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(currentPage);
+  }, [currentPage, isPagedMode, page]);
 
   useEffect(() => {
     // Legitimate external reset: a different project/audio identity should make
@@ -296,6 +386,7 @@ export function useWordBoard(rawLines, options = {}) {
   // While F is on and follow scrolling is not paused, keep the active line centered.
   useLayoutEffect(() => {
     if (
+      isPagedMode ||
       !effectiveFollowAudioEnabled ||
       followScrollPaused ||
       !activeDisplayLineId
@@ -309,16 +400,42 @@ export function useWordBoard(rawLines, options = {}) {
     centerActiveFollowLine,
     effectiveFollowAudioEnabled,
     followScrollPaused,
+    isPagedMode,
   ]);
 
-  const layoutScale = fittedLayoutScale;
+  // In paged mode, F follows by moving to the page containing the active source line.
+  useEffect(() => {
+    if (
+      !isPagedMode ||
+      !effectiveFollowAudioEnabled ||
+      followScrollPaused ||
+      followTargetPage == null ||
+      followTargetPage === currentPage
+    ) {
+      return;
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(followTargetPage);
+  }, [
+    currentPage,
+    effectiveFollowAudioEnabled,
+    followScrollPaused,
+    followTargetPage,
+    isPagedMode,
+  ]);
 
   const getTileWidth = useCallback(
     (word) =>
       hydrated
-        ? Math.round(measureTileWidth(word, { measureText }) * layoutScale)
+        ? Math.round(
+            measureTileWidth(word, {
+              isMobile: metrics.isMobile,
+              measureText,
+            }) * layoutScale,
+          )
         : null,
-    [hydrated, layoutScale, measureText],
+    [hydrated, layoutScale, measureText, metrics.isMobile],
   );
 
   const getWordRows = useCallback(
@@ -383,6 +500,10 @@ export function useWordBoard(rawLines, options = {}) {
       "--board-width": `${metrics.boardWidth}px`,
       "--board-height": `${boardHeight}px`,
       "--board-scale": String(metrics.boardScale),
+      "--desktop-lyric-line-step": `${DESKTOP_LYRIC_LINE_STEP}px`,
+      "--desktop-lyric-line-step-roman": `${DESKTOP_LYRIC_LINE_STEP_ROMAN}px`,
+      "--mobile-lyric-line-step": `${MOBILE_LYRIC_LINE_STEP}px`,
+      "--mobile-lyric-line-step-roman": `${MOBILE_LYRIC_LINE_STEP_ROMAN}px`,
     };
   }, [hydrated, metrics, tileScale, layoutScale]);
 
@@ -424,9 +545,17 @@ export function useWordBoard(rawLines, options = {}) {
     updateScrollState,
   ]);
 
-  // Restore scroll position after re-render in scroll mode; refresh range note.
+  // Restore scroll position after re-render in scroll mode; page mode always
+  // shows a clipped page, so keep the stage pinned to the top.
   useLayoutEffect(() => {
     const stage = stageRef.current;
+    if (stage && isPagedMode) {
+      stage.scrollTop = 0;
+      pendingScrollTopRef.current = 0;
+      updateScrollState();
+      return;
+    }
+
     if (stage && !effectiveFollowAudioEnabled) {
       const maxScrollTop = Math.max(0, stage.scrollHeight - stage.clientHeight);
       const previousBehavior = stage.style.scrollBehavior;
@@ -435,19 +564,28 @@ export function useWordBoard(rawLines, options = {}) {
       stage.style.scrollBehavior = previousBehavior;
     }
     updateScrollState();
-  }, [effectiveFollowAudioEnabled, visibleLines, updateScrollState]);
+  }, [
+    currentPage,
+    effectiveFollowAudioEnabled,
+    isPagedMode,
+    updateScrollState,
+    visibleLines,
+  ]);
 
   // ---- Controls ----
-  const stepTileScale = useCallback((deltaPercent) => {
-    setTileScale((current) => {
-      const next = clamp(
-        Math.round(current * 100) + deltaPercent,
-        TILE_SCALE_MIN * 100,
-        TILE_SCALE_MAX * 100,
-      );
-      return next / 100;
-    });
-  }, []);
+  const stepTileScale = useCallback(
+    (deltaPercent) => {
+      setTileScale((current) => {
+        const next = clamp(
+          Math.round(current * 100) + deltaPercent,
+          tileScaleLimits.min * 100,
+          tileScaleLimits.max * 100,
+        );
+        return next / 100;
+      });
+    },
+    [tileScaleLimits],
+  );
 
   const toggleRoman = useCallback(() => setShowRoman((value) => !value), []);
 
@@ -460,9 +598,33 @@ export function useWordBoard(rawLines, options = {}) {
   }, [canFollowAudio]);
 
   const handleRefollow = useCallback(() => {
+    if (isPagedMode) {
+      if (followTargetPage != null) {
+        setPage(followTargetPage);
+      }
+      setFollowScrollPaused(false);
+      return;
+    }
+
     setFollowScrollPaused(false);
     centerActiveFollowLine("smooth");
-  }, [centerActiveFollowLine]);
+  }, [centerActiveFollowLine, followTargetPage, isPagedMode]);
+
+  const goToPreviousPage = useCallback(() => {
+    setPage((current) =>
+      pageCount > 1 ? (current - 1 + pageCount) % pageCount : 0,
+    );
+    if (effectiveFollowAudioEnabled) {
+      setFollowScrollPaused(true);
+    }
+  }, [effectiveFollowAudioEnabled, pageCount]);
+
+  const goToNextPage = useCallback(() => {
+    setPage((current) => (pageCount > 1 ? (current + 1) % pageCount : 0));
+    if (effectiveFollowAudioEnabled) {
+      setFollowScrollPaused(true);
+    }
+  }, [effectiveFollowAudioEnabled, pageCount]);
 
   const getWordAudioState = useCallback(
     (word) => {
@@ -498,9 +660,14 @@ export function useWordBoard(rawLines, options = {}) {
     getWordRows,
     getLineMinHeight,
     visibleLines,
+    isPagedMode,
+    currentPage,
+    pageCount,
+    canPage: pageCount > 1,
     hoveredLineId,
     setHoveredLineId,
     activeDisplayLineId,
+    activeSourceLineId,
     canFollowAudio,
     followAudioEnabled: effectiveFollowAudioEnabled,
     followScrollPaused,
@@ -508,13 +675,15 @@ export function useWordBoard(rawLines, options = {}) {
     showRefollowButton: effectiveFollowAudioEnabled && followScrollPaused,
     showRoman,
     sizePercent,
-    canDecreaseSize: sizePercent > TILE_SCALE_MIN * 100,
-    canIncreaseSize: sizePercent < TILE_SCALE_MAX * 100,
+    canDecreaseSize: sizePercent > tileScaleLimits.min * 100,
+    canIncreaseSize: sizePercent < tileScaleLimits.max * 100,
     tileStep: TILE_SCALE_STEP * 100,
     stepTileScale,
     toggleRoman,
     toggleFollowAudio,
     handleRefollow,
+    goToPreviousPage,
+    goToNextPage,
     handleStageScroll,
   };
 }

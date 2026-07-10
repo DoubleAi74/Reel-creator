@@ -1,6 +1,6 @@
 "use client";
 
-export function StatusBadge({ children, tone = "neutral" }) {
+export function StatusBadge({ children, className = "", tone = "neutral" }) {
   const toneClasses =
     tone === "accent"
       ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
@@ -12,7 +12,7 @@ export function StatusBadge({ children, tone = "neutral" }) {
 
   return (
     <span
-      className={`rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] ${toneClasses}`}
+      className={`rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] ${toneClasses} ${className}`}
     >
       {children}
     </span>
