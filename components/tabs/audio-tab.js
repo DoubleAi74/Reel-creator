@@ -6,40 +6,25 @@ import { LYRIC_PIPELINE_PRESETS } from "@/lib/staged-lyrics";
 
 const PIPELINE_PRESET_OPTIONS = [
   {
-    label: "All three",
-    preset: LYRIC_PIPELINE_PRESETS.all,
+    label: "Generate + Time",
+    preset: LYRIC_PIPELINE_PRESETS.both,
   },
   {
-    label: "First two",
-    preset: LYRIC_PIPELINE_PRESETS.firstTwo,
-  },
-  {
-    label: "First one",
-    preset: LYRIC_PIPELINE_PRESETS.firstOne,
+    label: "Generate only",
+    preset: LYRIC_PIPELINE_PRESETS.generateOnly,
   },
 ];
 
 const PIPELINE_PHASE_OPTIONS = [
   {
-    description: "Create editable source lyric lines from the uploaded MP3.",
-    phase: "transcribe",
-    step: "1",
-    title: "Transcribe & clean",
+    phase: "generate",
+    title: "Generate lyrics",
     unavailable: "Upload an MP3 first.",
   },
   {
-    description: "Add English, romanization, and word meanings.",
-    phase: "enrich",
-    step: "2",
-    title: "Translate & enrich",
-    unavailable: "Run Part 1 or add lyric lines first.",
-  },
-  {
-    description: "Align the current lyric lines to the uploaded audio.",
     phase: "time",
-    step: "3",
     title: "Time lyrics",
-    unavailable: "Run Part 1 or add lyric lines first.",
+    unavailable: "Generate lyrics or add lyric lines first.",
   },
 ];
 
@@ -79,16 +64,20 @@ function getStatusLabel(status) {
   return "Waiting";
 }
 
-function getRunButtonLabel(isBusy, selectedCount) {
+function getRunButtonLabel(isBusy, preset, selectedCount) {
   if (isBusy) {
     return "Running...";
   }
 
-  if (selectedCount === 0) {
-    return "Run";
+  if (preset === LYRIC_PIPELINE_PRESETS.generateOnly) {
+    return "Generate lyrics";
   }
 
-  return `Run ${selectedCount} part${selectedCount === 1 ? "" : "s"}`;
+  if (preset === LYRIC_PIPELINE_PRESETS.timeOnly) {
+    return "Time lyrics";
+  }
+
+  return selectedCount > 0 ? "Run both" : "Run";
 }
 
 export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
@@ -127,17 +116,6 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
     ? pipeline.selectedPhases.length
     : 0;
   const canRunSelectedPipeline = canGenerate && selectedPhaseCount > 0;
-  const transcribeWillCreateLines = Boolean(
-    pipeline?.selection?.transcribe && pipeline?.canRun?.transcribe,
-  );
-  const visibleStatus =
-    autoLyricsBusy || autoTimingBusy
-      ? "running"
-      : auto.status === "error" || autoTiming?.status === "error"
-        ? "error"
-        : auto.status === "success" || autoTiming?.status === "success"
-          ? "success"
-          : auto.status;
   const visibleNotice =
     autoTimingBusy ||
     autoTiming?.status === "error" ||
@@ -149,12 +127,12 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
     : !upload.asset?.assetId
       ? "Upload an MP3 before running the lyric pipeline."
       : languageRequirementMessage ||
-        (selectedPhaseCount === 0 ? "Select at least one runnable part." : undefined);
+        (selectedPhaseCount === 0 ? "Select a runnable mode." : undefined);
 
   return (
     <div className="grid gap-4">
       <div
-        className="upload-card rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
+        className="upload-card rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] px-5 pt-2.5 pb-5 text-center"
         onDragOver={(event) => {
           event.preventDefault();
         }}
@@ -163,14 +141,9 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           onFile(event.dataTransfer.files?.[0] ?? null);
         }}
       >
-        <h2 className="text-sm font-medium text-[var(--text)]">
-          Drag an MP3 here or choose one from your computer
+        <h2 className="text-base font-semibold text-[var(--text)]">
+          Welcome to Cross Lang!
         </h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          Up to 25 MB. The uploaded track drives the persistent waveform dock,
-          timing workflow, and later export.
-        </p>
-
         <div className="button-row mt-5 flex flex-wrap items-center justify-center gap-3">
           <button
             className="pill primary rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
@@ -189,26 +162,21 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           >
             {isLoadingSample ? "Loading sample…" : "Load sample"}
           </button>
-          <StatusBadge
-            className="status-badge"
-            tone={
-              upload.status === "success"
-                ? "success"
-                : upload.status === "error"
-                  ? "danger"
-                  : "neutral"
-            }
-          >
-            {upload.status}
-          </StatusBadge>
+          {youtube.enabled ? (
+            <button
+              className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!String(youtube.url ?? "").trim()}
+              onClick={() => youtube.onOpen?.()}
+              type="button"
+            >
+              Youtube segment
+            </button>
+          ) : null}
         </div>
 
         {youtube.enabled ? (
-          <div className="youtube-import mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <div className="youtube-import mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
             <label className="field-label text-left">
-              <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
-                YouTube URL
-              </span>
               <input
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
                 onChange={(event) => youtube.onUrlChange?.(event.target.value)}
@@ -217,14 +185,6 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
                 value={youtube.url ?? ""}
               />
             </label>
-            <button
-              className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!String(youtube.url ?? "").trim()}
-              onClick={() => youtube.onOpen?.()}
-              type="button"
-            >
-              Choose segment
-            </button>
             {youtube.error ? (
               <p className="text-left text-sm leading-6 text-[var(--danger)] sm:col-span-2">
                 {youtube.error}
@@ -235,17 +195,17 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
       </div>
 
       <p
-        className={`track-status truncate rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
+        className={`track-status flex min-w-0 items-center rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
           upload.status === "error"
             ? "text-[var(--danger)]"
             : "text-[var(--muted)]"
         }`}
         title={upload.message}
       >
-        <span className="font-medium text-[var(--text)]">
+        <span className="min-w-0 truncate font-medium text-[var(--text)]">
           {project.audio.name || "No track"}
         </span>
-        <span>
+        <span className="shrink-0 whitespace-nowrap">
           {" · "}
           {project.audio.duration > 0
             ? formatTime(project.audio.duration)
@@ -256,31 +216,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
       </p>
 
       <div className="auto-card rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="auto-top flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-[var(--muted)]">Auto-lyrics</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              Transcribe the uploaded MP3 and replace the current lyric lines with
-              English translations.
-            </p>
-          </div>
-          <StatusBadge
-            className="status-badge"
-            tone={
-              visibleStatus === "running"
-                ? "accent"
-                : visibleStatus === "success"
-                  ? "success"
-                  : visibleStatus === "error"
-                    ? "danger"
-                    : "neutral"
-            }
-          >
-            {visibleStatus === "running" ? "Running" : visibleStatus}
-          </StatusBadge>
-        </div>
-
-        <div className="auto-grid mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="auto-grid mt-2 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div className="grid gap-3">
             <label className="field-label block">
               <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
@@ -329,7 +265,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
             title={runButtonTitle}
             type="button"
           >
-            {getRunButtonLabel(pipelineBusy, selectedPhaseCount)}
+            {getRunButtonLabel(pipelineBusy, pipeline?.preset, selectedPhaseCount)}
           </button>
         </div>
 
@@ -384,7 +320,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           </div>
         ) : null}
 
-        <div className="phase-row mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline presets">
+        <div className="phase-row mt-4 flex flex-wrap gap-2" aria-label="Lyric pipeline mode">
           {PIPELINE_PRESET_OPTIONS.map((option) => {
             const active = pipeline?.preset === option.preset;
 
@@ -406,53 +342,6 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           })}
         </div>
 
-        <div className="mt-4 grid gap-3" aria-label="Lyric pipeline parts">
-          {PIPELINE_PHASE_OPTIONS.map((option) => {
-            const phaseSelected = Boolean(pipeline?.selection?.[option.phase]);
-            const canRunNow = Boolean(pipeline?.canRun?.[option.phase]);
-            const canRunAfterTranscribe =
-              option.phase !== "transcribe" && transcribeWillCreateLines;
-            const disabled = pipelineBusy || (!canRunNow && !canRunAfterTranscribe);
-            const availabilityText = canRunNow
-              ? "Ready"
-              : canRunAfterTranscribe
-                ? "After Part 1"
-                : option.unavailable;
-
-            return (
-              <label
-                className={`grid grid-cols-[auto_minmax(0,1fr)] gap-3 border-t border-[var(--border)] pt-3 ${
-                  disabled
-                    ? "cursor-not-allowed opacity-55"
-                    : "cursor-pointer"
-                }`}
-                key={option.phase}
-              >
-                <input
-                  checked={phaseSelected}
-                  className="mt-1 h-4 w-4 accent-[var(--accent)]"
-                  disabled={disabled}
-                  onChange={() => pipeline?.onToggle?.(option.phase)}
-                  type="checkbox"
-                />
-                <span className="min-w-0">
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-[var(--text)]">
-                      {option.step}. {option.title}
-                    </span>
-                    <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-                      {availabilityText}
-                    </span>
-                  </span>
-                  <span className="mt-1 block text-sm leading-6 text-[var(--muted)]">
-                    {option.description}
-                  </span>
-                </span>
-              </label>
-            );
-          })}
-        </div>
-
         <div className="mt-4 grid gap-3" aria-label="Lyric pipeline status">
           {PIPELINE_PHASE_OPTIONS.map((option) => {
             const phaseStatus = pipeline?.statusByPhase?.[option.phase] ?? {
@@ -468,7 +357,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[var(--text)]">
-                    {option.step}. {option.title}
+                    {option.title}
                   </p>
                   <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
                     {phaseStatus.message}
@@ -519,36 +408,27 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
         ) : null}
       </div>
 
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <p className="text-sm font-medium text-[var(--muted)]">Lyrics data</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          Import a project JSON to load existing lyrics and timings, or export the
-          current project to a file.
-        </p>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button
-            className="rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-            onClick={onImportJson}
-            type="button"
-          >
-            Import JSON
-          </button>
-          <button
-            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-            onClick={onExportJson}
-            type="button"
-          >
-            Export JSON
-          </button>
+      {inlineNotice ? (
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm leading-6 text-[var(--text)]">
+          {inlineNotice}
         </div>
-        {inlineNotice ? (
-          <div className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm leading-6 text-[var(--text)]">
-            {inlineNotice}
-          </div>
-        ) : null}
-      </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--border)] pt-4">
+        <button
+          className="rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+          onClick={onImportJson}
+          type="button"
+        >
+          Import JSON
+        </button>
+        <button
+          className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+          onClick={onExportJson}
+          type="button"
+        >
+          Export JSON
+        </button>
         <button
           className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!hasTrack || isLoadingSample}

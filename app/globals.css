@@ -113,7 +113,7 @@ textarea:focus-visible {
  * ===================================================================== */
 @media (max-width: 1023.98px) {
   :root {
-    --mobile-transport-h: 108px;
+    --mobile-transport-h: 100px;
     --mobile-preview-gap: 11.2px;
   }
 
@@ -121,6 +121,10 @@ textarea:focus-visible {
     min-height: 0;
     height: 100dvh;
     --mobile-sheet-top: 75dvh;
+    --mobile-pinned-media-h: max(
+      96px,
+      calc(var(--mobile-sheet-top) - var(--mobile-transport-h))
+    );
   }
 
   .app-frame[data-snap="peek"] {
@@ -140,6 +144,25 @@ textarea:focus-visible {
 
   .work-area {
     overflow: visible;
+    padding-top: var(--mobile-pinned-media-h);
+  }
+
+  .workspace-panel {
+    position: fixed;
+    z-index: 30;
+    top: var(--mobile-transport-h);
+    right: 0;
+    left: 0;
+    height: var(--mobile-pinned-media-h);
+    min-height: 0;
+    overflow: hidden;
+    background: var(--page);
+    padding: 0;
+  }
+
+  .workspace-grid {
+    height: 100%;
+    min-height: 0;
   }
 
   .transport-slot {
@@ -199,7 +222,9 @@ textarea:focus-visible {
   }
 
   .transport .transport-wave-play {
+    align-self: center;
     flex: 0 0 auto;
+    height: 32px;
     background: var(--accent);
     color: var(--on-accent);
   }
@@ -215,8 +240,13 @@ textarea:focus-visible {
     display: none;
   }
 
+  /* Content-width and pinned left (NOT flex-grow): a flex-grow tab container
+     next to the view-toggle's `margin-left:auto` gives ambiguous sizing, which
+     made the tabs distribute/shift when the Words tab appeared. Content-width +
+     the view-toggle's auto margin keeps Audio/Lyrics/Style static and stops the
+     container from clipping the Words pill. */
   .transport-tabs {
-    flex: 1 1 0;
+    flex: 0 1 auto;
     min-width: 0;
   }
 
@@ -234,28 +264,44 @@ textarea:focus-visible {
     min-width: 0;
   }
 
+  /* Constant, compact tab sizing: the base .tab-row shrinks its gap under
+     .app-frame.show-board, which shifted the always-present tabs when the
+     conditional Words tab appeared. A fixed gap + smaller pills (higher
+     specificity than the .show-board overrides) keeps Audio/Lyrics/Style
+     static and leaves room for the Words tab. */
+  .app-frame .transport-tabs .tab-row {
+    gap: 6px;
+  }
+
+  .app-frame .transport-tabs .tab-row button {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
   .app-frame .transport .waveform {
-    height: 40px;
+    height: 32px;
     min-width: 0;
     border-radius: 12px;
   }
 
   .side-panel {
     position: relative;
-    z-index: 20;
+    z-index: 35;
     display: flex;
     width: 100%;
-    height: auto;
+    height: calc(100dvh - var(--mobile-transport-h));
     min-height: 0;
     max-height: none;
     flex: 0 0 auto;
     flex-direction: column;
     margin-top: 0;
     overflow: hidden;
-    border-top: 1px solid var(--border);
+    border: 5px solid var(--shell);
     border-radius: 24px 24px 0 0;
     background: var(--shell);
-    box-shadow: 0 -20px 60px #1c1a182e;
+    box-shadow: 0 -20px 60px #1c1a1817;
+    overscroll-behavior: contain;
   }
 
   .app-frame[data-snap="peek"] .side-panel {
@@ -270,6 +316,11 @@ textarea:focus-visible {
     min-height: 0;
     flex: 1 1 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .app-frame.words-tab-active .editor-panel-content {
+    overflow-y: hidden;
   }
 
   .panel-tabs {
@@ -303,11 +354,11 @@ textarea:focus-visible {
   }
 
   .app-frame.show-board .tab-row {
-    gap: 8px;
+    gap: 6px;
   }
 
   .app-frame.show-board .tab-row button {
-    padding-inline: 12px;
+    padding-inline: 10px;
   }
 
   .tab-row .board-tools-tab {
@@ -323,14 +374,14 @@ textarea:focus-visible {
     border: 1px solid var(--border);
     border-radius: 20px;
     background: var(--surface-2);
-    padding: 16px;
+    padding: 8px 10px 16px;
   }
 
   .board-tools-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
   }
 
   .board-tools-card .selection-stack {
@@ -340,7 +391,7 @@ textarea:focus-visible {
   }
 
   .board-tools-card .selection-panel {
-    min-height: 88px;
+    min-height: 96px;
     overflow: hidden;
     border: 2px solid #d6cec0;
     border-radius: 12px;
@@ -349,7 +400,7 @@ textarea:focus-visible {
   }
 
   .board-tools-card .selection-panel.is-empty {
-    min-height: 88px;
+    min-height: 96px;
   }
 
   .board-tools-card .selection-main {
@@ -359,10 +410,21 @@ textarea:focus-visible {
   }
 
   .board-tools-card .selection-word-row {
+    --selection-word-scale: 1;
     min-height: 24px;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .board-tools-card .selection-english,
+  .board-tools-card .selection-roman,
+  .board-tools-card .selection-hindi {
+    min-width: 0;
+    max-width: 100%;
+    white-space: nowrap;
   }
 
   .board-tools-card .selection-divider {
@@ -373,15 +435,15 @@ textarea:focus-visible {
   }
 
   .board-tools-card .selection-hindi {
-    font-size: 22px;
+    font-size: calc(22px * var(--selection-word-scale, 1));
   }
 
   .board-tools-card .selection-english {
-    font-size: 17px;
+    font-size: calc(17px * var(--selection-word-scale, 1));
   }
 
   .board-tools-card .selection-roman {
-    font-size: 12px;
+    font-size: calc(12px * var(--selection-word-scale, 1));
   }
 
   .board-tools-card .line-original,
@@ -857,8 +919,8 @@ textarea:focus-visible {
 
   .sheet-handle {
     position: absolute;
-    top: 13px;
-    right: 14px;
+    top: 8px;
+    right: 8px;
     z-index: 2;
     display: grid;
     width: 34px;
@@ -891,7 +953,7 @@ textarea:focus-visible {
     display: none;
     min-width: 0;
     flex: 0 0 auto;
-    height: max(96px, calc(var(--mobile-sheet-top) - var(--mobile-transport-h)));
+    height: var(--mobile-pinned-media-h);
     align-items: center;
     justify-content: center;
     overflow: hidden;
@@ -902,7 +964,7 @@ textarea:focus-visible {
   }
 
   .wb-slot {
-    padding: var(--mobile-preview-gap) 15px;
+    padding: calc(var(--mobile-preview-gap) * 0.7) 15px;
   }
 
   .app-frame.show-preview .preview-col,

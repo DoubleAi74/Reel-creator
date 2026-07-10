@@ -214,13 +214,13 @@ export async function POST(request) {
 
   // REP-201a: a single "full" job settles only after all OpenAI work, so Block A
   // exhaustion cannot stop Block B mid-job. When credits are on, require the
-  // staged transcribe → enrich → time flow (already used by the client).
+  // two-step generate → time flow used by the client.
   if (isCreditsEnabled() && phase === "full") {
     return NextResponse.json(
       {
         error: "full_phase_disabled",
         message:
-          "When credits are enabled, run staged phases: transcribe, enrich, then time.",
+          "When credits are enabled, run Generate lyrics, then Time lyrics.",
       },
       { status: 400 },
     );
@@ -257,9 +257,13 @@ export async function POST(request) {
   const sweptSessionIds = await touchSessionAndSweep(sessionId);
   removeRenderJobsForSessions(sweptSessionIds);
 
-  // Reconnect to an already-running job for this exact session + asset instead
+  // Reconnect to an already-running job for this exact session + asset + phase instead
   // of starting a duplicate (the client adopts the returned jobId).
-  const inFlightJob = findInFlightTranscribeForSession(sessionId, audioAssetId);
+  const inFlightJob = findInFlightTranscribeForSession(
+    sessionId,
+    audioAssetId,
+    phase,
+  );
 
   const respond = (body, status = 200) => {
     const response = NextResponse.json(body, { status });
@@ -293,6 +297,7 @@ export async function POST(request) {
     typeof payload?.title === "string" ? payload.title.trim().slice(0, 180) : "";
   const job = createTranscribeJob({
     assetId: audioAssetId,
+    phase,
     pipelineRunId,
     save,
     saveOnCompletion,
@@ -305,7 +310,7 @@ export async function POST(request) {
       audioAssetId,
       includeRomanization,
       jobId: job.jobId,
-      lines: normalizeLines(payload?.lines),
+      lines: phase === "generate" ? [] : normalizeLines(payload?.lines),
       phase,
       pipelineRunId,
       save,

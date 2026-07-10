@@ -130,6 +130,36 @@ describe("GET /api/media/generations/[id]", () => {
     expect(getR2Object).not.toHaveBeenCalled();
   });
 
+  it("proxies playable audio when proxy mode is requested with a public R2 URL", async () => {
+    const generation = await createGeneration({
+      r2ObjectKey: "generations/generation-proxy/audio.mp3",
+    });
+    enableR2({
+      R2_PUBLIC_BASE_URL: "https://cdn.example.test/audio",
+    });
+    const body = Buffer.from("ID3proxy");
+    getR2Object.mockResolvedValue({
+      body,
+      contentLength: body.byteLength,
+      contentType: "audio/mpeg",
+      key: generation.r2ObjectKey,
+    });
+
+    const response = await GET(
+      new Request(`http://localhost?proxy=1`),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("audio/mpeg");
+    expect(Buffer.from(await response.arrayBuffer()).toString("utf8")).toBe(
+      "ID3proxy",
+    );
+    expect(getR2Object).toHaveBeenCalledWith({ key: generation.r2ObjectKey });
+  });
+
   it("proxies playable audio when no public R2 URL is configured", async () => {
     const generation = await createGeneration({
       r2ObjectKey: "generations/generation-2/audio.mp3",
@@ -151,6 +181,53 @@ describe("GET /api/media/generations/[id]", () => {
     expect(response.headers.get("content-length")).toBe(String(body.byteLength));
     expect(Buffer.from(await response.arrayBuffer()).toString("utf8")).toBe("ID3media");
     expect(getR2Object).toHaveBeenCalledWith({ key: generation.r2ObjectKey });
+  });
+
+  it("proxies private saved audio owned by the current session", async () => {
+    const generation = await createGeneration({
+      ownerScope: {
+        sessionId: "session-media",
+        type: "session",
+      },
+      public: false,
+      r2ObjectKey: "generations/generation-private/audio.mp3",
+      title: "Untitled generation",
+      userTitled: false,
+    });
+    const body = Buffer.from("ID3private");
+    getR2Object.mockResolvedValue({
+      body,
+      contentLength: body.byteLength,
+      contentType: "audio/mpeg",
+      key: generation.r2ObjectKey,
+    });
+
+    const ownedResponse = await GET(
+      new Request("http://localhost", {
+        headers: {
+          cookie: "reel-creator-session=session-media",
+        },
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+    const otherSessionResponse = await GET(
+      new Request("http://localhost", {
+        headers: {
+          cookie: "reel-creator-session=other-session",
+        },
+      }),
+      {
+        params: { id: generation._id.toString() },
+      },
+    );
+
+    expect(ownedResponse.status).toBe(200);
+    expect(Buffer.from(await ownedResponse.arrayBuffer()).toString("utf8")).toBe(
+      "ID3private",
+    );
+    expect(otherSessionResponse.status).toBe(404);
   });
 
   it("404s generations without a created R2 object", async () => {
