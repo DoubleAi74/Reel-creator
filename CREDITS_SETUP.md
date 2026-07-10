@@ -206,6 +206,19 @@ OpenAI key. Keep production `CREDITS_ENABLED=false` until this list is green and
 Read-only payment and ledger consistency summary. Use after sandbox or staging
 payment tests and before live enablement.
 
+`npm run credits:payment-inspect`
+
+Read-only deep dive into recent top-ups: Mongo `PaymentOrder` + `WebhookEvent`,
+plus live SumUp checkout re-fetch (status, transactions). Use after a failed
+payment or before/after a controlled £1 live test:
+
+```bash
+npm run credits:payment-inspect
+npm run credits:payment-inspect -- --status PAYMENT_FAILED
+npm run credits:payment-inspect -- --order order_...
+npm run credits:payment-inspect -- --no-sumup   # Mongo only
+```
+
 `npm run credits:r2-reconcile -- --limit=100`
 
 Retries generation audio R2 state. It can repair a Mongo `pending_create` state

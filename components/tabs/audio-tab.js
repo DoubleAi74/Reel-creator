@@ -216,7 +216,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
       </p>
 
       <div className="auto-card rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="auto-grid mt-2 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="auto-grid mt-1 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div className="grid gap-3">
             <label className="field-label block">
               <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">

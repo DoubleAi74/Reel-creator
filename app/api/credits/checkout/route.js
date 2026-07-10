@@ -132,6 +132,16 @@ export async function POST(request) {
 
     await attachHostedCheckoutToOrder({ checkout, order });
 
+    // Safe diagnostics for payment failure investigation (no secrets / full URLs).
+    console.info("[payments:checkout] created", {
+      amountMinor: order.amountMinor,
+      currency: order.currency,
+      orderId: order.publicReference,
+      sumupCheckoutId: checkout.id,
+      sumupMode: environment.SUMUP_MODE,
+      sumupStatus: checkout.status ?? null,
+    });
+
     return NextResponse.json(
       {
         checkoutUrl: checkout.hosted_checkout_url,

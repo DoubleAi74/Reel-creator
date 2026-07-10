@@ -416,7 +416,9 @@
   --selection-translation-scale: 1;
   margin: 0;
   color: #44506a;
-  font-size: calc(clamp(8px, 1vw, 10px) * var(--selection-translation-scale, 1));
+  font-size: calc(
+    clamp(8px, 1vw, 10px) * var(--selection-translation-scale, 1)
+  );
   line-height: 1.22;
   max-width: 100%;
   overflow: hidden;
@@ -601,7 +603,8 @@
 .version-sketch .word-button {
   background: #fffaf2;
   color: #2b2823;
-  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0 rgba(214, 206, 192, 0.8);
+  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0
+    rgba(214, 206, 192, 0.8);
   font-family:
     "Noto Sans Devanagari", "Kohinoor Devanagari", "Mangal", sans-serif;
   font-size: calc(20px * var(--tile-layout-scale));
@@ -633,7 +636,8 @@
 .version-sketch .line-row:hover .word-button:not(.is-selected):hover {
   background: #f3f0e9;
   color: #302d28;
-  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0 rgba(214, 206, 192, 0.8);
+  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0
+    rgba(214, 206, 192, 0.8);
 }
 .version-sketch .word-button .word-english {
   font-family: inherit;
@@ -1146,8 +1150,8 @@
       max(16px, calc(24px * var(--board-scale)));
     border: 2px solid #d6cec0;
     border-radius: 12px;
-    background: #f3ecdf;
-    box-shadow: 0 8px 0 #ded6c9;
+    background: #fefaf2;
+    box-shadow: none;
     --stage-pad-y: max(10px, calc(13px * var(--board-scale)));
     --stage-pad-x: max(18px, calc(25px * var(--board-scale)));
   }
@@ -1168,7 +1172,7 @@
     justify-self: center;
     border: 2px solid #d6cec0;
     border-radius: 12px;
-    background: #f7f0df;
+    background: #f7f2e4;
     padding: var(--stage-pad-y) var(--stage-pad-x);
   }
   .version-sketch .refollow-button {
@@ -1322,7 +1326,7 @@
     margin-top: max(12px, calc(18px * var(--board-scale)));
     border: 2px solid #c8c1b6;
     border-radius: 12px;
-    background: #fffaf1;
+    background: #fefaf2;
     color: #2c2924;
     position: relative;
     display: grid;
@@ -1376,7 +1380,7 @@
       max(10px, calc(14px * var(--board-scale)));
     border: 2px solid #d6cec0;
     border-radius: 12px;
-    background: #fffaf1;
+    background: #fefaf2;
     color: #2c2924;
     box-shadow: none;
     overflow: hidden;
@@ -1583,7 +1587,7 @@
     --stage-pad-x: max(18px, calc(var(--stage-h) * 25 / 922));
   }
   .wb-slot .version-sketch .refollow-button {
-    right: calc(max(30px, calc(var(--stage-h) * 47 / 922)) + 20px);
+    right: calc(max(30px, calc(var(--stage-h) * 47 / 922)) + 8px);
   }
   .wb-slot .version-sketch .pager-strip {
     height: max(96px, calc(var(--stage-h) * 142 / 922));
@@ -1672,7 +1676,7 @@
 .version-sketch .refollow-button {
   position: absolute;
   right: calc(var(--stage-pad-x, 12px) + 8px);
-  top: calc(var(--stage-pad-y, 12px) + 8px);
+  top: calc(var(--stage-pad-y, 12px) + 20px);
   z-index: 20;
   border: 1px solid rgba(39, 35, 29, 0.24);
   border-radius: 999px;
