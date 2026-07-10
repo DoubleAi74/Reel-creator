@@ -87,24 +87,13 @@ const SHEET_SNAPS = [
 const BACKGROUND_UPLOAD_COPY = {
   image: {
     buttonLabel: "Choose image",
-    emptyMessage: "Upload a PNG, JPG, or WebP still to preview and export it here.",
-    helperText:
-      "PNG, JPG, or WebP up to 10 MB. The image cover-fits the 9:16 frame in preview and export.",
-    missingMessage:
-      "Preview and export stay blocked until this session has the matching image upload.",
-    statusLabel: "Image status",
-    uploadLabel: "Drag a still image here or choose one from your computer",
+    emptyMessage: "No image uploaded.",
+    uploadLabel: "Drop image",
   },
   video: {
     buttonLabel: "Choose video",
-    emptyMessage:
-      "Upload an MP4 or WebM clip to loop it behind the lyrics in preview and export.",
-    helperText:
-      "MP4 or WebM up to 50 MB. The clip cover-fits the 9:16 frame, loops automatically, and stays muted while your MP3 remains the audio track.",
-    missingMessage:
-      "Preview and export stay blocked until this session has the matching video upload.",
-    statusLabel: "Video status",
-    uploadLabel: "Drag a short video clip here or choose one from your computer",
+    emptyMessage: "No video uploaded.",
+    uploadLabel: "Drop video",
   },
 };
 
@@ -2591,7 +2580,7 @@ export function EditorShell({
     }
 
     if (response.status === 409 && typeof payload.jobId === "string") {
-      return payload.jobId;
+      return { jobId: payload.jobId, finished: null };
     }
 
     if (!response.ok || typeof payload.jobId !== "string" || !payload.jobId) {
@@ -2609,11 +2598,18 @@ export function EditorShell({
       throw new Error(
         typeof payload.message === "string" && payload.message.trim()
           ? payload.message
-          : payload.error ?? "Transcription could not be started.",
+          : typeof payload.error === "string" && payload.error.trim()
+            ? payload.error
+            : "Transcription could not be started.",
       );
     }
 
-    return payload.jobId;
+    // Sync path (Vercel): POST already finished the job — no cross-isolate poll.
+    if (payload.status === "done" || payload.status === "error") {
+      return { jobId: payload.jobId, finished: payload };
+    }
+
+    return { jobId: payload.jobId, finished: null };
   };
 
   const beginTranscriptionTracking = (jobId, phase) => {
@@ -2931,7 +2927,7 @@ export function EditorShell({
 
         const includeRomanization =
           sourceLanguage !== "es" && sourceLanguage !== "fr";
-        const jobId = await startTranscriptionJob({
+        const { jobId, finished } = await startTranscriptionJob({
           audio: currentProject.audio,
           audioAssetId: audioUpload.asset.assetId,
           includeRomanization,
@@ -2946,6 +2942,46 @@ export function EditorShell({
           // REP-403 / D-C: project meta title is the user-entered public card title.
           title: currentProject.meta?.title ?? "",
         });
+
+        if (finished) {
+          if (finished.status === "error") {
+            throw new Error(
+              finished.error || "Transcription failed unexpectedly.",
+            );
+          }
+
+          if (appliedTranscribeJobIdRef.current !== jobId) {
+            appliedTranscribeJobIdRef.current = jobId;
+
+            if (phase === "time") {
+              applyAutoTimingResult(finished.result);
+            } else if (phase === "enrich") {
+              applyEnrichResult(finished.result);
+            } else {
+              applyAutoLyricsResult(finished.result);
+            }
+          }
+
+          if (finished.balanceExhausted === true) {
+            const exhaustedMessage =
+              "Credit balance exhausted. Completed work was kept; further phases need a top-up.";
+
+            if (phase === "time") {
+              setTimingNotice({
+                message: exhaustedMessage,
+                status: "success",
+              });
+            } else {
+              setAutoLyricsState((currentState) => ({
+                ...currentState,
+                message: exhaustedMessage,
+                status: "success",
+              }));
+            }
+          }
+
+          continue;
+        }
 
         beginTranscriptionTracking(jobId, phase);
 

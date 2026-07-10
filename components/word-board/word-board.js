@@ -95,17 +95,23 @@ function LineRow({
 
 function SelectionPanel({ word }) {
   const wordRowRef = useRef(null);
+  const translationRef = useRef(null);
 
   useLayoutEffect(() => {
     const row = wordRowRef.current;
+    const translation = translationRef.current;
 
-    if (!row || !word || !word.line) {
+    if ((!row && !translation) || !word || !word.line) {
       return undefined;
     }
 
     let animationFrame = 0;
 
-    const fitRow = () => {
+    const fitWordRow = () => {
+      if (!row) {
+        return;
+      }
+
       row.style.setProperty("--selection-word-scale", "1");
 
       const availableWidth = row.clientWidth;
@@ -132,9 +138,43 @@ function SelectionPanel({ word }) {
       }
     };
 
+    const fitTranslation = () => {
+      if (!translation) {
+        return;
+      }
+
+      translation.style.setProperty("--selection-translation-scale", "1");
+
+      const availableWidth = translation.clientWidth;
+      const naturalWidth = translation.scrollWidth;
+      let nextScale =
+        availableWidth > 0 && naturalWidth > availableWidth
+          ? Math.max(0.5, Math.min(1, (availableWidth - 10) / naturalWidth))
+          : 1;
+
+      translation.style.setProperty(
+        "--selection-translation-scale",
+        nextScale.toFixed(3),
+      );
+
+      if (translation.scrollWidth > translation.clientWidth && nextScale > 0.5) {
+        nextScale = Math.max(
+          0.5,
+          nextScale * ((translation.clientWidth - 6) / translation.scrollWidth),
+        );
+        translation.style.setProperty(
+          "--selection-translation-scale",
+          nextScale.toFixed(3),
+        );
+      }
+    };
+
     const scheduleFit = () => {
       window.cancelAnimationFrame(animationFrame);
-      animationFrame = window.requestAnimationFrame(fitRow);
+      animationFrame = window.requestAnimationFrame(() => {
+        fitWordRow();
+        fitTranslation();
+      });
     };
 
     scheduleFit();
@@ -144,7 +184,14 @@ function SelectionPanel({ word }) {
         ? new ResizeObserver(scheduleFit)
         : null;
 
-    observer?.observe(row);
+    if (observer) {
+      if (row) {
+        observer.observe(row);
+      }
+      if (translation) {
+        observer.observe(translation);
+      }
+    }
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
@@ -179,7 +226,9 @@ function SelectionPanel({ word }) {
           <div className="selection-line-stack">
             <p className="line-original">{word.line.original}</p>
             <p className="line-romanization">{word.line.romanization}</p>
-            <p className="line-translation">{word.line.translation}</p>
+            <p className="line-translation" ref={translationRef}>
+              {word.line.translation}
+            </p>
           </div>
         </div>
       </section>

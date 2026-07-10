@@ -11,6 +11,7 @@ export function TimingRow({
   isActive,
   isEditing,
   isHeard,
+  isPast,
   line,
   onClear,
   onDelete,
@@ -27,14 +28,18 @@ export function TimingRow({
   rowRef,
   timeValue,
 }) {
+  const rowStateClass = isHeard
+    ? "timing-row--current"
+    : isActive
+      ? "timing-row--active"
+      : isPast
+        ? "timing-row--past"
+        : "timing-row--idle";
+
   return (
     <div
-      className={`relative min-w-0 max-w-full overflow-hidden rounded-[1rem] border px-2.5 py-2 transition ${
-        isActive
-          ? "border-[var(--accent)] bg-[var(--surface-active)] pr-10 shadow-[var(--shadow-soft)]"
-          : isHeard
-            ? "border-[var(--border)] bg-[var(--surface-2)]"
-            : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)]"
+      className={`timing-row ${rowStateClass} relative min-w-0 max-w-full overflow-hidden rounded-[1rem] border px-2.5 py-2 transition ${
+        isActive ? "pr-10" : ""
       }`}
       onClick={onSelect}
       ref={rowRef}
@@ -101,7 +106,7 @@ export function TimingRow({
           />
         ) : (
           <span
-            className={`flex-none rounded-md px-2 py-1 font-mono text-[11px] ${
+            className={`timing-row-time flex-none rounded-md px-2 py-1 font-mono text-[11px] ${
               Number.isFinite(line.start)
                 ? "bg-[var(--surface-2)] text-[var(--muted)]"
                 : "bg-[var(--surface-2)] text-[var(--muted)]"
@@ -113,7 +118,7 @@ export function TimingRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
-            <p className="min-w-0 truncate text-[13px] font-medium text-[var(--text)] sm:text-sm">
+            <p className="timing-row-original min-w-0 truncate text-[13px] font-medium text-[var(--text)] sm:text-sm">
               {line.original || `Line ${index + 1}`}
             </p>
             {isActive ? (
@@ -122,7 +127,7 @@ export function TimingRow({
               </span>
             ) : null}
           </div>
-          <p className="truncate text-[11px] text-[var(--muted)]">
+          <p className="timing-row-translation truncate text-[11px] text-[var(--muted)]">
             {line.translation || "No translation"}
           </p>
         </div>

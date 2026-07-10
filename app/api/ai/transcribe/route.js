@@ -12,11 +12,15 @@ import { normalizeSourceLanguage } from "@/lib/ai/openai-lyrics";
 import {
   normalizeTranscribePhase,
   runTranscribeJob,
+  shouldRunTranscribeJobsSynchronously,
 } from "@/lib/ai/transcribe-job";
 import {
   createTranscribeJob,
   enqueueTranscribeJob,
   findInFlightTranscribeForSession,
+  getTranscribeJob,
+  markTranscribeJobFailed,
+  toTranscribeJobResponse,
 } from "@/lib/ai/transcribe-store";
 import { assertCanStartGeneration } from "@/lib/credits/credit-service";
 import { isCreditsEnabled } from "@/lib/credits/flags";
@@ -28,8 +32,8 @@ import {
 import { removeRenderJobsForSessions } from "@/lib/render/store";
 
 export const runtime = "nodejs";
-// Generate can re-upload the client MP3 on multi-isolate hosts; allow headroom.
-export const maxDuration = 60;
+// Sync generate on Vercel awaits OpenAI in-request; Pro can honor higher caps.
+export const maxDuration = 300;
 
 const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;
 
@@ -406,22 +410,50 @@ export async function POST(request) {
     sessionId,
   });
 
-  enqueueTranscribeJob(job.jobId, () =>
-    runTranscribeJob({
-      audio: normalizeAudio(payload?.audio),
-      audioAssetId,
-      includeRomanization,
+  const jobArgs = {
+    audio: normalizeAudio(payload?.audio),
+    audioAssetId,
+    includeRomanization,
+    jobId: job.jobId,
+    lines: phase === "generate" ? [] : normalizeLines(payload?.lines),
+    phase,
+    pipelineRunId,
+    save,
+    saveOnCompletion,
+    sessionId,
+    sourceLanguage,
+    title,
+  };
+
+  // Multi-isolate: in-memory job map is not shared. Await completion here and
+  // return the finished payload so the client does not poll a cold isolate.
+  if (shouldRunTranscribeJobsSynchronously()) {
+    try {
+      await runTranscribeJob(jobArgs);
+    } catch (error) {
+      markTranscribeJobFailed(
+        job.jobId,
+        error instanceof Error
+          ? error.message
+          : "Lyric timing failed unexpectedly.",
+      );
+    }
+
+    const finished = getTranscribeJob(job.jobId);
+    const body = {
       jobId: job.jobId,
-      lines: phase === "generate" ? [] : normalizeLines(payload?.lines),
-      phase,
-      pipelineRunId,
-      save,
-      saveOnCompletion,
-      sessionId,
-      sourceLanguage,
-      title,
-    }),
-  );
+      ...(reattached ? { audioAssetId } : {}),
+      ...(toTranscribeJobResponse(finished) || {
+        status: "error",
+        error: "Transcription job failed.",
+        phase,
+      }),
+    };
+
+    return respond(body, finished?.status === "error" ? 500 : 200);
+  }
+
+  enqueueTranscribeJob(job.jobId, () => runTranscribeJob(jobArgs));
 
   return respond({
     jobId: job.jobId,

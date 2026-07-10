@@ -4,8 +4,7 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { StyleColorField } from "@/components/ui/style-color-field";
 import { StyleSlider } from "@/components/ui/style-slider";
-import { formatBytes, isBackgroundMediaType } from "@/lib/editor-format";
-import { FONT_OPTIONS } from "@/lib/style-presets";
+import { isBackgroundMediaType } from "@/lib/editor-format";
 import {
   DEFAULT_LYRIC_LEAD_IN_MS,
   MAX_LYRIC_LEAD_IN_MS,
@@ -15,7 +14,6 @@ import {
 export function StyleTab({ background, textDisplay }) {
   const {
     onApplyPreset,
-    onUpdateShadow,
     onUpdateStyle,
     onUpdateTiming,
     presetEntries,
@@ -24,7 +22,6 @@ export function StyleTab({ background, textDisplay }) {
   } = textDisplay;
 
   const {
-    asset,
     onImageFile,
     onPickImage,
     onPickVideo,
@@ -61,23 +58,6 @@ export function StyleTab({ background, textDisplay }) {
           })}
         </div>
       </div>
-
-      <label className="block rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <span className="text-sm font-medium text-[var(--muted)]">Font</span>
-        <select
-          className="mt-4 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] outline-none"
-          onChange={(event) =>
-            onUpdateStyle({ font: event.target.value, preset: "custom" })
-          }
-          value={style.font}
-        >
-          {FONT_OPTIONS.map((fontOption) => (
-            <option key={fontOption.id} value={fontOption.id}>
-              {fontOption.label}
-            </option>
-          ))}
-        </select>
-      </label>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <StyleSlider
@@ -154,7 +134,7 @@ export function StyleTab({ background, textDisplay }) {
       <StyleSlider
         label="Vertical position"
         max={0.9}
-        min={0.58}
+        min={0.1}
         onChange={(event) =>
           onUpdateStyle({
             verticalPosition: Number(event.target.value),
@@ -180,59 +160,6 @@ export function StyleTab({ background, textDisplay }) {
           timing?.lyricLeadInMs ?? DEFAULT_LYRIC_LEAD_IN_MS
         } ms`}
       />
-
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-[var(--muted)]">Shadow</p>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              Keep lyrics legible over bright or busy backgrounds.
-            </p>
-          </div>
-          <button
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              style.shadow.enabled
-                ? "bg-[var(--accent)] text-[var(--on-accent)]"
-                : "bg-[var(--surface-2)] text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]"
-            }`}
-            onClick={() =>
-              onUpdateShadow({
-                enabled: !style.shadow.enabled,
-              })
-            }
-            type="button"
-          >
-            {style.shadow.enabled ? "On" : "Off"}
-          </button>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <StyleSlider
-            label="Blur"
-            max={24}
-            min={0}
-            onChange={(event) =>
-              onUpdateShadow({
-                blur: Number(event.target.value),
-              })
-            }
-            step={1}
-            value={style.shadow.blur}
-          />
-          <StyleSlider
-            label="Opacity"
-            max={1}
-            min={0}
-            onChange={(event) =>
-              onUpdateShadow({
-                opacity: Number(event.target.value),
-              })
-            }
-            step={0.05}
-            value={style.shadow.opacity}
-          />
-        </div>
-      </div>
     </div>
   );
 
@@ -337,7 +264,7 @@ export function StyleTab({ background, textDisplay }) {
       {isBackgroundMediaType(settings.type) ? (
         <>
           <div
-            className="rounded-[1.25rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
+            className="rounded-[1.25rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-4 text-center"
             onDragOver={(event) => {
               event.preventDefault();
             }}
@@ -354,11 +281,8 @@ export function StyleTab({ background, textDisplay }) {
             <p className="text-sm font-medium text-[var(--text)]">
               {uploadCopy.uploadLabel}
             </p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              {uploadCopy.helperText}
-            </p>
 
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
               <button
                 className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
                 onClick={() =>
@@ -398,55 +322,6 @@ export function StyleTab({ background, textDisplay }) {
             step={0.05}
             value={settings.scrim.opacity}
           />
-
-          <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-[var(--muted)]">
-                  {uploadCopy.statusLabel}
-                </p>
-                <p
-                  className={`mt-2 text-sm leading-6 ${
-                    upload.status === "error"
-                      ? "text-[var(--danger)]"
-                      : upload.status === "success"
-                        ? "text-[var(--muted)]"
-                        : "text-[var(--muted)]"
-                  }`}
-                >
-                  {upload.message}
-                </p>
-              </div>
-              <div className="grid gap-2 text-right">
-                <span className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
-                  Session asset
-                </span>
-                <span className="text-sm font-medium text-[var(--muted)]">
-                  {asset?.assetId ?? "Pending"}
-                </span>
-                <span className="text-xs text-[var(--muted)]">
-                  {asset?.sizeBytes
-                    ? formatBytes(asset.sizeBytes)
-                    : settings.assetName || "No upload yet"}
-                </span>
-              </div>
-            </div>
-
-            <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-              Current scrim opacity:{" "}
-              <span className="font-mono text-[var(--muted)]">
-                {Math.round((settings.scrim.opacity ?? 0) * 100)}%
-              </span>
-              . Lower values keep more of the background visible; higher values
-              push lyrics forward.
-            </p>
-
-            {!asset ? (
-              <p className="mt-4 text-sm leading-6 text-[var(--accent)]">
-                {uploadCopy.missingMessage}
-              </p>
-            ) : null}
-          </div>
         </>
       ) : null}
     </div>
