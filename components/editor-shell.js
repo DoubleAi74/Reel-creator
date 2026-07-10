@@ -4439,6 +4439,10 @@ export function EditorShell({
             isTimingActive={isTimingTab}
             lines={projectState.lines}
             mobileMenu={creditControls}
+            mobileTabs={{
+              activeSection,
+              onSelectSection: handleSelectSection,
+            }}
             onDurationChange={handleWaveformDuration}
             onMark={handleMarkCurrentLine}
             onTogglePreview={handleTogglePreview}

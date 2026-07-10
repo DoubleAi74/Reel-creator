@@ -34,6 +34,8 @@ const ERROR_COPY = {
   PROVIDER_TIMEOUT: "The audio provider took too long to respond.",
   PROVIDER_MALFORMED_RESPONSE: "The audio provider returned an unusable response.",
   CONVERSION_FAILED: "The audio segment could not be prepared.",
+  FFMPEG_MISSING:
+    "This host is missing ffmpeg/ffprobe needed for local audio trim. Provider-trimmed imports should still work after redeploy.",
   RESULT_EXPIRED: "This conversion expired. Try converting the segment again.",
   INTERNAL_ERROR: "YouTube import failed unexpectedly.",
 };
