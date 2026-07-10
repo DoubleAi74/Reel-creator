@@ -414,23 +414,39 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--border)] pt-4">
+      <div className="audio-actions-row border-t border-[var(--border)] pt-4">
         <button
-          className="rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+          aria-label="Import JSON"
+          className="audio-json-button"
           onClick={onImportJson}
+          title="Import JSON"
           type="button"
         >
-          Import JSON
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M7 3h7l4 4v14H7z" />
+            <path d="M14 3v5h5" />
+            <path d="M12 16V9" />
+            <path d="m9 12 3-3 3 3" />
+          </svg>
+          <span>JSON</span>
         </button>
         <button
-          className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+          aria-label="Export JSON"
+          className="audio-json-button"
           onClick={onExportJson}
+          title="Export JSON"
           type="button"
         >
-          Export JSON
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M7 3h7l4 4v14H7z" />
+            <path d="M14 3v5h5" />
+            <path d="M12 9v7" />
+            <path d="m9 13 3 3 3-3" />
+          </svg>
+          <span>JSON</span>
         </button>
         <button
-          className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="audio-clear-button"
           disabled={!hasTrack || isLoadingSample}
           onClick={onClear}
           type="button"
@@ -438,7 +454,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           Clear track
         </button>
         <button
-          className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="audio-clear-button"
           disabled={!hasLyrics}
           onClick={onClearLyrics}
           type="button"

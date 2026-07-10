@@ -47,6 +47,7 @@ export function LyricsTab({ project, timing }) {
     startLineNumber,
     timedLineCount,
   } = timing;
+  const heardLineIndex = project.lines.findIndex((line) => line.id === heardLineId);
 
   return (
     <div className="grid min-w-0 gap-3">
@@ -215,6 +216,11 @@ export function LyricsTab({ project, timing }) {
             isActive={activeTimingLineId === line.id}
             isEditing={activeTimingLineId === line.id && editingLineId === line.id}
             isHeard={heardLineId === line.id}
+            isPast={
+              heardLineIndex !== -1 &&
+              index < heardLineIndex &&
+              Number.isFinite(line.start)
+            }
             key={line.id}
             line={line}
             onClear={() => {

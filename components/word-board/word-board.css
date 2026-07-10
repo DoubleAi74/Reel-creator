@@ -413,11 +413,16 @@
   color: #2a3142;
 }
 .line-translation {
+  --selection-translation-scale: 1;
   margin: 0;
   color: #44506a;
-  font-size: clamp(8px, 1vw, 10px);
+  font-size: calc(clamp(8px, 1vw, 10px) * var(--selection-translation-scale, 1));
   line-height: 1.22;
+  max-width: 100%;
+  overflow: hidden;
   text-align: center;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 .line-original {
   margin: 0;
@@ -549,7 +554,7 @@
   z-index: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(43, 40, 35, 0.17);
+  background: rgba(214, 206, 192, 0.58);
   box-shadow: none;
   opacity: 0.4;
   pointer-events: none;
@@ -562,12 +567,12 @@
 .version-sketch .line-row:hover .line-word-group::before,
 .version-sketch .line-row.is-hover-line .line-word-group::before,
 .version-sketch .line-row:focus-within .line-word-group::before {
-  background: rgba(43, 40, 35, 0.17);
+  background: rgba(214, 206, 192, 0.68);
   box-shadow: none;
   opacity: 1;
 }
 .version-sketch .line-row.is-selection-line .line-word-group::before {
-  background: rgba(43, 40, 35, 0.17);
+  background: rgba(214, 206, 192, 0.68);
   box-shadow: none;
   opacity: 1;
 }
@@ -575,7 +580,7 @@
 .version-sketch
   .line-row.is-selection-line:focus-within
   .line-word-group::before {
-  background: rgba(43, 40, 35, 0.17);
+  background: rgba(214, 206, 192, 0.68);
 }
 .version-sketch .stage::-webkit-scrollbar {
   width: 10px;
@@ -596,7 +601,7 @@
 .version-sketch .word-button {
   background: #fffaf2;
   color: #2b2823;
-  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0 rgba(43, 40, 35, 0.17);
+  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0 rgba(214, 206, 192, 0.8);
   font-family:
     "Noto Sans Devanagari", "Kohinoor Devanagari", "Mangal", sans-serif;
   font-size: calc(20px * var(--tile-layout-scale));
@@ -604,15 +609,15 @@
 }
 .version-sketch.show-inline-roman .line-word-group .word-button {
   box-shadow: var(--tile-shadow-x) var(--tile-shadow-roman-y) 0
-    rgba(43, 40, 35, 0.15);
+    rgba(214, 206, 192, 0.78);
 }
 .version-sketch .word-button.is-selected {
-  border-color: #39352f;
-  background: #383530;
+  border-color: #2c2924;
+  background: #2c2924;
   color: #fff7e8;
   box-shadow:
     var(--tile-shadow-active-x) var(--tile-shadow-active-y) 0
-      rgba(43, 40, 35, 0.16),
+      rgba(214, 206, 192, 0.72),
     inset 0 0 0 1px rgba(255, 247, 232, 0.07);
 }
 .version-sketch .line-row:hover .word-button:not(.is-selected),
@@ -628,7 +633,7 @@
 .version-sketch .line-row:hover .word-button:not(.is-selected):hover {
   background: #f3f0e9;
   color: #302d28;
-  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0 rgba(43, 40, 35, 0.17);
+  box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0 rgba(214, 206, 192, 0.8);
 }
 .version-sketch .word-button .word-english {
   font-family: inherit;
@@ -640,7 +645,7 @@
 }
 .version-sketch .selection-panel {
   background: #fffaf1;
-  border: 2px solid #22201d;
+  border: 2px solid #d6cec0;
   color: #1f1d1a;
   box-shadow: 0 10px 0 #ded6c9;
 }
@@ -888,9 +893,10 @@
     display: none;
   }
   .version-sketch .line-translation {
-    font-size: clamp(9px, 3.3vw, 12px);
+    font-size: calc(
+      clamp(9px, 3.3vw, 12px) * var(--selection-translation-scale, 1)
+    );
     line-height: 1.12;
-    overflow-wrap: anywhere;
   }
   .version-sketch .board-page-note {
     right: 14px;
@@ -1018,10 +1024,12 @@
   }
   .version-sketch .line-translation {
     color: #435a82;
-    font-size: max(12px, calc(17px * var(--board-scale)));
+    font-size: calc(
+      max(12px, calc(17px * var(--board-scale))) *
+        var(--selection-translation-scale, 1)
+    );
     line-height: 1.1;
     font-weight: 400;
-    overflow-wrap: anywhere;
   }
   .version-sketch .board-page-note {
     display: none;
@@ -1063,6 +1071,12 @@
     --word-row-step: calc(
       var(--desktop-lyric-line-step, 60px) * var(--tile-layout-scale)
     );
+    --tile-radius-max: 5px;
+    --tile-shadow-x: calc(1px * var(--tile-size-ratio));
+    --tile-shadow-y: calc(2px * var(--tile-size-ratio));
+    --tile-shadow-roman-y: calc(1px * var(--tile-size-ratio));
+    --tile-shadow-active-x: calc(1px * var(--tile-size-ratio));
+    --tile-shadow-active-y: calc(1px * var(--tile-size-ratio));
   }
   .version-sketch.show-inline-roman {
     --word-row-step: calc(
@@ -1130,17 +1144,17 @@
     padding: max(22px, calc(40px * var(--board-scale)))
       max(30px, calc(47px * var(--board-scale)))
       max(16px, calc(24px * var(--board-scale)));
-    border: 3px solid #292723;
-    border-radius: 11px;
-    background: #fffaf1;
-    box-shadow: 0 12px 0 #ded6c9;
+    border: 2px solid #d6cec0;
+    border-radius: 12px;
+    background: #f3ecdf;
+    box-shadow: 0 8px 0 #ded6c9;
     --stage-pad-y: max(10px, calc(13px * var(--board-scale)));
     --stage-pad-x: max(18px, calc(25px * var(--board-scale)));
   }
   .version-sketch .stage {
     --stage-pad-y: max(10px, calc(13px * var(--board-scale)));
     --stage-pad-x: max(18px, calc(25px * var(--board-scale)));
-    --page-rule-color: rgba(39, 35, 29, 0.09);
+    --page-rule-color: rgba(229, 221, 207, 0.95);
     width: 100%;
     height: auto;
     overflow-x: hidden;
@@ -1152,10 +1166,13 @@
     scrollbar-width: thin;
     min-height: 0;
     justify-self: center;
-    border: 3px solid #2c2924;
-    border-radius: 9px;
+    border: 2px solid #d6cec0;
+    border-radius: 12px;
     background: #f7f0df;
     padding: var(--stage-pad-y) var(--stage-pad-x);
+  }
+  .version-sketch .refollow-button {
+    right: calc(max(30px, calc(47px * var(--board-scale))) + 8px);
   }
   .version-sketch .stage::before {
     display: none;
@@ -1178,11 +1195,11 @@
     flex-wrap: nowrap;
   }
   .version-sketch .line-row::before {
-    height: 2px;
+    height: 1px;
     background: var(--page-rule-color);
   }
   .version-sketch .line-word-group {
-    gap: calc(5px * var(--tile-layout-scale));
+    gap: calc(4px * var(--tile-layout-scale));
     row-gap: 0;
     flex-wrap: nowrap;
   }
@@ -1196,12 +1213,12 @@
     min-height: calc(40px * var(--tile-layout-scale));
     min-width: 0;
     padding: 0;
-    border: 1px solid currentColor;
+    border: 1px solid #e2d9ca;
     border-radius: var(--tile-radius);
-    background: #fffaf2;
-    color: #302d28;
+    background: #fffdf8;
+    color: #2c2924;
     box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0
-      rgba(43, 40, 35, 0.17);
+      rgba(214, 206, 192, 0.8);
     font-family:
       "Noto Sans Devanagari", "Kohinoor Devanagari", "Mangal", sans-serif;
     font-size: calc(20px * var(--tile-layout-scale));
@@ -1211,32 +1228,32 @@
   }
   .version-sketch.show-inline-roman .line-word-group .word-button {
     box-shadow: var(--tile-shadow-x) var(--tile-shadow-roman-y) 0
-      rgba(43, 40, 35, 0.15);
+      rgba(214, 206, 192, 0.78);
   }
   .version-sketch .word-button.is-selected {
-    border-color: #201d19;
-    background: #201d19;
+    border-color: #2c2924;
+    background: #2c2924;
     color: #fff7e8;
     box-shadow:
       var(--tile-shadow-active-x) var(--tile-shadow-active-y) 0
-        rgba(43, 40, 35, 0.16),
+        rgba(214, 206, 192, 0.72),
       inset 0 0 0 1px rgba(255, 247, 232, 0.07);
   }
   .version-sketch .line-row:hover .word-button:not(.is-selected),
   .version-sketch .line-row.is-hover-line .word-button:not(.is-selected),
   .version-sketch .line-row:focus-within .word-button:not(.is-selected) {
-    background: #fffaf2;
-    color: #302d28;
+    background: #fffdf8;
+    color: #2c2924;
   }
   .version-sketch .line-row.is-selection-line .word-button:not(.is-selected) {
-    background: #fffaf2;
-    color: #302d28;
+    background: #fffdf8;
+    color: #2c2924;
   }
   .version-sketch .line-row:hover .word-button:not(.is-selected):hover {
-    background: #f3ecdf;
-    color: #b9801e;
+    background: #fffaf2;
+    color: #2c2924;
     box-shadow: var(--tile-shadow-x) var(--tile-shadow-y) 0
-      rgba(43, 40, 35, 0.17);
+      rgba(214, 206, 192, 0.8);
   }
   .version-sketch .word-button.is-selected {
     transform: none;
@@ -1254,6 +1271,9 @@
     text-align: center;
     white-space: nowrap;
   }
+  .version-sketch .word-button .word-hindi {
+    transform: translateY(calc(2.2px * var(--tile-layout-scale)));
+  }
   .version-sketch .word-button .word-english {
     font-family:
       Inter,
@@ -1268,7 +1288,7 @@
   }
   .version-sketch .word-roman-inline {
     margin-top: 0px;
-    color: #5f584d;
+    color: #747372;
     font-size: calc(13px * var(--tile-layout-scale));
     font-weight: 650;
     opacity: 0.72;
@@ -1300,10 +1320,10 @@
     width: max(48px, calc(68px * var(--board-scale)));
     height: max(50px, calc(70px * var(--board-scale)));
     margin-top: max(12px, calc(18px * var(--board-scale)));
-    border: 2px solid currentColor;
-    border-radius: 13px;
+    border: 2px solid #c8c1b6;
+    border-radius: 12px;
     background: #fffaf1;
-    color: #211f1b;
+    color: #2c2924;
     position: relative;
     display: grid;
     place-items: center;
@@ -1354,10 +1374,10 @@
     padding: max(10px, calc(15px * var(--board-scale)))
       max(22px, calc(32px * var(--board-scale)))
       max(10px, calc(14px * var(--board-scale)));
-    border: 3px solid #292723;
-    border-radius: 8px;
+    border: 2px solid #d6cec0;
+    border-radius: 12px;
     background: #fffaf1;
-    color: #1f1d1a;
+    color: #2c2924;
     box-shadow: none;
     overflow: hidden;
   }
@@ -1408,18 +1428,26 @@
   .version-sketch .selection-line-stack {
     min-height: 0;
     align-content: center;
-    gap: 0;
+    gap: max(3px, calc(4px * var(--board-scale)));
   }
-  .version-sketch .line-original,
+  .version-sketch .line-original {
+    display: block;
+    color: #4a463e;
+    font-family:
+      "Noto Sans Devanagari", "Kohinoor Devanagari", "Mangal", sans-serif;
+    font-weight: 760;
+  }
   .version-sketch .line-romanization {
     display: none;
   }
   .version-sketch .line-translation {
-    color: #435a82;
-    font-size: max(12px, calc(17px * var(--board-scale)));
+    color: #2c2924;
+    font-size: calc(
+      max(12px, calc(17px * var(--board-scale))) *
+        var(--selection-translation-scale, 1)
+    );
     line-height: 1.1;
-    font-weight: 400;
-    overflow-wrap: anywhere;
+    font-weight: 760;
   }
   .version-sketch .board-page-note {
     right: max(40px, calc(59px * var(--board-scale)));
@@ -1443,8 +1471,11 @@
     --stage-pad-y: 8px;
     --stage-pad-x: 10px;
     border-width: 2px;
-    border-radius: 7px;
+    border-radius: 12px;
     padding: var(--stage-pad-y) var(--stage-pad-x);
+  }
+  .wb-slot .version-sketch .refollow-button {
+    right: 42px;
   }
   .version-sketch .pager-strip {
     height: 78px;
@@ -1480,7 +1511,7 @@
     width: 34px;
     height: 34px;
     border: 2px solid var(--control-button-stroke);
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--control-button-bg);
     color: var(--control-button-text);
     font-size: 12px;
@@ -1527,7 +1558,7 @@
     margin: 0;
   }
   .version-sketch .line-translation {
-    font-size: 11px;
+    font-size: calc(11px * var(--selection-translation-scale, 1));
     line-height: 1.1;
   }
   .version-sketch .board-page-note {
@@ -1550,6 +1581,9 @@
   .wb-slot .version-sketch .stage {
     --stage-pad-y: max(10px, calc(var(--stage-h) * 13 / 922));
     --stage-pad-x: max(18px, calc(var(--stage-h) * 25 / 922));
+  }
+  .wb-slot .version-sketch .refollow-button {
+    right: calc(max(30px, calc(var(--stage-h) * 47 / 922)) + 20px);
   }
   .wb-slot .version-sketch .pager-strip {
     height: max(96px, calc(var(--stage-h) * 142 / 922));
@@ -1601,7 +1635,10 @@
     font-size: max(22px, calc(var(--stage-h) * 30 / 922));
   }
   .wb-slot .version-sketch .line-translation {
-    font-size: max(12px, calc(var(--stage-h) * 17 / 922));
+    font-size: calc(
+      max(12px, calc(var(--stage-h) * 17 / 922)) *
+        var(--selection-translation-scale, 1)
+    );
   }
 }
 
@@ -1702,7 +1739,7 @@
   opacity: 0.84;
 }
 
-/* ===== index_new board deviation: dark-red roman in selection box (was blue #6670ff) ===== */
+/* Match the mobile showcase romanization colour. */
 .wb .version-sketch .selection-roman {
-  color: hsl(348 23% 38%);
+  color: #6771ff;
 }

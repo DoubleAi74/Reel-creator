@@ -471,7 +471,7 @@ textarea:focus-visible {
   .board-tools-card .line-translation {
     display: block;
     color: #2c2924;
-    font-size: 12px;
+    font-size: calc(12px * var(--selection-translation-scale, 1));
     font-weight: 760;
     line-height: 1.18;
   }
@@ -1417,6 +1417,70 @@ textarea:focus-visible {
   overflow: hidden;
 }
 
+.audio-actions-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+}
+
+.audio-json-button,
+.audio-clear-button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+.audio-json-button {
+  flex: 0 0 66px;
+  gap: 4px;
+  color: var(--muted);
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.audio-json-button svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.audio-clear-button {
+  min-width: 0;
+  flex: 0 1 88px;
+  color: var(--danger);
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.audio-json-button:hover,
+.audio-clear-button:hover {
+  background: var(--surface-hover);
+}
+
+.audio-clear-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /* =====================================================================
  * App chrome — DESKTOP ONLY (>= lg / 1024px).
  * These rules are intentionally UNLAYERED: by CSS cascade-layer rules,
@@ -1778,6 +1842,54 @@ textarea:focus-visible {
 
 .tab-link {
   color: var(--muted);
+}
+
+.timing-row--idle {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.timing-row--idle:hover {
+  background: var(--surface-hover);
+}
+
+.timing-row--active {
+  border-color: var(--accent);
+  background: var(--surface-active);
+  box-shadow: var(--shadow-soft);
+}
+
+.timing-row--current {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.timing-row--current .timing-row-original {
+  color: color-mix(in srgb, var(--accent) 18%, var(--text));
+}
+
+.timing-row--current .timing-row-time {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color: var(--accent);
+}
+
+.timing-row--past {
+  border-color: color-mix(in srgb, var(--border) 78%, var(--muted));
+  background: color-mix(in srgb, var(--muted) 5%, var(--surface));
+}
+
+.timing-row--past .timing-row-original {
+  color: color-mix(in srgb, var(--text) 72%, var(--muted));
+}
+
+.timing-row--past .timing-row-translation,
+.timing-row--past .timing-row-time {
+  color: color-mix(in srgb, var(--muted) 86%, var(--text));
+}
+
+.timing-row--past .timing-row-time {
+  background: color-mix(in srgb, var(--muted) 7%, var(--surface));
 }
 
 .section-tab {

@@ -41,12 +41,25 @@ vi.mock("@/lib/ai/openai-lyrics", () => ({
 vi.mock("@/lib/ai/transcribe-job", () => ({
   normalizeTranscribePhase: vi.fn((phase) => phase || "full"),
   runTranscribeJob: vi.fn(async () => ({ ok: true })),
+  shouldRunTranscribeJobsSynchronously: vi.fn(() => false),
 }));
 
 vi.mock("@/lib/ai/transcribe-store", () => ({
   createTranscribeJob: vi.fn(),
   enqueueTranscribeJob: vi.fn(),
   findInFlightTranscribeForSession: vi.fn(),
+  getTranscribeJob: vi.fn(),
+  markTranscribeJobFailed: vi.fn(),
+  toTranscribeJobResponse: vi.fn((job) =>
+    job
+      ? {
+          jobId: job.jobId,
+          phase: job.phase,
+          status: job.status,
+          result: job.result,
+        }
+      : null,
+  ),
 }));
 
 vi.mock("@/lib/render/store", () => ({
@@ -100,10 +113,22 @@ describe("POST /api/ai/transcribe", () => {
     files.touchSessionAndSweep.mockReset();
     files.touchSessionAndSweep.mockResolvedValue([]);
     store.createTranscribeJob.mockReset();
-    store.createTranscribeJob.mockReturnValue({ jobId: "job-route" });
+    store.createTranscribeJob.mockReturnValue({
+      jobId: "job-route",
+      phase: "time",
+      status: "queued",
+    });
     store.enqueueTranscribeJob.mockReset();
     store.findInFlightTranscribeForSession.mockReset();
     store.findInFlightTranscribeForSession.mockReturnValue(null);
+    store.getTranscribeJob.mockReset();
+    store.markTranscribeJobFailed.mockReset();
+    store.toTranscribeJobResponse.mockClear();
+    const transcribeJob = await import("@/lib/ai/transcribe-job");
+    transcribeJob.shouldRunTranscribeJobsSynchronously.mockReset();
+    transcribeJob.shouldRunTranscribeJobsSynchronously.mockReturnValue(false);
+    transcribeJob.runTranscribeJob.mockReset();
+    transcribeJob.runTranscribeJob.mockResolvedValue({ ok: true });
     rateLimit.checkGenerationRateLimit.mockClear();
     rateLimit.checkGenerationRateLimit.mockReturnValue({
       allowed: true,
@@ -277,6 +302,46 @@ describe("POST /api/ai/transcribe", () => {
     );
     expect(unlockCookie.isGenerationUnlockCookieValid).not.toHaveBeenCalled();
     expect(creditService.assertCanStartGeneration).not.toHaveBeenCalled();
+  });
+
+  it("runs the job inline on Vercel and returns the finished payload", async () => {
+    const { POST } = await import("./route");
+    const store = await import("@/lib/ai/transcribe-store");
+    const transcribeJob = await import("@/lib/ai/transcribe-job");
+
+    transcribeJob.shouldRunTranscribeJobsSynchronously.mockReturnValue(true);
+    store.getTranscribeJob.mockReturnValue({
+      jobId: "job-route",
+      phase: "generate",
+      status: "done",
+      result: { lines: [{ original: "hello" }] },
+    });
+    store.toTranscribeJobResponse.mockReturnValue({
+      jobId: "job-route",
+      phase: "generate",
+      status: "done",
+      result: { lines: [{ original: "hello" }] },
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/ai/transcribe", {
+        body: JSON.stringify({
+          audioAssetId: "asset-route",
+          phase: "generate",
+          sourceLanguage: "auto",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      jobId: "job-route",
+      status: "done",
+      phase: "generate",
+    });
+    expect(transcribeJob.runTranscribeJob).toHaveBeenCalled();
+    expect(store.enqueueTranscribeJob).not.toHaveBeenCalled();
   });
 
   it("reattaches a client MP3 onto this isolate when multipart file is sent", async () => {
