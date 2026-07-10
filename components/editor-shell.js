@@ -148,6 +148,42 @@ function buildSessionAssetUrl(assetId) {
   return assetId ? `/api/assets/${assetId}` : null;
 }
 
+/**
+ * Prefer embedded convert bytes (Vercel multi-isolate /tmp 404s on /api/assets).
+ * Falls back to session asset URL for localhost / single-instance hosts.
+ */
+function buildYoutubeAssetPlaybackUrl(asset) {
+  if (asset?.audioBase64 && typeof asset.audioBase64 === "string") {
+    try {
+      const binary = atob(asset.audioBase64);
+      const bytes = new Uint8Array(binary.length);
+
+      for (let index = 0; index < binary.length; index += 1) {
+        bytes[index] = binary.charCodeAt(index);
+      }
+
+      const blob = new Blob([bytes], {
+        type: asset.mimeType || "audio/mpeg",
+      });
+
+      return URL.createObjectURL(blob);
+    } catch {
+      // Fall through to session URL.
+    }
+  }
+
+  return buildSessionAssetUrl(asset?.assetId);
+}
+
+function stripEmbeddedYoutubeAudio(asset) {
+  if (!asset || typeof asset !== "object") {
+    return asset;
+  }
+
+  const { audioBase64: _audioBase64, mimeType: _mimeType, ...rest } = asset;
+  return rest;
+}
+
 // localStorage is a best-effort recovery cache, not the source of truth, so all
 // access is wrapped: a disabled/full store simply degrades to no autosave.
 function readAutosaveRaw() {
@@ -3112,7 +3148,7 @@ export function EditorShell({
     appliedTranscribeJobIdRef.current = null;
     const currentProject = projectStateRef.current;
     const nextAsset = {
-      ...asset,
+      ...stripEmbeddedYoutubeAudio(asset),
       durationSec,
       kind: "audio",
     };
@@ -3127,6 +3163,7 @@ export function EditorShell({
       currentProject.lines,
       nextAudio,
     );
+    const nextObjectUrl = buildYoutubeAssetPlaybackUrl(asset);
 
     if (audioObjectUrl?.startsWith("blob:")) {
       URL.revokeObjectURL(audioObjectUrl);
@@ -3155,7 +3192,7 @@ export function EditorShell({
             status: "idle",
           },
     );
-    setAudioObjectUrl(buildSessionAssetUrl(asset.assetId));
+    setAudioObjectUrl(nextObjectUrl);
     setIsTransportPlaying(false);
     setCurrentAudioTime(0);
     setAutoFollowEnabled(true);

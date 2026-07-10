@@ -453,6 +453,7 @@ export function YoutubeSegmentModal({
         errorCode: startPayload.errorCode ?? null,
         errorMessage: startPayload.errorMessage ?? null,
         hasAsset: Boolean(startPayload.asset?.assetId),
+        hasEmbeddedAudio: Boolean(startPayload.asset?.audioBase64),
         parseError: startPayload.parseError === true,
         rawPreview:
           startPayload.parseError === true ? startPayload.rawPreview : undefined,
@@ -480,6 +481,7 @@ export function YoutubeSegmentModal({
       ) {
         debugLog("post-complete-with-asset", {
           assetId: startPayload.asset.assetId,
+          hasEmbeddedAudio: Boolean(startPayload.asset.audioBase64),
         });
         if (activeRequestRef.current === requestId) {
           finishWithAsset(startPayload.asset);
