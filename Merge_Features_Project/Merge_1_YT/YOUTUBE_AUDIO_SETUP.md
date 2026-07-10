@@ -5,10 +5,14 @@ keys or provider diagnostics.
 
 ## Environment
 
-Set this server-only variable in local or deployment environment:
+Set these server-only variables in local or deployment environment:
 
 ```bash
 RAPIDAPI_YOUTUBE_MP3_KEY=your_rapidapi_key
+# Required for youtube-mp36 media downloads (Vercel especially):
+# your RapidAPI **account username** (not the API key), used in the MP3 User-Agent.
+# Without it, the provider link often returns HTTP 404 from the CDN.
+RAPIDAPI_USERNAME=your_rapidapi_username
 ```
 
 Optional tuning variables:
@@ -21,6 +25,8 @@ YT_AUDIO_MAX_OUTPUT_BYTES=52428800
 YT_AUDIO_MAX_QUEUE_DEPTH=20
 YT_AUDIO_MAX_ACTIVE_PER_SESSION=2
 YT_AUDIO_DEBUG=0
+# Alias for RAPIDAPI_USERNAME (same value).
+# YT_MP36_RAPIDAPI_USERNAME=your_rapidapi_username
 # Retries after the first media download attempt on transient timeouts (default 2).
 YT_MEDIA_DOWNLOAD_RETRIES=2
 # Force sync convert in the POST request (auto-enabled on Vercel via VERCEL=1).
@@ -28,6 +34,13 @@ YT_MEDIA_DOWNLOAD_RETRIES=2
 # Always-on convert breadcrumbs in server logs (also auto-on when VERCEL=1).
 # YT_AUDIO_DEBUG=1
 ```
+
+### youtube-mp36 HTTP 404 on media download
+
+Provider API can return `status: ok` + a `link`, but the **CDN** rejects the download with
+404 unless the request is whitelisted. ytjar’s fix is: send your RapidAPI username in the
+download `User-Agent` (this app does that when `RAPIDAPI_USERNAME` is set). Alternative:
+whitelist your server egress IPs in the RapidAPI / provider dashboard (hard on Vercel).
 
 ## Debugging convert failures (Vercel)
 
