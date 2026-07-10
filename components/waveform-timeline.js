@@ -9,6 +9,7 @@ import {
 } from "react";
 import WaveSurfer from "wavesurfer.js";
 
+import { CreditMobileMenu } from "@/components/credit-mobile-menu";
 import {
   createWaveformPeaksCache,
   getWaveformPeaksForWaveSurfer,
@@ -188,6 +189,7 @@ export function WaveformTimeline({
   isPlaying,
   isTimingActive,
   lines,
+  mobileMenu = null,
   onDurationChange,
   onMark,
   onTogglePreview,
@@ -688,6 +690,10 @@ export function WaveformTimeline({
   const canMark = isReady && isTimingActive && Boolean(activeLineId) && typeof onMark === "function";
   const currentWaveformPercent =
     sectionDuration > 0 ? currentSectionTime / sectionDuration : 0;
+  // Mobile view switch (single either/or control). On narrow the panes are
+  // mutually exclusive; the button shows the icon of the HIDDEN view and taps
+  // switch to it, so one pane is always shown (never neither).
+  const boardVisible = showWordBoard && !showPreview;
 
   return (
     <div className="transport lg:rounded-[1.75rem] lg:border lg:border-[var(--border)] lg:bg-[var(--surface-2)]">
@@ -820,50 +826,45 @@ export function WaveformTimeline({
         <div
           className="transport-view-toggle hidden"
           role="group"
-          aria-label="Show or hide the preview and word board"
+          aria-label="Switch between preview and word board"
         >
           <button
-            aria-label="Preview"
-            aria-pressed={showPreview}
-            className={showPreview ? "is-active" : ""}
-            data-view="preview"
-            data-wsview="preview"
-            onClick={onTogglePreview}
+            aria-label={boardVisible ? "Show preview" : "Show word board"}
+            className="is-active"
+            data-wsview={boardVisible ? "preview" : "board"}
+            onClick={boardVisible ? onTogglePreview : onToggleWordBoard}
+            title={boardVisible ? "Show preview" : "Show word board"}
             type="button"
           >
-            <svg className="view-icon" aria-hidden="true" viewBox="0 0 24 24">
-              <rect
-                x="6.5"
-                y="3"
-                width="11"
-                height="18"
-                rx="2.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <path d="M11 9.2v5.6l4.4-2.8z" fill="currentColor" />
-            </svg>
-            <span className="view-label">Preview</span>
-          </button>
-          <button
-            aria-label="Word board"
-            aria-pressed={showWordBoard}
-            className={showWordBoard ? "is-active" : ""}
-            data-view="board"
-            data-wsview="board"
-            onClick={onToggleWordBoard}
-            type="button"
-          >
-            <svg className="view-icon" aria-hidden="true" viewBox="0 0 24 24">
-              <rect x="4" y="5" width="7" height="5" rx="1.5" fill="currentColor" />
-              <rect x="13" y="5" width="7" height="5" rx="1.5" fill="currentColor" />
-              <rect x="4" y="14" width="7" height="5" rx="1.5" fill="currentColor" />
-              <rect x="13" y="14" width="7" height="5" rx="1.5" fill="currentColor" />
-            </svg>
-            <span className="view-label">Word board</span>
+            {boardVisible ? (
+              <svg className="view-icon" aria-hidden="true" viewBox="0 0 24 24">
+                <rect
+                  x="6.5"
+                  y="3"
+                  width="11"
+                  height="18"
+                  rx="2.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path d="M11 9.2v5.6l4.4-2.8z" fill="currentColor" />
+              </svg>
+            ) : (
+              <svg className="view-icon" aria-hidden="true" viewBox="0 0 24 24">
+                <rect x="4" y="5" width="7" height="5" rx="1.5" fill="currentColor" />
+                <rect x="13" y="5" width="7" height="5" rx="1.5" fill="currentColor" />
+                <rect x="4" y="14" width="7" height="5" rx="1.5" fill="currentColor" />
+                <rect x="13" y="14" width="7" height="5" rx="1.5" fill="currentColor" />
+              </svg>
+            )}
+            <span className="view-label">
+              {boardVisible ? "Preview" : "Word board"}
+            </span>
           </button>
         </div>
+
+        {mobileMenu ? <CreditMobileMenu {...mobileMenu} /> : null}
 
         <div className="transport-time">
           <span className="transport-time-readout font-mono">

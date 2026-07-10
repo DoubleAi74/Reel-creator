@@ -545,7 +545,12 @@ function getLineNumber(lines = [], lineId) {
   return index === -1 ? null : index + 1;
 }
 
-export function EditorShell({ debugProbe = null, openGenerationId = "", project }) {
+export function EditorShell({
+  creditsEnabled = false,
+  debugProbe = null,
+  openGenerationId = "",
+  project,
+}) {
   const [activeSection, setActiveSection] = useState("audio");
   const previousActiveSectionRef = useRef(activeSection);
   const [audioUpload, setAudioUpload] = useState({
@@ -607,7 +612,9 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
   );
   const [creditState, setCreditState] = useState({
     balanceMinor: 0,
-    enabled: false,
+    // Seeded from the server (CREDITS_ENABLED) so the credit chrome renders on
+    // first paint instead of popping in after the async balance fetch.
+    enabled: creditsEnabled,
     status: "idle",
   });
   const [saveGeneration, setSaveGeneration] = useState(true);
@@ -4256,6 +4263,18 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
     .filter(Boolean)
     .join(" ");
   const currentSheetSnap = SHEET_SNAPS[sheetSnapIndex] ?? SHEET_SNAPS[0];
+  const creditControls = {
+    balanceMinor: creditState.balanceMinor,
+    enabled: creditState.enabled,
+    onTopUpAmountChange: setTopUpAmount,
+    onTopUpSubmit: (event) => {
+      void handleTopUpSubmit(event);
+    },
+    status: creditState.status,
+    topUpAmount,
+    topUpMessage,
+    topUpStatus,
+  };
 
   return (
     <EditorProvider value={editor}>
@@ -4270,18 +4289,7 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
       >
         <EditorHeader
           artist={projectState.meta.artist}
-          credit={{
-            balanceMinor: creditState.balanceMinor,
-            enabled: creditState.enabled,
-            onTopUpAmountChange: setTopUpAmount,
-            onTopUpSubmit: (event) => {
-              void handleTopUpSubmit(event);
-            },
-            status: creditState.status,
-            topUpAmount,
-            topUpMessage,
-            topUpStatus,
-          }}
+          credit={creditControls}
           onTogglePreview={handleTogglePreview}
           onToggleWordBoard={handleToggleWordBoard}
           showPreview={showPreview}
@@ -4430,6 +4438,7 @@ export function EditorShell({ debugProbe = null, openGenerationId = "", project 
             isPlaying={isTransportPlaying}
             isTimingActive={isTimingTab}
             lines={projectState.lines}
+            mobileMenu={creditControls}
             onDurationChange={handleWaveformDuration}
             onMark={handleMarkCurrentLine}
             onTogglePreview={handleTogglePreview}

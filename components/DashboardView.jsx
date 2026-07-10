@@ -149,18 +149,13 @@ export default function DashboardView() {
                 className="flex min-h-[220px] flex-col rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]"
                 key={generation.id}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="truncate text-base font-semibold">
-                      {generation.title || "Untitled generation"}
-                    </h2>
-                    <p className="mt-1 text-xs text-[var(--muted)]">
-                      {formatDate(generation.createdAt)}
-                    </p>
-                  </div>
-                  <span className="rounded-full border border-[var(--border)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-                    {generation.sourceType}
-                  </span>
+                <div className="min-w-0">
+                  <h2 className="truncate text-base font-semibold">
+                    {generation.title || "Untitled generation"}
+                  </h2>
+                  <p className="mt-1 text-xs text-[var(--muted)]">
+                    {formatDate(generation.createdAt)}
+                  </p>
                 </div>
 
                 <p className="mt-4 line-clamp-3 min-h-[3.75rem] text-sm leading-5 text-[var(--muted)]">
