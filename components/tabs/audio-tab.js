@@ -13,10 +13,6 @@ const PIPELINE_PRESET_OPTIONS = [
     label: "Generate only",
     preset: LYRIC_PIPELINE_PRESETS.generateOnly,
   },
-  {
-    label: "Time only",
-    preset: LYRIC_PIPELINE_PRESETS.timeOnly,
-  },
 ];
 
 const PIPELINE_PHASE_OPTIONS = [
@@ -120,14 +116,6 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
     ? pipeline.selectedPhases.length
     : 0;
   const canRunSelectedPipeline = canGenerate && selectedPhaseCount > 0;
-  const visibleStatus =
-    autoLyricsBusy || autoTimingBusy
-      ? "running"
-      : auto.status === "error" || autoTiming?.status === "error"
-        ? "error"
-        : auto.status === "success" || autoTiming?.status === "success"
-          ? "success"
-          : auto.status;
   const visibleNotice =
     autoTimingBusy ||
     autoTiming?.status === "error" ||
@@ -144,7 +132,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
   return (
     <div className="grid gap-4">
       <div
-        className="upload-card rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] p-5 text-center"
+        className="upload-card rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] px-5 pt-2.5 pb-5 text-center"
         onDragOver={(event) => {
           event.preventDefault();
         }}
@@ -153,14 +141,9 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           onFile(event.dataTransfer.files?.[0] ?? null);
         }}
       >
-        <h2 className="text-sm font-medium text-[var(--text)]">
-          Drag an MP3 here or choose one from your computer
+        <h2 className="text-base font-semibold text-[var(--text)]">
+          Welcome to Cross Lang!
         </h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          Up to 25 MB. The uploaded track drives the persistent waveform dock,
-          timing workflow, and later export.
-        </p>
-
         <div className="button-row mt-5 flex flex-wrap items-center justify-center gap-3">
           <button
             className="pill primary rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
@@ -179,26 +162,21 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           >
             {isLoadingSample ? "Loading sample…" : "Load sample"}
           </button>
-          <StatusBadge
-            className="status-badge"
-            tone={
-              upload.status === "success"
-                ? "success"
-                : upload.status === "error"
-                  ? "danger"
-                  : "neutral"
-            }
-          >
-            {upload.status}
-          </StatusBadge>
+          {youtube.enabled ? (
+            <button
+              className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!String(youtube.url ?? "").trim()}
+              onClick={() => youtube.onOpen?.()}
+              type="button"
+            >
+              Youtube segment
+            </button>
+          ) : null}
         </div>
 
         {youtube.enabled ? (
-          <div className="youtube-import mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <div className="youtube-import mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
             <label className="field-label text-left">
-              <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
-                YouTube URL
-              </span>
               <input
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
                 onChange={(event) => youtube.onUrlChange?.(event.target.value)}
@@ -207,14 +185,6 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
                 value={youtube.url ?? ""}
               />
             </label>
-            <button
-              className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!String(youtube.url ?? "").trim()}
-              onClick={() => youtube.onOpen?.()}
-              type="button"
-            >
-              Choose segment
-            </button>
             {youtube.error ? (
               <p className="text-left text-sm leading-6 text-[var(--danger)] sm:col-span-2">
                 {youtube.error}
@@ -225,17 +195,17 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
       </div>
 
       <p
-        className={`track-status truncate rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
+        className={`track-status flex min-w-0 items-center rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm leading-6 ${
           upload.status === "error"
             ? "text-[var(--danger)]"
             : "text-[var(--muted)]"
         }`}
         title={upload.message}
       >
-        <span className="font-medium text-[var(--text)]">
+        <span className="min-w-0 truncate font-medium text-[var(--text)]">
           {project.audio.name || "No track"}
         </span>
-        <span>
+        <span className="shrink-0 whitespace-nowrap">
           {" · "}
           {project.audio.duration > 0
             ? formatTime(project.audio.duration)
@@ -246,31 +216,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
       </p>
 
       <div className="auto-card rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <div className="auto-top flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-[var(--muted)]">Auto-lyrics</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              Generate translated lyrics from the uploaded MP3, then time the
-              current lyric lines when they are ready.
-            </p>
-          </div>
-          <StatusBadge
-            className="status-badge"
-            tone={
-              visibleStatus === "running"
-                ? "accent"
-                : visibleStatus === "success"
-                  ? "success"
-                  : visibleStatus === "error"
-                    ? "danger"
-                    : "neutral"
-            }
-          >
-            {visibleStatus === "running" ? "Running" : visibleStatus}
-          </StatusBadge>
-        </div>
-
-        <div className="auto-grid mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="auto-grid mt-2 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div className="grid gap-3">
             <label className="field-label block">
               <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--muted)]">
@@ -462,36 +408,27 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
         ) : null}
       </div>
 
-      <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-4">
-        <p className="text-sm font-medium text-[var(--muted)]">Lyrics data</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          Import a project JSON to load existing lyrics and timings, or export the
-          current project to a file.
-        </p>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button
-            className="rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-            onClick={onImportJson}
-            type="button"
-          >
-            Import JSON
-          </button>
-          <button
-            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-            onClick={onExportJson}
-            type="button"
-          >
-            Export JSON
-          </button>
+      {inlineNotice ? (
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm leading-6 text-[var(--text)]">
+          {inlineNotice}
         </div>
-        {inlineNotice ? (
-          <div className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm leading-6 text-[var(--text)]">
-            {inlineNotice}
-          </div>
-        ) : null}
-      </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--border)] pt-4">
+        <button
+          className="rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+          onClick={onImportJson}
+          type="button"
+        >
+          Import JSON
+        </button>
+        <button
+          className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+          onClick={onExportJson}
+          type="button"
+        >
+          Export JSON
+        </button>
         <button
           className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--danger)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!hasTrack || isLoadingSample}

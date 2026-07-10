@@ -6,7 +6,6 @@ import { formatSectionRelativeTime } from "@/lib/editor-format";
 export function LyricsTab({ project, timing }) {
   const {
     activeTimingLineId,
-    autoFollowEnabled,
     autoTiming,
     autoTimingBusy,
     canStart,
@@ -24,7 +23,6 @@ export function LyricsTab({ project, timing }) {
     onDeleteLine,
     onDraftCommit,
     onDraftReset,
-    onJump,
     onMark,
     onMoveLine,
     onNudge,
@@ -39,13 +37,13 @@ export function LyricsTab({ project, timing }) {
     onStopSession,
     onTapNext,
     onToggleControls,
+    onUndoTap,
     onUpdateLine,
     progress,
     rowRefs,
     sectionActive,
     session,
     startDisabledReason,
-    startLine,
     startLineNumber,
     timedLineCount,
   } = timing;
@@ -53,7 +51,7 @@ export function LyricsTab({ project, timing }) {
   return (
     <div className="grid min-w-0 gap-3">
       {sectionActive && !session.active ? (
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <button
             className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition lg:text-xs ${
               controlsVisible
@@ -63,43 +61,15 @@ export function LyricsTab({ project, timing }) {
             onClick={onToggleControls}
             type="button"
           >
-            {controlsVisible ? "Hide times" : "Set times"}
+            {controlsVisible ? "Hide times" : "Set times manually"}
           </button>
         </div>
       ) : null}
 
       {controlsVisible ? (
       <div className="sticky top-0 z-10 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface)] px-3 py-3 shadow-[0_18px_40px_rgba(2,6,23,0.24)] backdrop-blur">
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <button
-            className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-              autoFollowEnabled
-                ? "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-                : "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)] hover:bg-[var(--surface-hover)]"
-            }`}
-            onClick={onJump}
-            type="button"
-          >
-            ↩ Jump
-          </button>
-          <span
-            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-              autoFollowEnabled
-                ? "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]"
-                : "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]"
-            }`}
-          >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                autoFollowEnabled ? "bg-[var(--accent)]" : "bg-[var(--surface-2)]"
-              }`}
-            />
-            {autoFollowEnabled ? "Auto-follow" : "Follow paused"}
-          </span>
-        </div>
-
         {session.active ? (
-          <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-3">
+          <div className="grid gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-[var(--muted)]">
                 <span className="rounded-full border border-[var(--accent)] bg-[var(--surface-active)] px-2.5 py-1 text-[var(--accent)]">
@@ -177,7 +147,7 @@ export function LyricsTab({ project, timing }) {
             </div>
           </div>
         ) : (
-          <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end lg:grid-cols-1 lg:items-stretch">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end lg:grid-cols-1 lg:items-stretch">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--muted)]">
                 <span>
@@ -187,9 +157,6 @@ export function LyricsTab({ project, timing }) {
                   {timedLineCount} timed · {lineCount - timedLineCount} untimed
                 </span>
               </div>
-              <p className="mt-1 truncate text-sm font-medium text-[var(--muted)]">
-                {startLine?.original || "No lyric lines"}
-              </p>
               {startDisabledReason ? (
                 <p className="mt-1 text-xs text-[var(--muted)]">
                   {startDisabledReason}

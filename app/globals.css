@@ -297,10 +297,10 @@ textarea:focus-visible {
     flex-direction: column;
     margin-top: 0;
     overflow: hidden;
-    border-top: 1px solid var(--border);
+    border: 5px solid var(--shell);
     border-radius: 24px 24px 0 0;
     background: var(--shell);
-    box-shadow: 0 -20px 60px #1c1a182e;
+    box-shadow: 0 -20px 60px #1c1a1817;
     overscroll-behavior: contain;
   }
 
@@ -410,10 +410,21 @@ textarea:focus-visible {
   }
 
   .board-tools-card .selection-word-row {
+    --selection-word-scale: 1;
     min-height: 24px;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .board-tools-card .selection-english,
+  .board-tools-card .selection-roman,
+  .board-tools-card .selection-hindi {
+    min-width: 0;
+    max-width: 100%;
+    white-space: nowrap;
   }
 
   .board-tools-card .selection-divider {
@@ -424,15 +435,15 @@ textarea:focus-visible {
   }
 
   .board-tools-card .selection-hindi {
-    font-size: 22px;
+    font-size: calc(22px * var(--selection-word-scale, 1));
   }
 
   .board-tools-card .selection-english {
-    font-size: 17px;
+    font-size: calc(17px * var(--selection-word-scale, 1));
   }
 
   .board-tools-card .selection-roman {
-    font-size: 12px;
+    font-size: calc(12px * var(--selection-word-scale, 1));
   }
 
   .board-tools-card .line-original,
@@ -908,8 +919,8 @@ textarea:focus-visible {
 
   .sheet-handle {
     position: absolute;
-    top: 13px;
-    right: 14px;
+    top: 8px;
+    right: 8px;
     z-index: 2;
     display: grid;
     width: 34px;
@@ -953,7 +964,7 @@ textarea:focus-visible {
   }
 
   .wb-slot {
-    padding: var(--mobile-preview-gap) 15px;
+    padding: calc(var(--mobile-preview-gap) * 0.7) 15px;
   }
 
   .app-frame.show-preview .preview-col,

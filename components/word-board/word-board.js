@@ -6,7 +6,7 @@
 // gloss is missing (P1/P3). Selection can be controlled (editor context, P6) or
 // internal (standalone demo / tests).
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import "./word-board.css";
@@ -94,6 +94,64 @@ function LineRow({
 }
 
 function SelectionPanel({ word }) {
+  const wordRowRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const row = wordRowRef.current;
+
+    if (!row || !word || !word.line) {
+      return undefined;
+    }
+
+    let animationFrame = 0;
+
+    const fitRow = () => {
+      row.style.setProperty("--selection-word-scale", "1");
+
+      const availableWidth = row.clientWidth;
+      const naturalWidth = row.scrollWidth;
+      let nextScale =
+        availableWidth > 0 && naturalWidth > availableWidth
+          ? Math.max(0.72, Math.min(1, (availableWidth - 12) / naturalWidth))
+          : 1;
+
+      row.style.setProperty(
+        "--selection-word-scale",
+        nextScale.toFixed(3),
+      );
+
+      if (row.scrollWidth > row.clientWidth && nextScale > 0.72) {
+        nextScale = Math.max(
+          0.72,
+          nextScale * ((row.clientWidth - 8) / row.scrollWidth),
+        );
+        row.style.setProperty(
+          "--selection-word-scale",
+          nextScale.toFixed(3),
+        );
+      }
+    };
+
+    const scheduleFit = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(fitRow);
+    };
+
+    scheduleFit();
+
+    const observer =
+      typeof ResizeObserver === "function"
+        ? new ResizeObserver(scheduleFit)
+        : null;
+
+    observer?.observe(row);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      observer?.disconnect();
+    };
+  }, [word]);
+
   if (!word || !word.line) {
     return (
       <div className="selection-stack">
@@ -112,7 +170,7 @@ function SelectionPanel({ word }) {
     <div className="selection-stack" aria-live="polite">
       <section className="selection-panel">
         <div className="selection-main">
-          <div className="selection-word-row">
+          <div className="selection-word-row" ref={wordRowRef}>
             <p className="selection-english">{word.english}</p>
             <p className="selection-roman">{word.roman}</p>
             <div className="selection-hindi">{word.original}</div>
