@@ -403,8 +403,24 @@ export function YoutubeSegmentModal({
     pollingRef.current = true;
     setStatus("converting");
     setMessage("Preparing audio...");
+    const clientStartedAt = Date.now();
+
+    const debugLog = (event, data = {}) => {
+      // Browser console — open DevTools on the deployed site while converting.
+      console.info("[yt-convert:client]", event, {
+        ...data,
+        ms: Date.now() - clientStartedAt,
+      });
+    };
 
     try {
+      debugLog("post-start", {
+        startTime,
+        endTime,
+        segmentSec: endTime - startTime,
+        videoId,
+      });
+
       const startResponse = await fetch("/api/youtube-audio-segments", {
         body: JSON.stringify({
           url: sourceUrl,
@@ -417,10 +433,38 @@ export function YoutubeSegmentModal({
         },
         method: "POST",
       });
-      const startPayload = await startResponse.json().catch(() => ({}));
+      const rawText = await startResponse.text();
+      let startPayload = {};
+
+      try {
+        startPayload = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        startPayload = { parseError: true, rawPreview: rawText.slice(0, 300) };
+      }
+
+      debugLog("post-response", {
+        httpStatus: startResponse.status,
+        ok: startResponse.ok,
+        jobId: startPayload.jobId ?? null,
+        status: startPayload.status ?? null,
+        phase: startPayload.phase ?? null,
+        errorCode: startPayload.errorCode ?? null,
+        errorMessage: startPayload.errorMessage ?? null,
+        hasAsset: Boolean(startPayload.asset?.assetId),
+        parseError: startPayload.parseError === true,
+        rawPreview:
+          startPayload.parseError === true ? startPayload.rawPreview : undefined,
+      });
 
       if (!startResponse.ok) {
-        throw new Error(errorMessage(startPayload.errorCode));
+        throw new Error(
+          formatConvertFailure({
+            errorCode: startPayload.errorCode,
+            errorMessage: startPayload.errorMessage,
+            httpStatus: startResponse.status,
+            parseError: startPayload.parseError === true,
+          }),
+        );
       }
 
       if (!startPayload.jobId) {
@@ -432,6 +476,9 @@ export function YoutubeSegmentModal({
         startPayload.status === "complete" &&
         startPayload.asset?.assetId
       ) {
+        debugLog("post-complete-with-asset", {
+          assetId: startPayload.asset.assetId,
+        });
         if (activeRequestRef.current === requestId) {
           finishWithAsset(startPayload.asset);
         }
@@ -439,9 +486,16 @@ export function YoutubeSegmentModal({
       }
 
       if (startPayload.status === "failed") {
-        throw new Error(errorMessage(startPayload.errorCode));
+        throw new Error(
+          formatConvertFailure({
+            errorCode: startPayload.errorCode,
+            errorMessage: startPayload.errorMessage,
+            httpStatus: startResponse.status,
+          }),
+        );
       }
 
+      debugLog("post-async-poll", { jobId: startPayload.jobId });
       saveInflightYoutubeAudioJob({
         jobId: startPayload.jobId,
         sourceUrl,
@@ -449,12 +503,16 @@ export function YoutubeSegmentModal({
       });
 
       const result = await pollConversionJob(startPayload.jobId, requestId);
+      debugLog("poll-result", { kind: result?.kind, message: result?.message });
       applyPollResult(result, requestId);
     } catch (error) {
       if (activeRequestRef.current !== requestId) {
         return;
       }
 
+      debugLog("convert-error", {
+        message: error instanceof Error ? error.message : String(error),
+      });
       clearInflightYoutubeAudioJob();
       setStatus("error");
       setMessage(error instanceof Error ? error.message : ERROR_COPY.INTERNAL_ERROR);
@@ -866,6 +924,36 @@ function clampTime(value, min, max) {
 
 function errorMessage(errorCode) {
   return ERROR_COPY[errorCode] || ERROR_COPY.INTERNAL_ERROR;
+}
+
+function formatConvertFailure({
+  errorCode,
+  errorMessage: serverMessage,
+  httpStatus,
+  parseError = false,
+}) {
+  if (parseError || (!errorCode && (httpStatus === 504 || httpStatus === 502))) {
+    return `YouTube import timed out or returned a non-JSON error (HTTP ${httpStatus || "unknown"}). On Vercel Hobby this is often the ~10s function limit — check Vercel logs for [yt-audio:convert].`;
+  }
+
+  const friendly = errorMessage(errorCode);
+  const parts = [friendly];
+
+  if (errorCode && friendly === ERROR_COPY.INTERNAL_ERROR) {
+    parts.push(`code=${errorCode}`);
+  } else if (errorCode && friendly !== ERROR_COPY.INTERNAL_ERROR) {
+    parts.push(`(${errorCode})`);
+  }
+
+  if (serverMessage && serverMessage !== friendly) {
+    parts.push(serverMessage);
+  }
+
+  if (httpStatus && httpStatus >= 400) {
+    parts.push(`[HTTP ${httpStatus}]`);
+  }
+
+  return parts.filter(Boolean).join(" ");
 }
 
 function statusMessage(phase) {

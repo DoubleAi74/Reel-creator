@@ -10,6 +10,7 @@ import {
 import WaveSurfer from "wavesurfer.js";
 
 import { CreditMobileMenu } from "@/components/credit-mobile-menu";
+import { EditorTabBar } from "@/components/editor-tab-bar";
 import {
   createWaveformPeaksCache,
   getWaveformPeaksForWaveSurfer,
@@ -190,6 +191,7 @@ export function WaveformTimeline({
   isTimingActive,
   lines,
   mobileMenu = null,
+  mobileTabs = null,
   onDurationChange,
   onMark,
   onTogglePreview,
@@ -699,6 +701,16 @@ export function WaveformTimeline({
     <div className="transport lg:rounded-[1.75rem] lg:border lg:border-[var(--border)] lg:bg-[var(--surface-2)]">
       <div className="transport-inner">
       <div className="transport-wave-wrap lg:px-4 lg:pb-2 lg:pt-3">
+        <button
+          aria-label={isPlaying ? "Pause" : "Play"}
+          aria-pressed={isPlaying}
+          className="transport-button transport-wave-play lg:hidden disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={!isReady}
+          onClick={togglePlayback}
+          type="button"
+        >
+          <span aria-hidden>{isPlaying ? "❚❚" : "▶"}</span>
+        </button>
         <div className="relative">
           <div
             aria-busy={isWaveformBusy}
@@ -822,6 +834,12 @@ export function WaveformTimeline({
             </button>
           ) : null}
         </div>
+
+        {mobileTabs ? (
+          <div className="transport-tabs lg:hidden">
+            <EditorTabBar {...mobileTabs} />
+          </div>
+        ) : null}
 
         <div
           className="transport-view-toggle hidden"
