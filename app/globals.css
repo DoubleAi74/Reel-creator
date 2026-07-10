@@ -182,9 +182,44 @@ textarea:focus-visible {
 
   .transport-wave-wrap {
     order: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex: 0 0 auto;
     min-width: 0;
     padding: 0;
+  }
+
+  /* Play/pause shares the scrub row on mobile; the waveform fills the rest. */
+  .transport-wave-wrap > .relative {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .transport-wave-play {
+    flex: 0 0 auto;
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  /* prev/next/speed/play/Mark are all in .transport-main-controls; hidden on
+     mobile (play is re-added in the scrub row, the rest are removed). */
+  .transport-main-controls {
+    display: none;
+  }
+
+  /* Tabs move into the transport top row; the sheet's own tab bar is hidden. */
+  .side-panel .panel-tabs {
+    display: none;
+  }
+
+  .transport-tabs {
+    min-width: 0;
+  }
+
+  .transport-tabs .panel-tabs {
+    padding: 0;
+    border: 0;
   }
 
   .app-frame .transport .waveform {

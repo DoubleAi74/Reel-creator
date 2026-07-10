@@ -148,17 +148,22 @@ export async function POST(request) {
         {
           jobId: latestJob.id,
           errorCode: latestJob.errorCode || "INTERNAL_ERROR",
+          errorMessage: latestJob.errorMessage || null,
           phase: latestJob.phase,
           ms: Date.now() - requestStartedAt,
         },
         "error",
       );
+      const publicPayload = publicJob(latestJob);
       const response = NextResponse.json(
         {
-          ...publicJob(latestJob),
-          errorMessage: latestJob.errorCode
-            ? `Job failed with ${latestJob.errorCode}`
-            : "Job failed",
+          ...publicPayload,
+          errorMessage:
+            publicPayload.errorMessage ||
+            latestJob.errorMessage ||
+            (latestJob.errorCode
+              ? `Job failed with ${latestJob.errorCode}`
+              : "Job failed"),
         },
         { status: 500 },
       );
