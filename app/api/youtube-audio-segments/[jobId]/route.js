@@ -1,21 +1,19 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { SESSION_COOKIE_NAME } from "../../../../lib/files";
 import {
-  SESSION_COOKIE_NAME,
-  storeAudioAssetFromPath,
-} from "../../../../lib/files";
+  ingestCompletedYoutubeJob,
+  publicYoutubeAsset,
+} from "../../../../lib/youtube-audio/ingest-completed-job";
 import {
   getIngestedAssetForSession,
   getJob,
   publicJob,
-  recordIngestedAssetForSession,
 } from "../../../../lib/youtube-audio/job-store";
-import { getYoutubeAudioConfig } from "../../../../lib/youtube-audio/server-config";
-import { getYoutubeAudioResultDir } from "../../../../lib/youtube-audio/storage";
-import { extractYouTubeVideoId } from "../../../../lib/youtube-audio/youtube-url";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function GET(_request, { params }) {
   const { jobId } = await params;
@@ -49,45 +47,32 @@ export async function GET(_request, { params }) {
   if (existingAsset) {
     return NextResponse.json({
       ...publicJob(job),
-      asset: publicAsset(existingAsset),
+      asset: publicYoutubeAsset(existingAsset),
     });
   }
 
-  const asset = await storeAudioAssetFromPath({
-    sourcePath: job.storedAssetPath,
-    trustedRootDir: getYoutubeAudioResultDir(getYoutubeAudioConfig()),
-    sessionId,
-    name: deriveAssetName(job),
-    durationSec: job.outputDurationSec,
-  });
+  try {
+    const asset = await ingestCompletedYoutubeJob(job, sessionId);
 
-  recordIngestedAssetForSession(job.id, sessionId, asset);
+    return NextResponse.json({
+      ...publicJob(job),
+      asset,
+    });
+  } catch (error) {
+    console.error("YouTube job ingest failed:", {
+      jobId: job.id,
+      message: error instanceof Error ? error.message : String(error),
+    });
 
-  return NextResponse.json({
-    ...publicJob(job),
-    asset: publicAsset(asset),
-  });
-}
-
-function publicAsset(asset) {
-  return {
-    assetId: asset.assetId,
-    durationSec: asset.durationSec,
-    kind: asset.kind,
-    name: asset.name,
-    sizeBytes: asset.sizeBytes,
-  };
-}
-
-function deriveAssetName(job) {
-  const title = typeof job.title === "string" ? job.title.trim() : "";
-  const fallbackId = extractYouTubeVideoId(job.sourceUrl) || job.id.slice(0, 8);
-  const baseName = title || `youtube-${fallbackId}`;
-  const safeName = baseName
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 100);
-
-  return `${safeName || "YouTube audio"}.mp3`;
+    return NextResponse.json(
+      {
+        ...publicJob(job),
+        status: "failed",
+        errorCode: "CONVERSION_FAILED",
+        errorMessage:
+          error instanceof Error ? error.message : "Failed to attach audio asset.",
+      },
+      { status: 500 },
+    );
+  }
 }

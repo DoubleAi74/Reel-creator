@@ -45,11 +45,22 @@ vi.mock("../../../lib/youtube-audio/job-store", () => ({
     rejected: null,
     reused: false,
   })),
+  getJob: vi.fn((id) => ({
+    id,
+    status: "queued",
+    phase: "queued",
+  })),
   publicJob: vi.fn((job) => ({ jobId: job.id, status: job.status })),
 }));
 
 vi.mock("../../../lib/youtube-audio/processing", () => ({
+  runYoutubeAudioJobNow: vi.fn(),
+  shouldRunYoutubeAudioJobsSynchronously: vi.fn(() => false),
   startBackgroundProcessing: vi.fn(),
+}));
+
+vi.mock("../../../lib/youtube-audio/ingest-completed-job", () => ({
+  ingestCompletedYoutubeJob: vi.fn(),
 }));
 
 vi.mock("../../../lib/youtube-audio/storage", () => ({

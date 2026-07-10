@@ -2,12 +2,18 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { SESSION_COOKIE_NAME } from "../../../lib/files";
+import { ingestCompletedYoutubeJob } from "../../../lib/youtube-audio/ingest-completed-job";
 import { getYoutubeAudioProviderDisplayName } from "../../../lib/youtube-audio/providers";
 import {
   createOrReuseJob,
+  getJob,
   publicJob,
 } from "../../../lib/youtube-audio/job-store";
-import { startBackgroundProcessing } from "../../../lib/youtube-audio/processing";
+import {
+  runYoutubeAudioJobNow,
+  shouldRunYoutubeAudioJobsSynchronously,
+  startBackgroundProcessing,
+} from "../../../lib/youtube-audio/processing";
 import {
   getYoutubeAudioConfig,
   isYoutubeAudioConfigured,
@@ -16,6 +22,8 @@ import { sweepStaleYoutubeAudioResults } from "../../../lib/youtube-audio/storag
 import { parseYoutubeAudioSegmentRequest } from "../../../lib/youtube-audio/validation";
 
 export const runtime = "nodejs";
+// Vercel: allow enough time for provider download + trim in the same request.
+export const maxDuration = 60;
 
 export async function POST(request) {
   if (!isYoutubeAudioConfigured()) {
@@ -58,25 +66,63 @@ export async function POST(request) {
       return errorResponse(rejected, 429);
     }
 
+    const runSync = shouldRunYoutubeAudioJobsSynchronously();
+
     if (!reused && job.status === "queued") {
-      startBackgroundProcessing(job.id);
+      if (runSync) {
+        await runYoutubeAudioJobNow(job.id);
+      } else {
+        startBackgroundProcessing(job.id);
+      }
+    } else if (
+      runSync &&
+      reused &&
+      job.status !== "complete" &&
+      job.status !== "failed"
+    ) {
+      // Same-isolate reuse of an unfinished job — finish it here.
+      await runYoutubeAudioJobNow(job.id);
     }
 
-    const response = NextResponse.json(publicJob(job));
+    const latestJob = getJob(job.id) || job;
+    let asset = null;
 
-    if (!existingSessionId) {
-      response.cookies.set(SESSION_COOKIE_NAME, sessionId, {
-        httpOnly: true,
-        maxAge: 60 * 60 * 24,
-        path: "/",
-        sameSite: "lax",
-      });
+    if (latestJob.status === "complete") {
+      try {
+        asset = await ingestCompletedYoutubeJob(latestJob, sessionId);
+      } catch (error) {
+        console.error("YouTube POST ingest failed:", {
+          jobId: latestJob.id,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        return errorResponse(error?.errorCode || "CONVERSION_FAILED", 500);
+      }
     }
 
+    if (latestJob.status === "failed") {
+      const response = NextResponse.json(publicJob(latestJob), { status: 500 });
+      appendSessionCookie(response, sessionId);
+      return response;
+    }
+
+    const response = NextResponse.json({
+      ...publicJob(latestJob),
+      ...(asset ? { asset } : {}),
+    });
+    appendSessionCookie(response, sessionId);
     return response;
   } catch (error) {
     return errorResponse(error?.errorCode || "INTERNAL_ERROR", 500);
   }
+}
+
+function appendSessionCookie(response, sessionId) {
+  response.cookies.set(SESSION_COOKIE_NAME, sessionId, {
+    httpOnly: true,
+    maxAge: 60 * 60 * 24,
+    path: "/",
+    sameSite: "lax",
+  });
 }
 
 function errorResponse(errorCode, status) {
