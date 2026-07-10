@@ -478,7 +478,7 @@
   scrollbar-color: rgba(43, 40, 35, 0.26) transparent;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  /* border: 2px solid #2c2924; */
+  /* border: 2px solid #2c2924;  */
   border: 2px solid rgba(44, 41, 36, 0.3);
   border-radius: 6px;
   background: #f7f0df;
