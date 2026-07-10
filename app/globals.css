@@ -190,13 +190,15 @@ textarea:focus-visible {
     padding: 0;
   }
 
-  /* Play/pause shares the scrub row on mobile; the waveform fills the rest. */
+  /* Play/pause shares the scrub row on mobile; the waveform fills the rest.
+     Descendant selectors (.transport ...) beat the later base .transport-button
+     / .transport-main-controls rules in this same media block. */
   .transport-wave-wrap > .relative {
     flex: 1 1 auto;
     min-width: 0;
   }
 
-  .transport-wave-play {
+  .transport .transport-wave-play {
     flex: 0 0 auto;
     background: var(--accent);
     color: var(--on-accent);
@@ -204,7 +206,7 @@ textarea:focus-visible {
 
   /* prev/next/speed/play/Mark are all in .transport-main-controls; hidden on
      mobile (play is re-added in the scrub row, the rest are removed). */
-  .transport-main-controls {
+  .transport .transport-main-controls {
     display: none;
   }
 
@@ -214,12 +216,22 @@ textarea:focus-visible {
   }
 
   .transport-tabs {
+    flex: 1 1 0;
     min-width: 0;
   }
 
   .transport-tabs .panel-tabs {
+    min-width: 0;
     padding: 0;
     border: 0;
+  }
+
+  /* Tabs always run horizontally (scroll if they overflow) so they never wrap
+     into a second row and push the waveform out of the fixed transport bar. */
+  .transport-tabs .tab-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    min-width: 0;
   }
 
   .app-frame .transport .waveform {
