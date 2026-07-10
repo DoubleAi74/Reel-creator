@@ -65,6 +65,7 @@ Do not use `NEXT_PUBLIC_` for provider keys. With no key, `/api/youtube-audio/co
 - **ffmpeg:** provider `trimMode: "provider"` + MP3 paths (primary `youtube-mp36`) **do not**
   call local ffmpeg/ffprobe — they store the provider file as-is. Local-trim providers
   (`youtube-mp3-2025`) need `ffmpeg`/`ffprobe` on PATH (or `FFMPEG_PATH` / `FFPROBE_PATH`).
-  Stock Vercel images do **not** ship those binaries; if local trim is attempted you will
-  see `errorCode: "FFMPEG_MISSING"` with a real `errorMessage` in the client console
-  (`[yt-convert:client] post-response`).
+  Stock Vercel images do **not** ship those binaries. On `VERCEL=1`, auto **skips**
+  local-trim providers so a failed mp36 is not hidden behind a later `FFMPEG_MISSING`.
+  Force-disable local tools with `YT_AUDIO_NO_FFMPEG=1`. Client console
+  (`[yt-convert:client] post-response`) includes the real `errorCode` / `errorMessage`.

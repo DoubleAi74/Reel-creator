@@ -35,7 +35,7 @@ const ERROR_COPY = {
   PROVIDER_MALFORMED_RESPONSE: "The audio provider returned an unusable response.",
   CONVERSION_FAILED: "The audio segment could not be prepared.",
   FFMPEG_MISSING:
-    "This host is missing ffmpeg/ffprobe needed for local audio trim. Provider-trimmed imports should still work after redeploy.",
+    "This host cannot run local audio trim (no ffmpeg/ffprobe). Prefer auto/youtube-mp36 provider-trimmed imports, or configure FFMPEG_PATH/FFPROBE_PATH.",
   RESULT_EXPIRED: "This conversion expired. Try converting the segment again.",
   INTERNAL_ERROR: "YouTube import failed unexpectedly.",
 };
