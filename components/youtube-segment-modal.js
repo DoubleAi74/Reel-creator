@@ -50,6 +50,15 @@ export function YoutubeSegmentModal({
   const previousFocusRef = useRef(null);
   const activeRequestRef = useRef(0);
   const pollingRef = useRef(false);
+  // Stable callbacks so open/resume effects do not re-fire every parent render.
+  const onCompleteRef = useRef(onComplete);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+    onCloseRef.current = onClose;
+  }, [onClose, onComplete]);
+
   const videoId = useMemo(() => extractYouTubeVideoId(sourceUrl), [sourceUrl]);
   const [durationSec, setDurationSec] = useState(null);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
@@ -80,27 +89,31 @@ export function YoutubeSegmentModal({
     }, 0);
   }, []);
 
-  const handleClose = useCallback(() => {
-    if (converting) {
-      return;
-    }
-
+  const stopClientWait = useCallback(() => {
     activeRequestRef.current += 1;
-    onClose?.();
+    pollingRef.current = false;
+  }, []);
+
+  const handleClose = useCallback(() => {
+    // Always allow dismiss — cancel client poll but keep inflight job for resume.
+    stopClientWait();
+    onCloseRef.current?.();
     returnFocus();
-  }, [converting, onClose, returnFocus]);
+  }, [returnFocus, stopClientWait]);
 
   const finishWithAsset = useCallback(
     (asset) => {
       clearInflightYoutubeAudioJob();
-      onComplete?.(asset);
-      onClose?.();
+      onCompleteRef.current?.(asset);
+      onCloseRef.current?.();
       returnFocus();
     },
-    [onClose, onComplete, returnFocus],
+    [returnFocus],
   );
 
   const pollConversionJob = useCallback(async (jobId, requestId) => {
+    let completeWithoutAssetTries = 0;
+
     for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
       if (activeRequestRef.current !== requestId) {
         return { kind: "cancelled" };
@@ -127,21 +140,30 @@ export function YoutubeSegmentModal({
           return { kind: "complete", payload };
         }
 
-        clearInflightYoutubeAudioJob();
+        // Session cookie / ingest can lag one tick; retry before failing hard.
+        completeWithoutAssetTries += 1;
+        if (completeWithoutAssetTries <= 5) {
+          setMessage("Finishing audio attach...");
+          await delay(400);
+          continue;
+        }
+
         return {
           kind: "error",
           message: COMPLETE_WITHOUT_ASSET_MESSAGE,
+          clearInflight: true,
         };
       }
 
       if (!response.ok || payload.status === "failed") {
-        clearInflightYoutubeAudioJob();
         return {
           kind: "error",
           message: errorMessage(payload.errorCode),
+          clearInflight: true,
         };
       }
 
+      completeWithoutAssetTries = 0;
       setMessage(statusMessage(payload.phase));
       await delay(POLL_INTERVAL_MS);
     }
@@ -149,6 +171,39 @@ export function YoutubeSegmentModal({
     // Budget exhausted: keep inflight so visibility/focus can resume.
     return { kind: "budget" };
   }, []);
+
+  const applyPollResult = useCallback(
+    (result, requestId) => {
+      if (activeRequestRef.current !== requestId) {
+        return;
+      }
+
+      if (!result || result.kind === "cancelled") {
+        return;
+      }
+
+      if (result.kind === "complete") {
+        finishWithAsset(result.payload.asset);
+        return;
+      }
+
+      if (result.kind === "budget") {
+        // Leave inflight; allow Convert/Close again. Resume on reopen/focus.
+        setStatus("ready");
+        setMessage(STILL_RUNNING_CLIENT_MESSAGE);
+        return;
+      }
+
+      if (result.kind === "error") {
+        if (result.clearInflight) {
+          clearInflightYoutubeAudioJob();
+        }
+        setStatus("error");
+        setMessage(result.message || ERROR_COPY.INTERNAL_ERROR);
+      }
+    },
+    [finishWithAsset],
+  );
 
   const runPollForJob = useCallback(
     async (jobId, { announcePreparing = false } = {}) => {
@@ -160,46 +215,20 @@ export function YoutubeSegmentModal({
       activeRequestRef.current = requestId;
       pollingRef.current = true;
       setStatus("converting");
-
-      if (announcePreparing) {
-        setMessage("Preparing audio...");
-      } else {
-        setMessage("Checking conversion status...");
-      }
+      setMessage(
+        announcePreparing ? "Preparing audio..." : "Checking conversion status...",
+      );
 
       try {
         const result = await pollConversionJob(jobId, requestId);
-
-        if (activeRequestRef.current !== requestId) {
-          return;
-        }
-
-        if (result?.kind === "cancelled") {
-          return;
-        }
-
-        if (result?.kind === "complete") {
-          finishWithAsset(result.payload.asset);
-          return;
-        }
-
-        if (result?.kind === "budget") {
-          setStatus("converting");
-          setMessage(STILL_RUNNING_CLIENT_MESSAGE);
-          return;
-        }
-
-        if (result?.kind === "error") {
-          setStatus("error");
-          setMessage(result.message || ERROR_COPY.INTERNAL_ERROR);
-        }
+        applyPollResult(result, requestId);
       } finally {
         if (activeRequestRef.current === requestId) {
           pollingRef.current = false;
         }
       }
     },
-    [finishWithAsset, pollConversionJob],
+    [applyPollResult, pollConversionJob],
   );
 
   const resumeInflightIfAny = useCallback(() => {
@@ -238,7 +267,7 @@ export function YoutubeSegmentModal({
     }
 
     function handleKeyDown(event) {
-      if (event.key === "Escape" && !converting) {
+      if (event.key === "Escape") {
         event.preventDefault();
         handleClose();
         return;
@@ -251,7 +280,7 @@ export function YoutubeSegmentModal({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [converting, handleClose, isOpen]);
+  }, [handleClose, isOpen]);
 
   // Resume poll after iOS background / tab freeze (Stage B).
   useEffect(() => {
@@ -277,17 +306,11 @@ export function YoutubeSegmentModal({
   }, [isOpen, resumeInflightIfAny]);
 
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    if (!videoId) {
+    if (!isOpen || !videoId) {
       return undefined;
     }
 
     let cancelled = false;
-
-    // If a convert is already in flight for this URL, resume instead of only loading UI.
     const resumed = resumeInflightIfAny();
 
     loadYoutubeVideoInfo(videoId)
@@ -311,7 +334,6 @@ export function YoutubeSegmentModal({
         setEndDraft(formatTime(defaultEnd));
 
         if (resumed || pollingRef.current) {
-          // Keep converting status/message from resume poll.
           return;
         }
 
@@ -323,11 +345,7 @@ export function YoutubeSegmentModal({
         );
       })
       .catch(() => {
-        if (cancelled) {
-          return;
-        }
-
-        if (resumed || pollingRef.current) {
+        if (cancelled || resumed || pollingRef.current) {
           return;
         }
 
@@ -337,8 +355,6 @@ export function YoutubeSegmentModal({
 
     return () => {
       cancelled = true;
-      // Do not bump activeRequestRef here — that would cancel resume polls on
-      // strict-mode double-mount or videoId-stable re-runs. Close cancels instead.
     };
   }, [isOpen, resumeInflightIfAny, videoId]);
 
@@ -411,6 +427,21 @@ export function YoutubeSegmentModal({
         throw new Error("YouTube import did not return a job id.");
       }
 
+      // Vercel (sync mode): POST awaits the full convert and may already include asset.
+      if (
+        startPayload.status === "complete" &&
+        startPayload.asset?.assetId
+      ) {
+        if (activeRequestRef.current === requestId) {
+          finishWithAsset(startPayload.asset);
+        }
+        return;
+      }
+
+      if (startPayload.status === "failed") {
+        throw new Error(errorMessage(startPayload.errorCode));
+      }
+
       saveInflightYoutubeAudioJob({
         jobId: startPayload.jobId,
         sourceUrl,
@@ -418,31 +449,7 @@ export function YoutubeSegmentModal({
       });
 
       const result = await pollConversionJob(startPayload.jobId, requestId);
-
-      if (activeRequestRef.current !== requestId) {
-        return;
-      }
-
-      if (result?.kind === "cancelled") {
-        return;
-      }
-
-      if (result?.kind === "complete") {
-        finishWithAsset(result.payload.asset);
-        return;
-      }
-
-      if (result?.kind === "budget") {
-        setStatus("converting");
-        setMessage(STILL_RUNNING_CLIENT_MESSAGE);
-        return;
-      }
-
-      if (result?.kind === "error") {
-        setStatus("error");
-        setMessage(result.message || ERROR_COPY.INTERNAL_ERROR);
-        return;
-      }
+      applyPollResult(result, requestId);
     } catch (error) {
       if (activeRequestRef.current !== requestId) {
         return;

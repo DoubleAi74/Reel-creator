@@ -4,7 +4,7 @@
 Menue options panel
 
 <!-- - Audio
-  -- Current: Track upload, Get Lyrics
+  -- Current: Track  upload, Get Lyrics
   -> Audio (combined) (Remove: Upload status, Section offsets, Track name, Duration )
 
 - Lyrics
