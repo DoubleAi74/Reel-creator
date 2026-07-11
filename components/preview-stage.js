@@ -79,7 +79,7 @@ export function PreviewStage({
       {isPreviewFullscreen ? (
         <button
           aria-label="Close full-screen preview"
-          className={`absolute right-6 top-8 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition duration-300 hover:bg-white/20 ${
+          className={`absolute right-8 top-8 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition duration-300 hover:bg-white/20 ${
             controlsVisible ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
           onClick={onExitFullscreen}
