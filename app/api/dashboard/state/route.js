@@ -23,7 +23,8 @@ export async function GET(request) {
     const sessionId = getSessionIdFromRequest(request);
     const generations = await Generation.find({
       deletedAt: null,
-      r2Status: "created",
+      // Reference-only saves use not_required (no MP3). Audio saves use created.
+      r2Status: { $in: ["created", "not_required"] },
       saved: true,
       ...buildGenerationVisibilityFilter(sessionId),
     })

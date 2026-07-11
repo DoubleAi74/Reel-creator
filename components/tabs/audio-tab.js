@@ -128,6 +128,33 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
       ? "Upload an MP3 before running the lyric pipeline."
       : languageRequirementMessage ||
         (selectedPhaseCount === 0 ? "Select a runnable mode." : undefined);
+  const generationSaveStatus = credit.generationSave?.status ?? "idle";
+  const saveIncludeMp3 = credit.saveIncludeMp3 === true;
+  const saveAudioPassword = credit.saveAudioPassword ?? "";
+  const generationSaveBaseDisabled =
+    generationSaveStatus !== "ready" && generationSaveStatus !== "error";
+  const generationSaveNeedsMp3Password =
+    !generationSaveBaseDisabled && saveIncludeMp3 && !saveAudioPassword.trim();
+  const generationSaveDisabled =
+    generationSaveBaseDisabled || generationSaveNeedsMp3Password;
+  const generationSaveLabel =
+    generationSaveStatus === "saving"
+      ? "Saving..."
+      : generationSaveStatus === "saved"
+        ? "Saved"
+        : "Save";
+  const generationSaveStatusLabel =
+    generationSaveNeedsMp3Password
+      ? "Enter MP3 password"
+      : generationSaveStatus === "ready"
+        ? "Ready to save"
+        : generationSaveStatus === "saved"
+          ? "Saved to dashboard"
+          : generationSaveStatus === "saving"
+            ? "Saving"
+            : generationSaveStatus === "error"
+              ? "Try again"
+              : "Available after run";
 
   return (
     <div className="grid gap-4">
@@ -270,45 +297,33 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
         </div>
 
         {credit?.enabled ? (
-          <div className="credit-generation-controls mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-            <label className="inline-flex items-center gap-2 text-sm font-semibold">
-              <input
-                checked={Boolean(credit.saveGeneration)}
-                className="h-4 w-4 accent-[var(--accent)]"
-                onChange={(event) =>
-                  credit.onSaveGenerationChange?.(event.target.checked)
-                }
-                type="checkbox"
-              />
-              Save generation
-            </label>
-
+          <div className="mt-3 rounded-[1rem] border border-[var(--border)] bg-[var(--surface)] p-3">
             <form
-              className="ml-auto flex items-center gap-2"
+              className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"
               onSubmit={(event) => credit.onUnlockSubmit?.(event)}
             >
               <input
                 aria-label="Generation password"
-                className="min-h-9 w-40 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm outline-none focus:border-[var(--accent)]"
+                className="min-h-10 min-w-0 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)]"
                 onChange={(event) =>
                   credit.onUnlockPasswordChange?.(event.target.value)
                 }
-                placeholder="Password"
+                placeholder="Generation password"
                 type="password"
                 value={credit.unlockPassword ?? ""}
               />
               <button
-                className="min-h-9 whitespace-nowrap rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 text-xs font-semibold text-[var(--text)] transition hover:bg-[var(--surface)] disabled:opacity-60"
+                className="min-h-10 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--surface-hover)] disabled:opacity-60"
                 disabled={credit.unlockStatus === "submitting"}
                 type="submit"
               >
-                {credit.unlockStatus === "submitting" ? "Unlocking…" : "Unlock"}
+                {credit.unlockStatus === "submitting" ? "Unlocking..." : "Unlock"}
               </button>
             </form>
 
             {credit.unlockMessage ? (
               <p
-                className={`w-full text-xs ${
+                className={`mt-2 text-xs leading-5 ${
                   credit.unlockStatus === "error"
                     ? "text-[var(--danger)]"
                     : "text-[var(--muted)]"
@@ -371,9 +386,84 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           })}
         </div>
 
-        <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
-          Romanization is added automatically for non-Latin scripts.
-        </p>
+        {credit?.enabled ? (
+          <div className="credit-generation-controls mt-4 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface)] p-3 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <button
+                className={`inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-semibold transition ${
+                  generationSaveDisabled
+                    ? "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]"
+                    : "border-[var(--text)] bg-[var(--text)] text-[var(--page)] hover:opacity-90"
+                } disabled:cursor-not-allowed`}
+                disabled={generationSaveDisabled}
+                onClick={() => credit.onSaveGeneration?.()}
+                type="button"
+              >
+                {generationSaveLabel}
+              </button>
+              <span
+                className={`min-w-0 truncate text-xs font-medium ${
+                  generationSaveNeedsMp3Password ||
+                  generationSaveStatus === "error"
+                    ? "text-[var(--danger)]"
+                    : generationSaveStatus === "ready" ||
+                        generationSaveStatus === "saved"
+                      ? "text-[var(--accent)]"
+                      : "text-[var(--muted)]"
+                }`}
+                role="status"
+              >
+                {generationSaveStatusLabel}
+              </span>
+            </div>
+
+            <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-semibold text-[var(--text)]">
+              <input
+                checked={saveIncludeMp3}
+                className="h-4 w-4 shrink-0 accent-[var(--accent)]"
+                disabled={
+                  generationSaveStatus === "saving" ||
+                  generationSaveStatus === "saved"
+                }
+                onChange={(event) =>
+                  credit.onSaveIncludeMp3Change?.(event.target.checked)
+                }
+                type="checkbox"
+              />
+              <span>Save MP3</span>
+            </label>
+
+            {saveIncludeMp3 ? (
+              <input
+                aria-label="MP3 save password"
+                autoComplete="off"
+                className="mt-3 min-h-10 w-full rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] disabled:opacity-60"
+                disabled={
+                  generationSaveStatus === "saving" ||
+                  generationSaveStatus === "saved"
+                }
+                onChange={(event) =>
+                  credit.onSaveAudioPasswordChange?.(event.target.value)
+                }
+                placeholder="MP3 save password"
+                type="password"
+                value={saveAudioPassword}
+              />
+            ) : null}
+
+            {credit.generationSave?.message ? (
+              <p
+                className={`mt-2 text-xs leading-5 ${
+                  credit.generationSave?.status === "error"
+                    ? "text-[var(--danger)]"
+                    : "text-[var(--muted)]"
+                }`}
+              >
+                {credit.generationSave?.message}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         {visibleNotice?.status !== "idle" ? (
           <div
@@ -397,15 +487,6 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           </div>
         ) : null}
 
-        {!upload.asset?.assetId ? (
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            Upload an MP3 first to enable generation.
-          </p>
-        ) : languageRequirementMessage ? (
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            {languageRequirementMessage}
-          </p>
-        ) : null}
       </div>
 
       {inlineNotice ? (

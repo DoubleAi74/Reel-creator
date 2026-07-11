@@ -553,15 +553,6 @@ textarea:focus-visible {
     margin-top: 20px;
   }
 
-  .youtube-import {
-    max-width: 560px;
-    margin-inline: auto;
-  }
-
-  .youtube-import input {
-    min-height: 47px;
-  }
-
   .pill {
     display: inline-flex;
     min-height: 40px;
@@ -653,9 +644,9 @@ textarea:focus-visible {
 
   .auto-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
-    align-items: end;
+    align-items: stretch;
     margin-top: 16px;
   }
 
@@ -682,223 +673,22 @@ textarea:focus-visible {
     padding: 0 16px;
   }
 
-  .youtube-modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 60;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow-y: auto;
-    background: color-mix(in srgb, var(--surface) 86%, transparent);
-    padding: 24px 16px;
-    backdrop-filter: blur(14px);
-  }
-
-  .youtube-modal {
-    width: min(100%, 680px);
-    max-height: min(760px, calc(100vh - 32px));
-    overflow-y: auto;
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    background: var(--surface);
-    box-shadow: 0 32px 90px rgba(2, 6, 23, 0.48);
-    color: var(--text);
-    outline: none;
-    padding: 22px;
-  }
-
-  .youtube-modal__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-  }
-
-  .youtube-modal__eyebrow {
-    margin: 0;
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-  }
-
-  .youtube-modal h2 {
-    margin: 8px 0 0;
-    font-size: 22px;
-    font-weight: 720;
-    line-height: 1.2;
-  }
-
-  .youtube-modal__close,
-  .youtube-modal__button {
-    min-height: 42px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: var(--surface-2);
-    color: var(--muted);
-    padding: 0 16px;
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  .youtube-modal__close:disabled,
-  .youtube-modal__button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  .youtube-modal__thumb {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    margin-top: 18px;
-    background: var(--surface-2);
-    background-position: center;
-    background-size: cover;
-  }
-
-  .youtube-modal__summary {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 16px;
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .youtube-timeline {
-    position: relative;
-    height: 56px;
-    margin-top: 14px;
-    border-radius: 999px;
-    background: var(--surface-2);
-    box-shadow: inset 0 0 0 1px var(--border);
-    touch-action: none;
-  }
-
-  .youtube-timeline::before {
-    position: absolute;
-    inset: 25px 18px auto;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--border);
-    content: "";
-  }
-
-  .youtube-timeline__selection {
-    position: absolute;
-    top: 21px;
-    height: 14px;
-    border-radius: 999px;
-    background: var(--accent);
-  }
-
-  .youtube-timeline__handle {
-    position: absolute;
-    top: 50%;
-    width: 44px;
-    height: 44px;
-    border: 2px solid var(--surface);
-    border-radius: 999px;
-    background: var(--accent);
-    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.28);
-    transform: translate(-50%, -50%);
-  }
-
-  .youtube-timeline__handle:focus-visible {
-    outline: 3px solid var(--text);
-    outline-offset: 3px;
-  }
-
-  .youtube-timeline__handle:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-
-  .youtube-modal__time-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 16px;
-  }
-
-  .youtube-modal__time-grid label {
-    display: grid;
-    gap: 8px;
-  }
-
-  .youtube-modal__time-grid span {
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-  }
-
-  .youtube-modal__time-grid input {
-    min-height: 47px;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    background: var(--surface-2);
-    color: var(--text);
-    padding: 0 14px;
-    font-size: 15px;
-    outline: none;
-  }
-
-  .youtube-modal__status {
-    margin: 14px 0 0;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    background: var(--surface-2);
-    color: var(--muted);
-    padding: 10px 12px;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
-  .youtube-modal__status.is-error {
-    border-color: var(--danger);
-    background: var(--danger-soft);
-    color: var(--danger);
-  }
-
-  .youtube-modal__actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 18px;
-  }
-
-  .youtube-modal__button.is-primary {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: var(--on-accent);
-  }
-
-  .youtube-hidden-player {
-    position: fixed;
-    left: -9999px;
-    top: -9999px;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-  }
-
   .run-button {
-    min-width: 112px;
+    width: 100%;
+    min-width: 0;
     min-height: 47px;
     border-radius: 999px;
-    background: #a9cfa8;
+    background: var(--accent);
     color: var(--on-accent);
     font-size: 14px;
     font-weight: 700;
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+
+  .run-button:disabled {
+    background: var(--surface);
+    color: var(--muted);
+    box-shadow: none;
   }
 
   .phase-row {
@@ -994,6 +784,8 @@ textarea:focus-visible {
     height: 100dvh;
     max-height: none;
     padding: 12px;
+    background: var(--scrim);
+    backdrop-filter: blur(14px);
   }
 
   .preview-col.fixed .preview-screen {
@@ -1233,9 +1025,23 @@ textarea:focus-visible {
       font-size: 15px;
     }
   }
+
+  body input:not([type="button"]):not([type="checkbox"]):not([type="color"]):not(
+      [type="file"]
+    ):not([type="hidden"]):not([type="image"]):not([type="radio"]):not(
+      [type="range"]
+    ):not([type="reset"]):not([type="submit"]),
+  body select:not([size]),
+  body textarea:not([readonly]) {
+    font-size: 16px;
+  }
 }
 
-.youtube-modal-overlay {
+/* ── YouTube segment import modal ─────────────────────────────────────────
+ * One responsive block for all breakpoints (mobile tweaks at the end).
+ */
+
+.yt-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
@@ -1243,196 +1049,449 @@ textarea:focus-visible {
   align-items: center;
   justify-content: center;
   overflow-y: auto;
-  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  background: var(--scrim);
   padding: 24px 16px;
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(8px);
 }
 
-.youtube-modal {
-  width: min(100%, 680px);
+.yt-modal {
+  width: min(100%, 560px);
   max-height: min(760px, calc(100vh - 32px));
   overflow-y: auto;
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 20px;
   background: var(--surface);
-  box-shadow: 0 32px 90px rgba(2, 6, 23, 0.48);
+  box-shadow: var(--shadow-panel);
   color: var(--text);
   outline: none;
-  padding: 22px;
+  padding: 24px;
 }
 
-.youtube-modal__header {
+.yt-modal__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
-.youtube-modal__eyebrow {
+.yt-modal__eyebrow {
   margin: 0;
   color: var(--muted);
   font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.24em;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-.youtube-modal h2 {
-  margin: 8px 0 0;
-  font-size: 22px;
-  font-weight: 720;
-  line-height: 1.2;
+.yt-modal__title {
+  margin: 4px 0 0;
+  font-size: 19px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
-.youtube-modal__close,
-.youtube-modal__button {
-  min-height: 42px;
+.yt-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface-2);
   color: var(--muted);
-  padding: 0 16px;
-  font-size: 14px;
-  font-weight: 700;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
-.youtube-modal__close:disabled,
-.youtube-modal__button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+.yt-modal__close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
-.youtube-modal__thumb {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border: 1px solid var(--border);
-  border-radius: 18px;
+.yt-modal__media {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   margin-top: 18px;
-  background: var(--surface-2);
+}
+
+.yt-modal__thumb {
+  width: 112px;
+  aspect-ratio: 16 / 9;
+  flex: none;
+  border-radius: 12px;
+  background-color: var(--surface-2);
   background-position: center;
   background-size: cover;
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
-.youtube-modal__summary {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 16px;
+.yt-modal__meta {
+  min-width: 0;
+}
+
+.yt-modal__video-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.yt-modal__video-sub {
+  margin: 3px 0 0;
   color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
 }
 
-.youtube-timeline {
+/* Trim bar — side padding leaves room for the bracket handles at 0%/100%. */
+.yt-trim {
+  margin-top: 28px;
+  padding: 0 14px;
+}
+
+.yt-trim__track {
   position: relative;
-  height: 56px;
-  margin-top: 14px;
-  border-radius: 999px;
+  height: 36px;
+  border-radius: 10px;
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--border);
   touch-action: none;
 }
 
-.youtube-timeline::before {
+.yt-trim__track.is-disabled {
+  opacity: 0.55;
+}
+
+.yt-trim__window {
   position: absolute;
-  inset: 25px 18px auto;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--border);
-  content: "";
-}
-
-.youtube-timeline__selection {
-  position: absolute;
-  top: 21px;
-  height: 14px;
-  border-radius: 999px;
-  background: var(--accent);
-}
-
-.youtube-timeline__handle {
-  position: absolute;
-  top: 50%;
-  width: 44px;
-  height: 44px;
-  border: 2px solid var(--surface);
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.28);
-  transform: translate(-50%, -50%);
-}
-
-.youtube-timeline__handle:focus-visible {
-  outline: 3px solid var(--text);
-  outline-offset: 3px;
-}
-
-.youtube-timeline__handle:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.youtube-modal__time-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.youtube-modal__time-grid label {
-  display: grid;
-  gap: 8px;
-}
-
-.youtube-modal__time-grid span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-
-.youtube-modal__time-grid input {
-  min-height: 47px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface-2);
-  color: var(--text);
-  padding: 0 14px;
-  font-size: 15px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border-top: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  cursor: grab;
   outline: none;
 }
 
-.youtube-modal__status {
-  margin: 14px 0 0;
+.yt-trim__window.is-active {
+  cursor: grabbing;
+}
+
+.yt-trim__track.is-disabled .yt-trim__window {
+  cursor: default;
+}
+
+.yt-trim__window:focus-visible {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.yt-trim__duration {
+  pointer-events: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.yt-trim__duration.is-outside {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.yt-trim__playhead {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.yt-trim__handle {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0;
+  background: var(--accent);
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.yt-trim__handle.is-start {
+  transform: translateX(-100%);
+  border-radius: 7px 0 0 7px;
+}
+
+.yt-trim__handle.is-end {
+  border-radius: 0 7px 7px 0;
+}
+
+/* Invisible hit-area extension for touch. */
+.yt-trim__handle::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+
+.yt-trim__handle:hover,
+.yt-trim__handle:active {
+  background: var(--accent-strong);
+}
+
+.yt-trim__handle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.yt-trim__handle:disabled {
+  cursor: not-allowed;
+}
+
+.yt-trim__grip {
+  width: 2px;
+  height: 12px;
+  border-radius: 1px;
+  background: var(--on-accent);
+  opacity: 0.9;
+}
+
+.yt-trim__bubble {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.yt-trim__scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.yt-modal__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.yt-modal__preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+
+.yt-modal__preview:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.yt-modal__preview:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.yt-modal__times {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.yt-modal__times label {
+  display: grid;
+  gap: 5px;
+}
+
+.yt-modal__times span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.yt-modal__times input {
+  width: 82px;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 10px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.yt-modal__times input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.yt-modal__times input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.yt-modal__hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.yt-modal__status {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
   background: var(--surface-2);
   color: var(--muted);
-  padding: 10px 12px;
-  font-size: 14px;
+  padding: 10px 14px;
+  font-size: 13.5px;
   line-height: 1.5;
 }
 
-.youtube-modal__status.is-error {
-  border-color: var(--danger);
+.yt-modal__status.is-error {
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
   background: var(--danger-soft);
   color: var(--danger);
 }
 
-.youtube-modal__actions {
+.yt-spinner {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  animation: yt-spin 0.8s linear infinite;
+}
+
+@keyframes yt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.yt-modal__actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
-.youtube-modal__button.is-primary {
+.yt-modal__button {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.yt-modal__button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.yt-modal__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.yt-modal__button.is-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   border-color: var(--accent);
   background: var(--accent);
   color: var(--on-accent);
+  font-weight: 700;
+}
+
+.yt-modal__button.is-primary:hover:not(:disabled) {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+}
+
+.yt-modal__button.is-primary .yt-spinner {
+  margin-top: 0;
+  border-color: color-mix(in srgb, var(--on-accent) 40%, transparent);
+  border-top-color: var(--on-accent);
+}
+
+@media (max-width: 640px) {
+  .yt-modal {
+    padding: 20px 16px;
+  }
+
+  .yt-trim__track {
+    height: 44px;
+  }
+
+  .yt-trim__handle {
+    width: 18px;
+  }
 }
 
 .youtube-hidden-player {

@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 import { useEditor } from "@/components/editor-context";
 import { PreviewPlayer } from "@/components/preview-player";
 import { WordBoard } from "@/components/word-board/word-board";
@@ -27,8 +29,7 @@ export function PreviewStage({
   const selectedWordId = editor.state.selection.selectedWord?.id ?? null;
   const handleSelectWord = (word) => editor.actions.setSelectedWord(word);
 
-  return (
-    <>
+  const previewColumn = (
       <section
         className={`preview-col ${
           isPreviewFullscreen
@@ -162,7 +163,13 @@ export function PreviewStage({
           </div>
         ) : null}
       </section>
+  );
 
+  return (
+    <>
+      {isPreviewFullscreen && typeof document !== "undefined"
+        ? createPortal(previewColumn, document.body)
+        : previewColumn}
       {!isPreviewFullscreen ? (
         <section className="wb-slot flex flex-none flex-col items-center justify-center overflow-hidden lg:order-2 lg:min-h-0 lg:flex-1 lg:items-center lg:justify-center lg:rounded-2xl lg:p-2">
           <WordBoard

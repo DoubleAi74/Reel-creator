@@ -137,9 +137,14 @@ describe("GET /api/dashboard/generations/[id]", () => {
     expect(response.status).toBe(200);
     expect(payload).toEqual({
       generation: {
+        hasStoredAudio: true,
         id: generation._id.toString(),
+        segmentEndSec: null,
+        segmentStartSec: null,
         snapshot: generation.snapshot,
+        sourceType: "unknown",
         title: "Saved reel",
+        youtubeUrl: null,
       },
     });
     expect(JSON.stringify(payload)).not.toContain("run-secret");

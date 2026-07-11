@@ -97,16 +97,15 @@ describe("GET /api/dashboard/state", () => {
     expect(payload.generations[0]).toMatchObject({
       audioDurationSeconds: 12,
       audioUrl: `/api/media/generations/${generation._id.toString()}`,
+      hasStoredAudio: true,
       id: generation._id.toString(),
       lyricPreview: "hello",
       title: "Dashboard test",
     });
-    expect(payload.generations[0]).not.toHaveProperty("sourceType");
     expect(JSON.stringify(payload)).not.toContain("pipelineRunId");
     expect(JSON.stringify(payload)).not.toContain("ledgerKeys");
     expect(JSON.stringify(payload)).not.toContain("r2ObjectKey");
     expect(JSON.stringify(payload)).not.toContain("job-secret");
-    expect(JSON.stringify(payload)).not.toContain("sourceType");
   });
 
   it("returns untitled private cards saved by the current session", async () => {

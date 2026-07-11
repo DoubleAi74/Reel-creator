@@ -349,12 +349,34 @@ export default function DashboardView() {
                   {generation.lyricPreview || "No lyric preview available."}
                 </p>
 
-                <audio
-                  className="mt-4 w-full"
-                  controls
-                  preload="none"
-                  src={generation.audioUrl}
-                />
+                {generation.hasStoredAudio && generation.audioUrl ? (
+                  <audio
+                    className="mt-4 w-full"
+                    controls
+                    preload="none"
+                    src={generation.audioUrl}
+                  />
+                ) : generation.youtubeUrl ? (
+                  <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--muted)]">
+                    <p className="font-semibold text-[var(--text)]">YouTube source</p>
+                    <a
+                      className="mt-1 block break-all text-[var(--accent)] underline-offset-2 hover:underline"
+                      href={generation.youtubeUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {generation.youtubeUrl}
+                    </a>
+                    {generation.segmentLabel ? (
+                      <p className="mt-1">Segment: {generation.segmentLabel}</p>
+                    ) : null}
+                    <p className="mt-1">No MP3 stored — re-convert when opening.</p>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-xs text-[var(--muted)]">
+                    No stored audio. Lyrics and project data only.
+                  </p>
+                )}
 
                 {cardErrorById[generation.id] ? (
                   <p className="mt-3 text-sm font-medium text-[var(--danger)]">
