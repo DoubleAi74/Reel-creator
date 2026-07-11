@@ -52,6 +52,26 @@ export function YoutubeSegmentModal({
   onComplete,
   sourceUrl,
 }) {
+  const videoId = useMemo(() => extractYouTubeVideoId(sourceUrl), [sourceUrl]);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  // Keyed by video so all per-video state (duration, segment, preview, status)
+  // resets naturally when the modal opens on a different video.
+  return (
+    <SegmentModalBody
+      key={videoId || "no-video"}
+      onClose={onClose}
+      onComplete={onComplete}
+      sourceUrl={sourceUrl}
+      videoId={videoId}
+    />
+  );
+}
+
+function SegmentModalBody({ onClose, onComplete, sourceUrl, videoId }) {
   const dialogRef = useRef(null);
   const previousFocusRef = useRef(null);
   const activeRequestRef = useRef(0);
@@ -67,9 +87,10 @@ export function YoutubeSegmentModal({
     onCloseRef.current = onClose;
   }, [onClose, onComplete]);
 
-  const videoId = useMemo(() => extractYouTubeVideoId(sourceUrl), [sourceUrl]);
+  const thumbnailUrl = videoId
+    ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+    : "";
   const [durationSec, setDurationSec] = useState(null);
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [videoTitle, setVideoTitle] = useState("");
   const [videoAuthor, setVideoAuthor] = useState("");
   const [startTime, setStartTime] = useState(0);
@@ -348,11 +369,16 @@ export function YoutubeSegmentModal({
     return true;
   }, [runPollForJob, sourceUrl]);
 
+  // Cancel any still-running client poll if the modal unmounts; the server
+  // job and the persisted inflight record survive for resume on reopen.
   useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
+    return () => {
+      activeRequestRef.current += 1;
+      pollingRef.current = false;
+    };
+  }, []);
 
+  useEffect(() => {
     previousFocusRef.current = document.activeElement;
     const id = window.setTimeout(() => {
       dialogRef.current?.focus();
@@ -361,13 +387,9 @@ export function YoutubeSegmentModal({
     return () => {
       window.clearTimeout(id);
     };
-  }, [isOpen]);
+  }, []);
 
   useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-
     function handleKeyDown(event) {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -382,14 +404,10 @@ export function YoutubeSegmentModal({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, isOpen]);
+  }, [handleClose]);
 
   // Resume poll after iOS background / tab freeze (Stage B).
   useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-
     function onVisible() {
       if (document.visibilityState && document.visibilityState !== "visible") {
         return;
@@ -405,28 +423,17 @@ export function YoutubeSegmentModal({
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onVisible);
     };
-  }, [isOpen, resumeInflightIfAny]);
+  }, [resumeInflightIfAny]);
 
   // One hidden player per open: provides duration/title on load, then stays
   // alive so Preview can play the selected segment (audio only).
   useEffect(() => {
-    if (!isOpen || !videoId) {
+    if (!videoId) {
       return undefined;
     }
 
     let cancelled = false;
     const resumed = resumeInflightIfAny();
-
-    setDurationSec(null);
-    setThumbnailUrl(`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`);
-    setVideoTitle("");
-    setVideoAuthor("");
-    setPreviewHint("");
-
-    if (!resumed && !pollingRef.current) {
-      setStatus("loading");
-      setMessage("");
-    }
 
     const session = createPlayerSession(videoId, {
       onError: () => {
@@ -478,11 +485,7 @@ export function YoutubeSegmentModal({
       playerSessionRef.current = null;
       session.destroy();
     };
-  }, [isOpen, resumeInflightIfAny, stopPreview, videoId]);
-
-  if (!isOpen) {
-    return null;
-  }
+  }, [resumeInflightIfAny, stopPreview, videoId]);
 
   function setSegment(nextStart, nextEnd) {
     stopPreview();
@@ -960,7 +963,9 @@ function TrimBar({
         <div
           aria-disabled={disabled}
           aria-label="Move segment"
-          aria-valuemax={Math.round(Math.max(0, durationSec - segLen(startTime, endTime)))}
+          aria-valuemax={Math.round(
+            Math.max(0, durationSec - Math.max(0, endTime - startTime)),
+          )}
           aria-valuemin={0}
           aria-valuenow={Math.round(startTime)}
           aria-valuetext={`${formatTime(startTime)} to ${formatTime(endTime)}`}
@@ -1031,10 +1036,6 @@ function TrimBar({
       </div>
     </div>
   );
-}
-
-function segLen(startTime, endTime) {
-  return Math.max(0, endTime - startTime);
 }
 
 function getSegmentValidationMessage({

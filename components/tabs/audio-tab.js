@@ -3,6 +3,7 @@
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatTime, SOURCE_LANGUAGE_OPTIONS } from "@/lib/editor-format";
 import { LYRIC_PIPELINE_PRESETS } from "@/lib/staged-lyrics";
+import { extractYouTubeVideoId } from "@/lib/youtube-audio/youtube-url";
 
 const PIPELINE_PRESET_OPTIONS = [
   {
@@ -110,6 +111,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
     sourceLanguage,
   } = lyricsSource;
   const hasTrack = Boolean(project.audio.name || upload.asset?.assetId || objectUrl);
+  const youtubeUrlReady = Boolean(extractYouTubeVideoId(youtube.url ?? ""));
   const hasLyrics = project.lines.length > 0;
   const pipelineBusy = autoLyricsBusy || autoTimingBusy;
   const selectedPhaseCount = Array.isArray(pipeline?.selectedPhases)
@@ -189,31 +191,53 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
           >
             {isLoadingSample ? "Loading sample…" : "Load sample"}
           </button>
-          {youtube.enabled ? (
-            <button
-              className="pill rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!String(youtube.url ?? "").trim()}
-              onClick={() => youtube.onOpen?.()}
-              type="button"
-            >
-              Youtube segment
-            </button>
-          ) : null}
         </div>
 
         {youtube.enabled ? (
-          <div className="youtube-import mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-            <label className="field-label text-left">
+          <div className="youtube-import mx-auto mt-5 w-full max-w-[560px]">
+            <div aria-hidden="true" className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-[var(--border)]" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+                or import from YouTube
+              </span>
+              <span className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+            <div className="mt-3 flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] p-1 pl-4 transition focus-within:border-[var(--accent)]">
+              <svg
+                aria-hidden="true"
+                className="w-[22px] flex-none text-[var(--muted)]"
+                fill="none"
+                height="16"
+                viewBox="0 0 22 16"
+                width="22"
+              >
+                <rect fill="currentColor" height="16" opacity="0.25" rx="4" width="22" />
+                <path d="M9 5l5 3-5 3V5z" fill="currentColor" />
+              </svg>
               <input
-                className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--muted)]"
                 onChange={(event) => youtube.onUrlChange?.(event.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && youtubeUrlReady) {
+                    event.preventDefault();
+                    youtube.onOpen?.();
+                  }
+                }}
+                placeholder="Paste a YouTube link"
                 type="url"
                 value={youtube.url ?? ""}
               />
-            </label>
+              <button
+                className="flex-none rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:bg-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={!youtubeUrlReady}
+                onClick={() => youtube.onOpen?.()}
+                type="button"
+              >
+                Import
+              </button>
+            </div>
             {youtube.error ? (
-              <p className="text-left text-sm leading-6 text-[var(--danger)] sm:col-span-2">
+              <p className="mt-2 text-left text-sm leading-6 text-[var(--danger)]">
                 {youtube.error}
               </p>
             ) : null}
