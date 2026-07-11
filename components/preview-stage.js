@@ -81,7 +81,7 @@ export function PreviewStage({
               </svg>
             </button>
             <button
-              aria-label="Export MP4"
+              aria-label="Export video"
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] opacity-80 shadow-md transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!canExport || exportBusy}
               onClick={onExport}
@@ -158,7 +158,7 @@ export function PreviewStage({
               onClick={onExport}
               type="button"
             >
-              {exportBusy ? "Exporting..." : "Export MP4"}
+              {exportBusy ? "Exporting..." : "Export video"}
             </button>
           </div>
         ) : null}

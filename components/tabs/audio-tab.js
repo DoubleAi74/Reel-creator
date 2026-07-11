@@ -159,7 +159,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
               : "Available after run";
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
       <div
         className="upload-card rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[var(--surface)] px-5 pt-2.5 pb-5 text-center"
         onDragOver={(event) => {

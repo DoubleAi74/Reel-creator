@@ -10,7 +10,7 @@
 
 As of 2026-07-11, **full server/Lambda MP4 export is postponed**. Near-term usable path:
 
-- **Interim:** desktop **screen capture** (or equivalent browser MediaRecorder / tab-capture of the preview stage) so users can get a video without Remotion Lambda, Chromium on Vercel, or credits-for-render.
+- **Interim (implemented):** desktop **browser tab/region capture** of a free-playing export stage + project audio mix (`lib/client-export/*`, `components/client-export-overlay.js`). See `CLIENT_BROWSER_EXPORT.md`.
 - **This plan remains the long-term cloud export design** (Remotion Lambda + credits debit + 15m S3 TTL, etc.) when quality/reliability/billing matter more than ship speed.
 - **Platform roadmap:** web app is intended to become **desktop-focused**; a future **React Native** app covers mobile. Export architecture should eventually split: **client-side / desktop browser encode or capture on web**, **native export pipeline on mobile** — see §18.
 

@@ -103,6 +103,16 @@ function SegmentModalBody({ onClose, onComplete, sourceUrl, videoId }) {
   const [previewSec, setPreviewSec] = useState(null);
   const [previewHint, setPreviewHint] = useState("");
 
+  // Latest selection, read by finishWithAsset without listing start/end as its
+  // deps — doing so would recreate the player-session effect on every drag,
+  // and the rebuilt player's onReady would reset the segment (snap-back bug).
+  const startTimeRef = useRef(startTime);
+  const endTimeRef = useRef(endTime);
+  useEffect(() => {
+    startTimeRef.current = startTime;
+    endTimeRef.current = endTime;
+  }, [endTime, startTime]);
+
   const converting = status === "converting";
   const loading = status === "loading";
   const segmentDuration = Math.max(0, endTime - startTime);
@@ -223,15 +233,15 @@ function SegmentModalBody({ onClose, onComplete, sourceUrl, videoId }) {
     (asset) => {
       clearInflightYoutubeAudioJob();
       onCompleteRef.current?.(asset, {
-        segmentEndSec: endTime,
-        segmentStartSec: startTime,
+        segmentEndSec: endTimeRef.current,
+        segmentStartSec: startTimeRef.current,
         type: "youtube",
         youtubeUrl: sourceUrl,
       });
       onCloseRef.current?.();
       returnFocus();
     },
-    [endTime, returnFocus, sourceUrl, startTime],
+    [returnFocus, sourceUrl],
   );
 
   const pollConversionJob = useCallback(async (jobId, requestId) => {
