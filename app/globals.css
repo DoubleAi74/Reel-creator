@@ -333,6 +333,10 @@ textarea:focus-visible {
   .editor-panel-content[data-active-tab="audio"],
   .editor-panel-content[data-active-tab="lyrics"],
   .editor-panel-content[data-active-tab="style"] {
+    /* White lip at the top of the sheet (the band between the grey work area
+       and the first green control) 70% taller: 5px border + 12px pad = 17px
+       -> 5px + 24px = 29px. */
+    padding-top: 24px;
     padding-bottom: calc(300px + env(safe-area-inset-bottom, 0px));
   }
 
