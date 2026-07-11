@@ -5,14 +5,13 @@ export function CollapsibleSection({ children, onToggle, open, title }) {
     <section className="overflow-hidden rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)]">
       <button
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+        className="flex w-full items-center justify-start gap-3 px-4 py-3 text-left text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
         onClick={onToggle}
         type="button"
       >
-        <span>{title}</span>
         <svg
           aria-hidden="true"
-          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 flex-none transition-transform ${open ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
@@ -22,6 +21,7 @@ export function CollapsibleSection({ children, onToggle, open, title }) {
         >
           <path d="m6 9 6 6 6-6" />
         </svg>
+        <span>{title}</span>
       </button>
       {open ? (
         <div className="border-t border-[var(--border)] px-4 py-4">

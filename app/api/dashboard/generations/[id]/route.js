@@ -73,7 +73,7 @@ async function findVisibleGeneration({ id, request }) {
   const generation = await Generation.findOne({
     _id: id,
     deletedAt: null,
-    r2Status: "created",
+    r2Status: { $in: ["created", "not_required"] },
     saved: true,
     ...buildGenerationVisibilityFilter(sessionId),
   }).lean();

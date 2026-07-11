@@ -7,12 +7,10 @@ import { formatGbpFromMinor } from "../lib/money";
 export function CreditChrome({
   balanceMinor = 0,
   enabled = false,
-  onSaveGenerationChange,
   onTopUpAmountChange,
   onTopUpSubmit,
   onUnlockPasswordChange,
   onUnlockSubmit,
-  saveGeneration,
   status = "idle",
   topUpAmount,
   topUpMessage,
@@ -38,16 +36,6 @@ export function CreditChrome({
             {busy ? "Checking" : formatGbpFromMinor(balanceMinor)}
           </p>
         </div>
-
-        <label className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 text-xs font-semibold">
-          <input
-            checked={saveGeneration}
-            className="h-4 w-4 accent-[var(--accent)]"
-            onChange={(event) => onSaveGenerationChange(event.target.checked)}
-            type="checkbox"
-          />
-          Save
-        </label>
 
         <form className="flex items-center gap-2" onSubmit={onUnlockSubmit}>
           <input
