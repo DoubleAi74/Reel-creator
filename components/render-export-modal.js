@@ -4,10 +4,23 @@ import { getRenderStatusLabel } from "@/lib/export-flow";
 
 function SummaryStat({ label, value }) {
   return (
-    <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-      <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--muted)]">{label}</p>
-      <p className="mt-2 text-sm font-medium text-[var(--muted)]">{value}</p>
+    <div className="yt-modal__stat">
+      <p className="yt-modal__stat-label">{label}</p>
+      <p className="yt-modal__stat-value">{value}</p>
     </div>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 14 14" width="14">
+      <path
+        d="M2 2l10 10M12 2L2 12"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.8"
+      />
+    </svg>
   );
 }
 
@@ -36,142 +49,145 @@ export function RenderExportModal({
         : renderStatus;
   const statusLabel = getRenderStatusLabel(resolvedStatus);
   const busy = phase === "starting" || phase === "polling";
-  const toneClasses =
+  const badgeClass =
     phase === "error"
-      ? "border-[var(--danger)] bg-[var(--danger-soft)] text-[var(--danger)]"
+      ? "yt-modal__badge is-error"
       : phase === "done"
-        ? "border-emerald-300/25 bg-emerald-300/12 text-emerald-100"
-        : "border-[var(--accent)] bg-[var(--surface-active)] text-[var(--accent)]";
+        ? "yt-modal__badge is-done"
+        : busy
+          ? "yt-modal__badge is-active"
+          : "yt-modal__badge";
   const description =
     phase === "starting"
-      ? "Packing your current lyrics, styling, and audio references for the local renderer."
+      ? "Preparing browser export. You may be asked to share this tab."
       : phase === "polling"
         ? isReconnecting
-          ? "Connection hiccup. The render job is still running locally, and the app is reconnecting to it now."
+          ? "Reconnecting…"
           : renderStatus === "queued"
-            ? "The render job is queued. The app will keep polling until local rendering starts."
-            : "Rendering the MP4 now. Keep this tab open while progress updates."
+            ? "Waiting to start tab capture…"
+            : "Recording in this browser. Keep this tab focused until it finishes."
         : phase === "done"
-          ? `Your ${formatLabel} is ready. If the download did not start automatically, use the button below.`
+          ? `Your ${formatLabel} should have downloaded. Check your downloads folder if you do not see a file.`
           : errorMessage;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[var(--surface)] p-4 backdrop-blur-md">
-      <div className="w-full max-w-xl rounded-[2rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(16,34,59,0.96)_0%,rgba(5,10,18,0.98)_100%)] p-5 shadow-[0_40px_120px_rgba(0,0,0,0.55)] sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.32em] text-[var(--muted)]">
-              Export {formatLabel}
-            </p>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--text)]">
+    <div
+      className="yt-modal-overlay"
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !busy) {
+          onClose?.();
+        }
+      }}
+    >
+      <section
+        aria-labelledby="export-modal-title"
+        aria-modal="true"
+        className="yt-modal"
+        role="dialog"
+      >
+        <div className="yt-modal__header">
+          <div className="min-w-0">
+            <p className="yt-modal__eyebrow">Export {formatLabel}</p>
+            <h2 className="yt-modal__title" id="export-modal-title">
               {projectTitle || "Reel Creator"}
             </h2>
           </div>
-          <span
-            className={`rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.24em] ${toneClasses}`}
-          >
-            {statusLabel}
-          </span>
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <SummaryStat label="Lines" value={String(lineCount)} />
-          <SummaryStat label="Section length" value={sectionLengthLabel} />
-        </div>
-
-        <div className="mt-5 rounded-[1.35rem] border border-[var(--border)] bg-black/22 px-4 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-[var(--muted)]">Render progress</p>
-            <p className="font-mono text-sm text-[var(--muted)]">{progressPercent}%</p>
-          </div>
-
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--surface-2)]">
-            <div
-              className={`h-full rounded-full transition-[width] duration-500 ${
-                phase === "error"
-                  ? "bg-[var(--danger)]"
-                  : phase === "done"
-                    ? "bg-[var(--accent)]"
-                    : "bg-[var(--accent)]"
-              }`}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-
-          <p
-            className={`mt-4 text-sm leading-6 ${
-              phase === "error" ? "text-[var(--danger)]" : "text-[var(--muted)]"
-            }`}
-          >
-            {description}
-          </p>
-
-          {statusNote ? (
-            <p
-              className={`mt-3 text-sm leading-6 ${
-                phase === "done" ? "text-emerald-100" : "text-[var(--muted)]"
-              }`}
-            >
-              {statusNote}
-            </p>
-          ) : null}
-
-          {downloadError ? (
-            <p className="mt-3 text-sm leading-6 text-[var(--danger)]">{downloadError}</p>
-          ) : null}
-        </div>
-
-        <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-          {phase === "done" ? (
-            <>
+          <div className="flex items-center gap-2">
+            <span className={badgeClass}>{statusLabel}</span>
+            {!busy ? (
               <button
-                className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
+                aria-label="Close"
+                className="yt-modal__close"
                 onClick={onClose}
                 type="button"
               >
+                <CloseIcon />
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="yt-modal__body">
+          <div className="yt-modal__stats">
+            <SummaryStat label="Lines" value={String(lineCount)} />
+            <SummaryStat label="Section length" value={sectionLengthLabel} />
+          </div>
+
+          <div
+            className={`yt-modal__status ${phase === "error" ? "is-error" : ""}`}
+            role="status"
+          >
+            {busy ? <span aria-hidden="true" className="yt-spinner" /> : null}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <p className="m-0 text-sm font-semibold text-[var(--text)]">
+                  {busy ? "Recording progress" : phase === "done" ? "Complete" : "Status"}
+                </p>
+                <p className="m-0 font-mono text-sm tabular-nums text-[var(--muted)]">
+                  {progressPercent}%
+                </p>
+              </div>
+              <div className="yt-modal__progress-track">
+                <div
+                  className={`yt-modal__progress-fill ${
+                    phase === "error" ? "is-error" : phase === "done" ? "is-done" : ""
+                  }`}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              {description ? (
+                <p className="mt-3 mb-0 text-sm leading-6">{description}</p>
+              ) : null}
+              {statusNote ? (
+                <p className="mt-2 mb-0 text-sm leading-6 text-[var(--muted)]">{statusNote}</p>
+              ) : null}
+              {downloadError ? (
+                <p className="mt-2 mb-0 text-sm leading-6 text-[var(--danger)]">
+                  {downloadError}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="yt-modal__actions">
+          {phase === "done" ? (
+            <>
+              <button className="yt-modal__button" onClick={onClose} type="button">
                 Back to editor
               </button>
-              <button
-                className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isDownloading}
-                onClick={onDownload}
-                type="button"
-              >
-                {isDownloading ? "Downloading..." : `Download ${formatLabel}`}
-              </button>
+              {typeof onDownload === "function" ? (
+                <button
+                  className="yt-modal__button is-primary"
+                  disabled={isDownloading}
+                  onClick={onDownload}
+                  type="button"
+                >
+                  {isDownloading ? "Downloading…" : `Download ${formatLabel}`}
+                </button>
+              ) : null}
             </>
           ) : null}
 
           {phase === "error" ? (
             <>
-              <button
-                className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--surface-hover)]"
-                onClick={onClose}
-                type="button"
-              >
+              <button className="yt-modal__button" onClick={onClose} type="button">
                 Close
               </button>
-              <button
-                className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--on-accent)] transition hover:opacity-90"
-                onClick={onRetry}
-                type="button"
-              >
+              <button className="yt-modal__button is-primary" onClick={onRetry} type="button">
                 Retry export
               </button>
             </>
           ) : null}
 
           {busy ? (
-            <button
-              className="rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-[var(--muted)]"
-              disabled
-              type="button"
-            >
-              Exporting...
+            <button className="yt-modal__button" disabled type="button">
+              <span aria-hidden="true" className="yt-spinner" />
+              Exporting…
             </button>
           ) : null}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -12,8 +12,16 @@ import { AudioTab } from "@/components/tabs/audio-tab";
 import { LyricsTab } from "@/components/tabs/lyrics-tab";
 import { StyleTab } from "@/components/tabs/style-tab";
 import { WaveformTimeline } from "@/components/waveform-timeline";
+import { ClientExportOverlay } from "@/components/client-export-overlay";
 import { SaveGenerationModal } from "@/components/save-generation-modal";
 import { YoutubeSegmentModal } from "@/components/youtube-segment-modal";
+import {
+  clientAudioRecordToFile,
+  deleteClientAudioBlob,
+  getClientAudioBlob,
+  putClientAudioBlob,
+} from "@/lib/client-audio-store";
+import { isClientExportSupported } from "@/lib/client-export/mime";
 import {
   getExportReadiness,
   getRenderPollDelayMs,
@@ -247,6 +255,101 @@ async function verifyAssetExists(assetId) {
   }
 }
 
+/** Best-effort: keep MP3 bytes in IndexedDB so reload stays playable on Vercel. */
+async function cacheAudioBlobForAsset(assetId, blobOrFile, name = "") {
+  const safeAssetId = typeof assetId === "string" ? assetId.trim() : "";
+
+  if (!safeAssetId || !(blobOrFile instanceof Blob) || blobOrFile.size === 0) {
+    return;
+  }
+
+  try {
+    await putClientAudioBlob({
+      assetId: safeAssetId,
+      blob: blobOrFile,
+      mimeType: blobOrFile.type || "audio/mpeg",
+      name:
+        (typeof name === "string" && name.trim()) ||
+        (blobOrFile instanceof File && blobOrFile.name) ||
+        "audio.mp3",
+    });
+  } catch {
+    // Quota / private mode — server session URL may still work on localhost.
+  }
+}
+
+/**
+ * Resolve a playable object URL after reload: IndexedDB first, then session API.
+ * @returns {Promise<{ objectUrl: string, file: File | null, source: "cache" | "server" } | null>}
+ */
+async function resolveRestoredAudioPlayback(audioAsset) {
+  const assetId =
+    typeof audioAsset?.assetId === "string" ? audioAsset.assetId.trim() : "";
+
+  if (!assetId) {
+    return null;
+  }
+
+  const name =
+    typeof audioAsset?.name === "string" && audioAsset.name.trim()
+      ? audioAsset.name.trim()
+      : "audio.mp3";
+
+  const cached = await getClientAudioBlob(assetId);
+
+  if (cached?.blob) {
+    const file =
+      clientAudioRecordToFile({
+        ...cached,
+        name: name || cached.name,
+      }) ?? new File([cached.blob], name, { type: cached.mimeType || "audio/mpeg" });
+
+    return {
+      file,
+      objectUrl: URL.createObjectURL(file),
+      source: "cache",
+    };
+  }
+
+  const assetExists = await verifyAssetExists(assetId);
+
+  if (!assetExists) {
+    return null;
+  }
+
+  const serverUrl = buildSessionAssetUrl(assetId);
+
+  // Rehydrate IndexedDB from the session file when the server still has it.
+  try {
+    const response = await fetch(serverUrl, {
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+
+    if (response.ok) {
+      const blob = await response.blob();
+      await cacheAudioBlobForAsset(assetId, blob, name);
+      const file = new File([blob], name, {
+        type: blob.type || "audio/mpeg",
+      });
+
+      return {
+        file,
+        objectUrl: URL.createObjectURL(file),
+        source: "server",
+      };
+    }
+  } catch {
+    // Fall through to streaming URL if full download fails.
+  }
+
+  return {
+    file: null,
+    objectUrl: serverUrl,
+    source: "server",
+  };
+}
+
 async function fetchCreditBalancePayload() {
   const response = await fetch("/api/credits/balance", {
     cache: "no-store",
@@ -387,9 +490,11 @@ function createIdleExportState() {
     downloadName: "",
     errorMessage: "",
     fileUrl: "",
+    formatLabel: "WEBM",
     isDownloading: false,
     isReconnecting: false,
     jobId: "",
+    mode: "client", // client browser capture | server (legacy local only)
     phase: "idle",
     pollFailureCount: 0,
     progress: 0,
@@ -649,6 +754,7 @@ export function EditorShell({
   const [sheetSnapIndex, setSheetSnapIndex] = useState(0);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
   const [exportState, setExportState] = useState(createIdleExportState);
+  const [clientExportActive, setClientExportActive] = useState(false);
   const [autoLyricsState, setAutoLyricsState] = useState(
     createIdleAutoLyricsState,
   );
@@ -722,6 +828,7 @@ export function EditorShell({
   const pinnedMediaEventHandlersRef = useRef({});
   const pinnedMediaPanelScrollTopRef = useRef(null);
   const pinnedMediaPanelUnlockTimeoutRef = useRef(null);
+  const mobileInputFocusRestoreRef = useRef(null);
   const programmaticScrollTimeoutRef = useRef(null);
   const suppressManualScrollRef = useRef(false);
   const timingRowRefs = useRef(new Map());
@@ -1165,9 +1272,11 @@ export function EditorShell({
 
   const exportReadiness = getExportReadiness({
     audioAssetId: audioUpload.asset?.assetId ?? "",
+    audioObjectUrl,
     backgroundAssetId: activeBackgroundAsset?.assetId ?? "",
     backgroundDurationSec: activeBackgroundAsset?.durationSec ?? null,
     backgroundType: projectState.background.type,
+    requirePlayableAudio: true,
     sectionWithinLimit,
   });
   const textLayerReadiness = getExportReadiness({
@@ -1176,8 +1285,10 @@ export function EditorShell({
     transparent: true,
   });
   const exportBusy =
-    exportState.phase === "starting" || exportState.phase === "polling";
-  const exportModalOpen = exportState.phase !== "idle";
+    clientExportActive ||
+    exportState.phase === "starting" ||
+    exportState.phase === "polling";
+  const exportModalOpen = exportState.phase !== "idle" || clientExportActive;
   const exportProgressPercent = getRenderProgressPercent(
     exportState.phase === "done" ? "done" : exportState.renderStatus,
     exportState.progress,
@@ -2057,6 +2168,133 @@ export function EditorShell({
     }, 140);
   };
 
+  const clampScrollTop = (scrollEl, scrollTop) => {
+    if (!scrollEl || !Number.isFinite(scrollTop)) {
+      return;
+    }
+
+    const maxScrollTop = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+    scrollEl.scrollTop = Math.min(maxScrollTop, Math.max(0, scrollTop));
+  };
+
+  const lockWordsTabScroll = () => {
+    clampScrollTop(appScrollRef.current, 0);
+    clampScrollTop(editorScrollRef.current, 0);
+    unlockEditorPanelScroll();
+  };
+
+  const isMobileEditorTextInput = (target) => {
+    if (!isNarrowWorkspace || typeof target?.closest !== "function") {
+      return false;
+    }
+
+    const input = target.closest("input, textarea");
+    if (!input || !editorScrollRef.current?.contains(input)) {
+      return false;
+    }
+
+    if (input.disabled || input.readOnly) {
+      return false;
+    }
+
+    if (input.tagName === "TEXTAREA") {
+      return true;
+    }
+
+    const type = String(input.getAttribute("type") || "text").toLowerCase();
+    return ["email", "number", "password", "search", "tel", "text", "url"].includes(
+      type,
+    );
+  };
+
+  const captureMobileInputFocusScroll = () => {
+    if (!isNarrowWorkspace || activeSection === "words") {
+      return null;
+    }
+
+    return {
+      appScrollTop: appScrollRef.current?.scrollTop ?? 0,
+      editorScrollTop: editorScrollRef.current?.scrollTop ?? 0,
+      sheetSnapIndex,
+    };
+  };
+
+  const restoreMobileInputFocusScroll = (snapshot, attempts = 3) => {
+    if (!snapshot || !isNarrowWorkspace || activeSection === "words") {
+      return;
+    }
+
+    clampScrollTop(appScrollRef.current, snapshot.appScrollTop);
+    clampScrollTop(editorScrollRef.current, snapshot.editorScrollTop);
+    setSheetSnapIndex((index) =>
+      index === snapshot.sheetSnapIndex ? index : snapshot.sheetSnapIndex,
+    );
+
+    if (attempts <= 0 || typeof window === "undefined") {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      restoreMobileInputFocusScroll(snapshot, attempts - 1);
+    });
+  };
+
+  const focusMobileEditorInputFromEvent = (event) => {
+    if (!isMobileEditorTextInput(event.target)) {
+      return false;
+    }
+
+    const input = event.target.closest("input, textarea");
+    const snapshot = captureMobileInputFocusScroll();
+
+    if (!input || !snapshot) {
+      return false;
+    }
+
+    mobileInputFocusRestoreRef.current = snapshot;
+
+    if (document.activeElement === input) {
+      restoreMobileInputFocusScroll(snapshot, 2);
+      return false;
+    }
+
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    event.stopPropagation();
+
+    try {
+      input.focus({ preventScroll: true });
+    } catch {
+      input.focus();
+    }
+
+    restoreMobileInputFocusScroll(snapshot, 4);
+    return true;
+  };
+
+  const clampMobileScrollAfterKeyboard = () => {
+    if (!isNarrowWorkspace) {
+      return;
+    }
+
+    if (activeSection === "words") {
+      lockWordsTabScroll();
+      return;
+    }
+
+    const snapshot = mobileInputFocusRestoreRef.current;
+    if (snapshot) {
+      restoreMobileInputFocusScroll(snapshot, 1);
+      return;
+    }
+
+    const appScrollEl = appScrollRef.current;
+    const editorScrollEl = editorScrollRef.current;
+    clampScrollTop(appScrollEl, appScrollEl?.scrollTop ?? 0);
+    clampScrollTop(editorScrollEl, editorScrollEl?.scrollTop ?? 0);
+  };
+
   const scrollPinnedMediaSheet = (deltaY) => {
     const scrollEl = appScrollRef.current;
 
@@ -2150,6 +2388,12 @@ export function EditorShell({
   };
 
   const handlePinnedMediaWheel = (event) => {
+    if (isNarrowWorkspace && activeSection === "words") {
+      preventPanelBoundaryScroll(event);
+      lockWordsTabScroll();
+      return;
+    }
+
     if (isPanelScrollEvent(event)) {
       const panelAction = getPanelScrollBoundaryAction(event.deltaY);
 
@@ -2173,7 +2417,13 @@ export function EditorShell({
     pinnedMediaTouchYRef.current = event.touches?.[0]?.clientY ?? null;
     pinnedMediaGestureOwnerRef.current = null;
 
-    if (!isNarrowWorkspace || activeSection === "words") {
+    if (activeSection === "words" && isNarrowWorkspace) {
+      pinnedMediaGestureOwnerRef.current = "locked";
+      lockWordsTabScroll();
+      return;
+    }
+
+    if (!isNarrowWorkspace) {
       unlockEditorPanelScroll();
       return;
     }
@@ -2199,6 +2449,12 @@ export function EditorShell({
 
     pinnedMediaTouchYRef.current = currentY;
     const deltaY = previousY - currentY;
+
+    if (isNarrowWorkspace && activeSection === "words") {
+      preventPanelBoundaryScroll(event);
+      lockWordsTabScroll();
+      return;
+    }
 
     if (pinnedMediaGestureOwnerRef.current === "sheet") {
       handleSheetScrollGesture(event, deltaY);
@@ -2232,11 +2488,72 @@ export function EditorShell({
     unlockEditorPanelScroll();
   };
 
+  const handleMobileInputFocusIn = (event) => {
+    if (!isMobileEditorTextInput(event.target)) {
+      return;
+    }
+
+    const snapshot =
+      mobileInputFocusRestoreRef.current ?? captureMobileInputFocusScroll();
+
+    if (!snapshot) {
+      return;
+    }
+
+    mobileInputFocusRestoreRef.current = snapshot;
+    restoreMobileInputFocusScroll(snapshot, 4);
+  };
+
+  const handleMobileInputFocusOut = (event) => {
+    if (!isMobileEditorTextInput(event.target)) {
+      return;
+    }
+
+    const snapshot = mobileInputFocusRestoreRef.current;
+
+    if (snapshot) {
+      restoreMobileInputFocusScroll(snapshot, 2);
+    }
+
+    if (typeof window === "undefined") {
+      mobileInputFocusRestoreRef.current = null;
+      return;
+    }
+
+    window.setTimeout(() => {
+      clampMobileScrollAfterKeyboard();
+    }, 80);
+    window.setTimeout(() => {
+      clampMobileScrollAfterKeyboard();
+      if (mobileInputFocusRestoreRef.current === snapshot) {
+        mobileInputFocusRestoreRef.current = null;
+      }
+    }, 520);
+  };
+
+  const handleMobileVisualViewportResize = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (!isNarrowWorkspace) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      clampMobileScrollAfterKeyboard();
+    });
+  };
+
   pinnedMediaEventHandlersRef.current = {
+    focusIn: handleMobileInputFocusIn,
+    focusOut: handleMobileInputFocusOut,
+    pointerDown: focusMobileEditorInputFromEvent,
     touchCancel: handlePinnedMediaTouchEnd,
     touchEnd: handlePinnedMediaTouchEnd,
     touchMove: handlePinnedMediaTouchMove,
     touchStart: handlePinnedMediaTouchStart,
+    visualViewportResize: handleMobileVisualViewportResize,
     wheel: handlePinnedMediaWheel,
   };
 
@@ -2250,6 +2567,15 @@ export function EditorShell({
     const handleWheel = (event) => {
       pinnedMediaEventHandlersRef.current.wheel?.(event);
     };
+    const handlePointerDown = (event) => {
+      pinnedMediaEventHandlersRef.current.pointerDown?.(event);
+    };
+    const handleFocusIn = (event) => {
+      pinnedMediaEventHandlersRef.current.focusIn?.(event);
+    };
+    const handleFocusOut = (event) => {
+      pinnedMediaEventHandlersRef.current.focusOut?.(event);
+    };
     const handleTouchStart = (event) => {
       pinnedMediaEventHandlersRef.current.touchStart?.(event);
     };
@@ -2262,21 +2588,43 @@ export function EditorShell({
     const handleTouchCancel = (event) => {
       pinnedMediaEventHandlersRef.current.touchCancel?.(event);
     };
+    const handleVisualViewportResize = () => {
+      pinnedMediaEventHandlersRef.current.visualViewportResize?.();
+    };
     const activeCaptureOptions = { capture: true, passive: false };
     const passiveCaptureOptions = { capture: true, passive: true };
+    const visualViewport = window.visualViewport;
 
+    scrollEl.addEventListener("pointerdown", handlePointerDown, activeCaptureOptions);
+    scrollEl.addEventListener("focusin", handleFocusIn, activeCaptureOptions);
+    scrollEl.addEventListener("focusout", handleFocusOut, passiveCaptureOptions);
     scrollEl.addEventListener("wheel", handleWheel, activeCaptureOptions);
     scrollEl.addEventListener("touchstart", handleTouchStart, passiveCaptureOptions);
     scrollEl.addEventListener("touchmove", handleTouchMove, activeCaptureOptions);
     scrollEl.addEventListener("touchend", handleTouchEnd, passiveCaptureOptions);
     scrollEl.addEventListener("touchcancel", handleTouchCancel, passiveCaptureOptions);
+    visualViewport?.addEventListener("resize", handleVisualViewportResize);
+    visualViewport?.addEventListener("scroll", handleVisualViewportResize);
 
     return () => {
+      scrollEl.removeEventListener(
+        "pointerdown",
+        handlePointerDown,
+        activeCaptureOptions,
+      );
+      scrollEl.removeEventListener("focusin", handleFocusIn, activeCaptureOptions);
+      scrollEl.removeEventListener(
+        "focusout",
+        handleFocusOut,
+        passiveCaptureOptions,
+      );
       scrollEl.removeEventListener("wheel", handleWheel, activeCaptureOptions);
       scrollEl.removeEventListener("touchstart", handleTouchStart, passiveCaptureOptions);
       scrollEl.removeEventListener("touchmove", handleTouchMove, activeCaptureOptions);
       scrollEl.removeEventListener("touchend", handleTouchEnd, passiveCaptureOptions);
       scrollEl.removeEventListener("touchcancel", handleTouchCancel, passiveCaptureOptions);
+      visualViewport?.removeEventListener("resize", handleVisualViewportResize);
+      visualViewport?.removeEventListener("scroll", handleVisualViewportResize);
     };
   }, []);
 
@@ -2408,11 +2756,15 @@ export function EditorShell({
     clearAutosaveRaw();
     appliedTranscribeJobIdRef.current = null;
 
+    const previousAssetId = audioUpload.asset?.assetId;
     const blankProject = createDefaultProject();
 
     setProjectState(cloneProject(blankProject));
     setAudioObjectUrl(null);
     audioSourceFileRef.current = null;
+    if (previousAssetId) {
+      void deleteClientAudioBlob(previousAssetId);
+    }
     setAudioUpload({
       asset: null,
       message: "Upload an MP3 to start a new project.",
@@ -2455,6 +2807,7 @@ export function EditorShell({
   const handleClearAudio = () => {
     appliedTranscribeJobIdRef.current = null;
 
+    const previousAssetId = audioUpload.asset?.assetId;
     const blankAudio = { name: "", duration: 0, startOffset: 0, endOffset: null };
 
     setProjectState((currentProject) => ({
@@ -2463,6 +2816,9 @@ export function EditorShell({
     }));
     setAudioObjectUrl(null);
     audioSourceFileRef.current = null;
+    if (previousAssetId) {
+      void deleteClientAudioBlob(previousAssetId);
+    }
     setAudioUpload({
       asset: null,
       message: "Track cleared. Upload an MP3 to start again.",
@@ -2560,6 +2916,7 @@ export function EditorShell({
         ...payload,
         durationSec: durationSec ?? payload.durationSec ?? null,
       };
+      void cacheAudioBlobForAsset(nextAsset.assetId, sampleFile, payload.name);
       const nextAudio = normalizeAudioSection({
         ...importedProject.audio,
         duration:
@@ -2636,7 +2993,7 @@ export function EditorShell({
   };
 
   const closeExportModal = () => {
-    if (exportBusy) {
+    if (exportBusy || clientExportActive) {
       return;
     }
 
@@ -3799,7 +4156,22 @@ export function EditorShell({
       return;
     }
 
-    const readiness = transparent ? textLayerReadiness : exportReadiness;
+    // Browser capture is the supported path on Vercel/desktop deployments.
+    // Server Remotion export is deferred (see REMOTION_LAMBDA_EXPORT_PLAN.md).
+    if (transparent) {
+      setExportState({
+        ...createIdleExportState(),
+        errorMessage:
+          "Transparent text-layer export is not available in browser capture yet. Use standard Export for a full video.",
+        phase: "error",
+        renderStatus: "error",
+        textLayerMode,
+        transparent: true,
+      });
+      return;
+    }
+
+    const readiness = exportReadiness;
 
     if (!readiness.canExport) {
       setExportState({
@@ -3808,78 +4180,91 @@ export function EditorShell({
         phase: "error",
         renderStatus: "error",
         textLayerMode,
-        transparent,
+        transparent: false,
       });
       return;
     }
 
-    setExportState({
-      ...createIdleExportState(),
-      phase: "starting",
-      textLayerMode,
-      transparent,
-    });
-
-    try {
-      const response = await fetch("/api/render", {
-        body: JSON.stringify({
-          audioAssetId: audioUpload.asset.assetId,
-          backgroundAssetId:
-            !transparent && isBackgroundMediaType(projectState.background.type)
-              ? activeBackgroundAsset?.assetId ?? null
-              : null,
-          project: projectState,
-          textLayerMode: transparent ? textLayerMode : null,
-          transparent,
-        }),
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (response.status === 409 && typeof payload.jobId === "string") {
-        autoDownloadedJobIdRef.current = null;
-        setExportState({
-          ...createIdleExportState(),
-          jobId: payload.jobId,
-          phase: "polling",
-          statusNote: "Picked up the render already running in this session.",
-          textLayerMode,
-          transparent,
-        });
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Render could not be started.");
-      }
-
-      if (typeof payload.jobId !== "string" || payload.jobId.length === 0) {
-        throw new Error("Render started, but no job id came back from the server.");
-      }
-
-      autoDownloadedJobIdRef.current = null;
-      setExportState({
-        ...createIdleExportState(),
-        jobId: payload.jobId,
-        phase: "polling",
-        textLayerMode,
-        transparent,
-      });
-    } catch (error) {
+    if (!audioObjectUrl) {
       setExportState({
         ...createIdleExportState(),
         errorMessage:
-          error instanceof Error ? error.message : "Render could not be started.",
+          "Playable audio is required for browser export. Re-upload the MP3 or re-convert from YouTube in this session.",
         phase: "error",
         renderStatus: "error",
         textLayerMode,
-        transparent,
+        transparent: false,
       });
+      return;
     }
+
+    if (!isClientExportSupported()) {
+      setExportState({
+        ...createIdleExportState(),
+        errorMessage:
+          "Browser export needs desktop Chrome or Edge with tab capture. Open this site on a computer and try again.",
+        phase: "error",
+        renderStatus: "error",
+        textLayerMode,
+        transparent: false,
+      });
+      return;
+    }
+
+    setIsPreviewFullscreen(false);
+    setIsTransportPlaying(false);
+    setExportState({
+      ...createIdleExportState(),
+      mode: "client",
+      phase: "polling",
+      progress: 0,
+      renderStatus: "rendering",
+      statusNote:
+        "Share this browser tab when prompted, then keep the tab focused until recording finishes.",
+      textLayerMode,
+      transparent: false,
+    });
+    setClientExportActive(true);
+  };
+
+  const handleClientExportProgress = (progress) => {
+    setExportState((current) => ({
+      ...current,
+      progress: Number.isFinite(progress) ? progress : current.progress,
+      renderStatus: "rendering",
+    }));
+  };
+
+  const handleClientExportSuccess = ({ fileName, formatLabel }) => {
+    setClientExportActive(false);
+    setExportState({
+      ...createIdleExportState(),
+      downloadName: fileName || "",
+      formatLabel: formatLabel || "WEBM",
+      phase: "done",
+      progress: 1,
+      renderStatus: "done",
+      statusNote: fileName
+        ? `Saved ${fileName}. If the download did not appear, check your browser downloads.`
+        : "Recording finished. Check your browser downloads.",
+      transparent: false,
+    });
+  };
+
+  const handleClientExportError = (message) => {
+    setClientExportActive(false);
+    setExportState({
+      ...createIdleExportState(),
+      errorMessage: message || "Browser export failed.",
+      phase: "error",
+      renderStatus: "error",
+      transparent: false,
+    });
+  };
+
+  const handleClientExportCancel = () => {
+    setClientExportActive(false);
+    setExportState(createIdleExportState());
   };
 
   const handleAudioFile = async (file) => {
@@ -3969,6 +4354,7 @@ export function EditorShell({
       setIsTransportPlaying(false);
       setCurrentAudioTime(0);
       setAutoFollowEnabled(true);
+      void cacheAudioBlobForAsset(nextAsset.assetId, file, payload.name);
     } catch (error) {
       setAudioUpload({
         asset: null,
@@ -4083,6 +4469,37 @@ export function EditorShell({
     setCurrentAudioTime(0);
     setAutoFollowEnabled(true);
     setSelectedTimingLineId(null);
+    if (sourceFile) {
+      void cacheAudioBlobForAsset(nextAsset.assetId, sourceFile, asset.name);
+    } else if (nextObjectUrl?.startsWith("/api/assets/")) {
+      // Server-only asset: fetch once so reloads still work without /tmp.
+      void (async () => {
+        try {
+          const response = await fetch(nextObjectUrl, {
+            cache: "no-store",
+            credentials: "same-origin",
+          });
+          if (!response.ok) {
+            return;
+          }
+          const blob = await response.blob();
+          await cacheAudioBlobForAsset(nextAsset.assetId, blob, asset.name);
+          const file = new File([blob], asset.name || "youtube-audio.mp3", {
+            type: blob.type || "audio/mpeg",
+          });
+          audioSourceFileRef.current = file;
+          const blobUrl = URL.createObjectURL(file);
+          setAudioObjectUrl((current) => {
+            if (current?.startsWith("blob:") && current !== blobUrl) {
+              URL.revokeObjectURL(current);
+            }
+            return blobUrl;
+          });
+        } catch {
+          // keep session URL
+        }
+      })();
+    }
     setTimingDrafts({});
     setTranscription(null);
     setAutoLyricsState(createIdleAutoLyricsState());
@@ -4342,13 +4759,17 @@ export function EditorShell({
           status: "uploading",
         });
 
-        const assetExists = await verifyAssetExists(restored.audioAsset.assetId);
+        const playback = await resolveRestoredAudioPlayback(restored.audioAsset);
 
         if (cancelled) {
+          if (playback?.objectUrl?.startsWith("blob:")) {
+            URL.revokeObjectURL(playback.objectUrl);
+          }
           return;
         }
 
-        if (assetExists) {
+        if (playback?.objectUrl) {
+          audioSourceFileRef.current = playback.file;
           setAudioUpload({
             asset: { ...restored.audioAsset, kind: "audio" },
             message: `${
@@ -4356,10 +4777,9 @@ export function EditorShell({
             } restored from your last session.`,
             status: "success",
           });
-          // Restored sessions play from the server asset URL (the original File
-          // blob URL is gone after a reload).
-          setAudioObjectUrl(buildSessionAssetUrl(restored.audioAsset.assetId));
+          setAudioObjectUrl(playback.objectUrl);
         } else {
+          audioSourceFileRef.current = null;
           setAudioUpload({
             asset: null,
             message:
@@ -5440,29 +5860,31 @@ export function EditorShell({
           onStartNew: handleStartNewProject,
         }}
         exportModal={{
-          isOpen: exportModalOpen,
+          isOpen: exportModalOpen && !clientExportActive,
           downloadError: exportState.downloadError,
           errorMessage: exportState.errorMessage,
           isDownloading: exportState.isDownloading,
           isReconnecting: exportState.isReconnecting,
           lineCount,
           onClose: closeExportModal,
-          onDownload: () => {
-            void runRenderDownload({
-              fallbackName: getFallbackRenderFileName(
-                projectState.meta.title,
-                exportState.transparent,
-                exportState.textLayerMode,
-              ),
-              fileUrl: exportState.fileUrl,
-            });
-          },
+          onDownload: exportState.fileUrl
+            ? () => {
+                void runRenderDownload({
+                  fallbackName:
+                    exportState.downloadName ||
+                    getFallbackRenderFileName(
+                      projectState.meta.title,
+                      exportState.transparent,
+                      exportState.textLayerMode,
+                    ),
+                  fileUrl: exportState.fileUrl,
+                });
+              }
+            : undefined,
           onRetry: () => {
             void handleStartExport(exportState.transparent, exportState.textLayerMode);
           },
-          formatLabel: exportState.transparent
-            ? getTextLayerFormat(exportState.textLayerMode).formatLabel
-            : "MP4",
+          formatLabel: exportState.formatLabel || "WEBM",
           phase: exportState.phase,
           progressPercent: exportProgressPercent,
           projectTitle: projectState.meta.title || "Reel Creator",
@@ -5471,6 +5893,20 @@ export function EditorShell({
           statusNote: exportState.statusNote,
         }}
       />
+
+      {clientExportActive ? (
+        <ClientExportOverlay
+          audioUrl={audioObjectUrl}
+          backgroundDurationSec={activeBackgroundAsset?.durationSec ?? null}
+          backgroundUrl={backgroundPreviewUrl}
+          onCancel={handleClientExportCancel}
+          onError={handleClientExportError}
+          onProgress={handleClientExportProgress}
+          onSuccess={handleClientExportSuccess}
+          project={projectState}
+          projectTitle={projectState.meta.title || "Reel Creator"}
+        />
+      ) : null}
 
       {isYoutubeModalOpen ? (
         <YoutubeSegmentModal

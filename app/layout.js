@@ -14,8 +14,8 @@ import "./app_colours.css";
 import "./globals.css";
 
 export const metadata = {
-  title: "Reel Creator",
-  description: "Vertical lyric video maker for Reels, TikTok, and Shorts.",
+  title: "Cross Lang",
+  description: "Language is connection, connection is life.",
 };
 
 export default function RootLayout({ children }) {

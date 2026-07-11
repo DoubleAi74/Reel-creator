@@ -12,6 +12,7 @@
     "credits:payment-audit": "node scripts/payment-audit.mjs",
     "credits:payment-inspect": "node scripts/payment-inspect.mjs",
     "credits:r2-reconcile": "node scripts/r2-reconcile.mjs",
+    "credits:r2-purge-orphans": "node scripts/r2-purge-orphan-audio.mjs",
     "credits:r2-smoke": "node scripts/r2-smoke.mjs",
     "credits:sumup-smoke": "node scripts/sumup-smoke.mjs",
     "start": "next start",
