@@ -352,7 +352,7 @@ function BoardPageNav({
         type="button"
         data-board-page="prev"
         aria-label={`Previous word page (${currentPage + 1} of ${pageCount})`}
-        disabled={!canPage}
+        disabled={!canPage || currentPage <= 0}
         onClick={onPreviousPage}
       >
         <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -381,7 +381,7 @@ function BoardPageNav({
         type="button"
         data-board-page="next"
         aria-label={`Next word page (${currentPage + 1} of ${pageCount})`}
-        disabled={!canPage}
+        disabled={!canPage || currentPage >= pageCount - 1}
         onClick={onNextPage}
       >
         <svg aria-hidden="true" viewBox="0 0 24 24">

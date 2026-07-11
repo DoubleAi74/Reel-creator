@@ -70,6 +70,7 @@ export function ProjectJsonModal({
         <input
           accept=".json,application/json"
           className="hidden"
+          hidden
           onChange={(event) => {
             onFileSelected(event.target.files?.[0] ?? null);
             event.target.value = "";

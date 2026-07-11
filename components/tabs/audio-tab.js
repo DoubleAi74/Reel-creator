@@ -156,7 +156,7 @@ export function AudioTab({ audio, credit = {}, lyricsSource, project }) {
             ? "Saving"
             : generationSaveStatus === "error"
               ? "Try again"
-              : "Available after run";
+              : "Add lyrics to save";
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4">

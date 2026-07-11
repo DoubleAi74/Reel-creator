@@ -611,16 +611,16 @@ export function useWordBoard(rawLines, options = {}) {
   }, [centerActiveFollowLine, followTargetPage, isPagedMode]);
 
   const goToPreviousPage = useCallback(() => {
-    setPage((current) =>
-      pageCount > 1 ? (current - 1 + pageCount) % pageCount : 0,
-    );
+    // Non-cyclic: clamp at the first page instead of wrapping to the last.
+    setPage((current) => Math.max(current - 1, 0));
     if (effectiveFollowAudioEnabled) {
       setFollowScrollPaused(true);
     }
-  }, [effectiveFollowAudioEnabled, pageCount]);
+  }, [effectiveFollowAudioEnabled]);
 
   const goToNextPage = useCallback(() => {
-    setPage((current) => (pageCount > 1 ? (current + 1) % pageCount : 0));
+    // Non-cyclic: clamp at the last page instead of wrapping to the first.
+    setPage((current) => Math.min(current + 1, Math.max(pageCount - 1, 0)));
     if (effectiveFollowAudioEnabled) {
       setFollowScrollPaused(true);
     }

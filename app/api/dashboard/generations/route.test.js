@@ -207,4 +207,38 @@ describe("POST /api/dashboard/generations", () => {
     );
     expect(payload.audioStored).toBe(true);
   });
+
+  it("reports a clear message when MP3 source is missing on the server", async () => {
+    persistGeneration.mockResolvedValue({
+      generation: {
+        _id: { toString: () => "bbbbbbbbbbbbbbbbbbbbbbbb" },
+        ownerScope: { sessionId: "session-save-test", type: "session" },
+        public: false,
+        r2Status: "create_failed",
+        snapshot: { project: { lines: [] } },
+        title: "Untitled",
+        userTitled: false,
+      },
+      promoted: false,
+      r2: { errorCode: "SOURCE_AUDIO_UNAVAILABLE", ok: false },
+      saved: true,
+      storeAudio: true,
+    });
+
+    const response = await POST(
+      makeRequest({
+        assetId: "asset-1",
+        audioPassword: "123a",
+        finalJobId: "job-final",
+        includeMp3: true,
+        pipelineRunId: "run-final",
+        project: { lines: [] },
+      }),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(payload.error).toBe("audio_upload_failed");
+    expect(payload.message).toMatch(/Uncheck Save MP3/i);
+  });
 });
