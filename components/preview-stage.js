@@ -39,12 +39,69 @@ export function PreviewStage({
         {isPreviewFullscreen ? (
           <button
             aria-label="Close full-screen preview"
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-lg text-white transition hover:bg-white/20"
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
             onClick={onExitFullscreen}
             type="button"
           >
-            ✕
+            <svg
+              aria-hidden="true"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              viewBox="0 0 24 24"
+            >
+              <path d="M6 18 18 6M6 6l12 12" />
+            </svg>
           </button>
+        ) : null}
+
+        {!isPreviewFullscreen ? (
+          <div className="fixed left-2.5 top-[calc(var(--mobile-transport-h)_+_10px)] z-40 flex flex-col gap-2 lg:hidden">
+            <button
+              aria-label="Preview"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] opacity-80 shadow-md transition hover:bg-[var(--surface-hover)]"
+              onClick={onEnterFullscreen}
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <path d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+              </svg>
+            </button>
+            <button
+              aria-label="Export MP4"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] opacity-80 shadow-md transition hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!canExport || exportBusy}
+              onClick={onExport}
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 3v12" />
+                <path d="m7 10 5 5 5-5" />
+                <path d="M5 20h14" />
+              </svg>
+            </button>
+          </div>
         ) : null}
 
         <div

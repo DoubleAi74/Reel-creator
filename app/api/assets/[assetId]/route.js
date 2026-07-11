@@ -1,14 +1,15 @@
 import { readFile } from "node:fs/promises";
+import { Readable } from "node:stream";
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import {
-  getAssetFilePath,
-  readAssetMetadata,
+  resolveAssetStorage,
   SESSION_COOKIE_NAME,
   touchSessionAndSweep,
 } from "@/lib/files";
+import { getR2Object } from "@/lib/r2/r2-client";
 import { removeRenderJobsForSessions } from "@/lib/render/store";
 
 export const runtime = "nodejs";
@@ -29,6 +30,26 @@ function getFallbackMimeType(metadata) {
   return "application/octet-stream";
 }
 
+function bodyToWebStream(body) {
+  if (!body) {
+    return null;
+  }
+
+  if (typeof body.transformToWebStream === "function") {
+    return body.transformToWebStream();
+  }
+
+  if (typeof body.getReader === "function") {
+    return body;
+  }
+
+  if (typeof body.pipe === "function") {
+    return Readable.toWeb(body);
+  }
+
+  return null;
+}
+
 export async function GET(request, context) {
   const { assetId } = await context.params;
   const cookieStore = await cookies();
@@ -46,15 +67,48 @@ export async function GET(request, context) {
       removeRenderJobsForSessions(sweptSessionIds);
     }
 
-    const metadata = await readAssetMetadata(sessionId, assetId);
-    const filePath = await getAssetFilePath(sessionId, assetId);
-    const buffer = await readFile(filePath);
+    const resolved = await resolveAssetStorage(sessionId, assetId);
+    const contentType =
+      resolved.metadata.mimeType ?? getFallbackMimeType(resolved.metadata);
+
+    if (resolved.mode === "r2") {
+      const object = await getR2Object({ key: resolved.r2ObjectKey });
+      const stream = bodyToWebStream(object.body);
+
+      if (!stream) {
+        const bytes = await object.body.transformToByteArray();
+        return new NextResponse(Buffer.from(bytes), {
+          headers: {
+            "Cache-Control": "no-store",
+            "Content-Length": String(bytes.byteLength),
+            "Content-Type": object.contentType || contentType,
+          },
+        });
+      }
+
+      const headers = {
+        "Cache-Control": "no-store",
+        "Content-Type": object.contentType || contentType,
+      };
+
+      if (
+        Number.isFinite(object.contentLength) &&
+        object.contentLength != null &&
+        object.contentLength >= 0
+      ) {
+        headers["Content-Length"] = String(object.contentLength);
+      }
+
+      return new NextResponse(stream, { headers });
+    }
+
+    const buffer = await readFile(resolved.filePath);
 
     return new NextResponse(buffer, {
       headers: {
         "Cache-Control": "no-store",
         "Content-Length": String(buffer.byteLength),
-        "Content-Type": metadata.mimeType ?? getFallbackMimeType(metadata),
+        "Content-Type": contentType,
       },
     });
   } catch {

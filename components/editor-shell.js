@@ -25,7 +25,13 @@ import {
   importProjectJson,
   importProjectValue,
 } from "@/lib/project";
-import { parseGbpInputToMinor } from "@/lib/money";
+import {
+  formatGbpFromMinor,
+  isValidTopUpMinor,
+  parseGbpInputToMinor,
+  TOP_UP_MAX_MINOR,
+  TOP_UP_MIN_MINOR,
+} from "@/lib/money";
 import {
   AUTOSAVE_STORAGE_KEY,
   decodeAutosave,
@@ -697,6 +703,10 @@ export function EditorShell({
   const editorScrollRef = useRef(null);
   const previewPlayerRef = useRef(null);
   const pinnedMediaTouchYRef = useRef(null);
+  const pinnedMediaGestureOwnerRef = useRef(null);
+  const pinnedMediaEventHandlersRef = useRef({});
+  const pinnedMediaPanelScrollTopRef = useRef(null);
+  const pinnedMediaPanelUnlockTimeoutRef = useRef(null);
   const programmaticScrollTimeoutRef = useRef(null);
   const suppressManualScrollRef = useRef(false);
   const timingRowRefs = useRef(new Map());
@@ -1948,6 +1958,54 @@ export function EditorShell({
     setAutoFollowEnabled(false);
   };
 
+  const clearPinnedMediaPanelUnlock = () => {
+    if (
+      typeof window !== "undefined" &&
+      pinnedMediaPanelUnlockTimeoutRef.current != null
+    ) {
+      window.clearTimeout(pinnedMediaPanelUnlockTimeoutRef.current);
+    }
+    pinnedMediaPanelUnlockTimeoutRef.current = null;
+  };
+
+  const unlockEditorPanelScroll = () => {
+    clearPinnedMediaPanelUnlock();
+    pinnedMediaPanelScrollTopRef.current = null;
+
+    if (editorScrollRef.current) {
+      editorScrollRef.current.style.overflowY = "";
+    }
+  };
+
+  const lockEditorPanelScroll = () => {
+    const editorScrollEl = editorScrollRef.current;
+
+    if (!editorScrollEl) {
+      return;
+    }
+
+    clearPinnedMediaPanelUnlock();
+
+    if (pinnedMediaPanelScrollTopRef.current == null) {
+      pinnedMediaPanelScrollTopRef.current = editorScrollEl.scrollTop;
+    }
+
+    editorScrollEl.style.overflowY = "hidden";
+    editorScrollEl.scrollTop = pinnedMediaPanelScrollTopRef.current;
+  };
+
+  const scheduleEditorPanelScrollUnlock = () => {
+    if (typeof window === "undefined") {
+      unlockEditorPanelScroll();
+      return;
+    }
+
+    clearPinnedMediaPanelUnlock();
+    pinnedMediaPanelUnlockTimeoutRef.current = window.setTimeout(() => {
+      unlockEditorPanelScroll();
+    }, 140);
+  };
+
   const scrollPinnedMediaSheet = (deltaY) => {
     const scrollEl = appScrollRef.current;
 
@@ -1970,41 +2028,113 @@ export function EditorShell({
     return maxScrollTop > 0;
   };
 
+  const handleSheetScrollGesture = (
+    event,
+    deltaY,
+    { unlockAfterWheel = false } = {},
+  ) => {
+    lockEditorPanelScroll();
+    const handled = scrollPinnedMediaSheet(deltaY);
+
+    if (!handled) {
+      unlockEditorPanelScroll();
+      return false;
+    }
+
+    lockEditorPanelScroll();
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    event.stopPropagation();
+
+    if (unlockAfterWheel) {
+      scheduleEditorPanelScrollUnlock();
+    }
+
+    return true;
+  };
+
   const isPanelScrollEvent = (event) =>
     typeof event.target?.closest === "function" &&
     Boolean(event.target.closest(".side-panel"));
 
-  const shouldTransferPanelScroll = (deltaY) => {
-    if (deltaY >= 0) {
-      return false;
+  const preventPanelBoundaryScroll = (event) => {
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    event.stopPropagation();
+  };
+
+  const getPanelScrollBoundaryAction = (deltaY) => {
+    const editorScrollEl = editorScrollRef.current;
+
+    if (!Number.isFinite(deltaY) || deltaY === 0) {
+      return "panel";
     }
 
-    const editorScrollEl = editorScrollRef.current;
-    return !editorScrollEl || editorScrollEl.scrollTop <= 0;
+    if (!editorScrollEl) {
+      return deltaY < 0 ? "sheet" : "block";
+    }
+
+    const maxScrollTop = Math.max(
+      0,
+      editorScrollEl.scrollHeight - editorScrollEl.clientHeight,
+    );
+    const scrollTop = Math.min(
+      maxScrollTop,
+      Math.max(0, editorScrollEl.scrollTop),
+    );
+    const atTop = scrollTop <= 1;
+    const atBottom = scrollTop >= maxScrollTop - 1;
+
+    if (deltaY < 0 && atTop) {
+      return "sheet";
+    }
+
+    if (deltaY > 0 && atBottom) {
+      return "block";
+    }
+
+    return "panel";
   };
 
   const handlePinnedMediaWheel = (event) => {
     if (isPanelScrollEvent(event)) {
-      if (!shouldTransferPanelScroll(event.deltaY)) {
+      const panelAction = getPanelScrollBoundaryAction(event.deltaY);
+
+      if (panelAction === "panel") {
         return;
       }
 
-      scrollPinnedMediaSheet(event.deltaY);
-      event.preventDefault();
-      event.stopPropagation();
+      if (panelAction === "block") {
+        preventPanelBoundaryScroll(event);
+        return;
+      }
+
+      handleSheetScrollGesture(event, event.deltaY, { unlockAfterWheel: true });
       return;
     }
 
-    if (!scrollPinnedMediaSheet(event.deltaY)) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
+    handleSheetScrollGesture(event, event.deltaY, { unlockAfterWheel: true });
   };
 
   const handlePinnedMediaTouchStart = (event) => {
     pinnedMediaTouchYRef.current = event.touches?.[0]?.clientY ?? null;
+    pinnedMediaGestureOwnerRef.current = null;
+
+    if (!isNarrowWorkspace || activeSection === "words") {
+      unlockEditorPanelScroll();
+      return;
+    }
+
+    if (isPanelScrollEvent(event)) {
+      unlockEditorPanelScroll();
+      pinnedMediaGestureOwnerRef.current = "panel";
+      return;
+    }
+
+    pinnedMediaGestureOwnerRef.current = "sheet";
+    lockEditorPanelScroll();
   };
 
   const handlePinnedMediaTouchMove = (event) => {
@@ -2019,28 +2149,85 @@ export function EditorShell({
     pinnedMediaTouchYRef.current = currentY;
     const deltaY = previousY - currentY;
 
+    if (pinnedMediaGestureOwnerRef.current === "sheet") {
+      handleSheetScrollGesture(event, deltaY);
+      return;
+    }
+
     if (isPanelScrollEvent(event)) {
-      if (!shouldTransferPanelScroll(deltaY)) {
+      const panelAction = getPanelScrollBoundaryAction(deltaY);
+
+      if (panelAction === "panel") {
         return;
       }
 
-      scrollPinnedMediaSheet(deltaY);
-      event.preventDefault();
-      event.stopPropagation();
+      if (panelAction === "block") {
+        preventPanelBoundaryScroll(event);
+        return;
+      }
+
+      pinnedMediaGestureOwnerRef.current = "sheet";
+      handleSheetScrollGesture(event, deltaY);
       return;
     }
 
-    if (!scrollPinnedMediaSheet(deltaY)) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
+    pinnedMediaGestureOwnerRef.current = "sheet";
+    handleSheetScrollGesture(event, deltaY);
   };
 
   const handlePinnedMediaTouchEnd = () => {
     pinnedMediaTouchYRef.current = null;
+    pinnedMediaGestureOwnerRef.current = null;
+    unlockEditorPanelScroll();
   };
+
+  pinnedMediaEventHandlersRef.current = {
+    touchCancel: handlePinnedMediaTouchEnd,
+    touchEnd: handlePinnedMediaTouchEnd,
+    touchMove: handlePinnedMediaTouchMove,
+    touchStart: handlePinnedMediaTouchStart,
+    wheel: handlePinnedMediaWheel,
+  };
+
+  useEffect(() => {
+    const scrollEl = appScrollRef.current;
+
+    if (!scrollEl) {
+      return undefined;
+    }
+
+    const handleWheel = (event) => {
+      pinnedMediaEventHandlersRef.current.wheel?.(event);
+    };
+    const handleTouchStart = (event) => {
+      pinnedMediaEventHandlersRef.current.touchStart?.(event);
+    };
+    const handleTouchMove = (event) => {
+      pinnedMediaEventHandlersRef.current.touchMove?.(event);
+    };
+    const handleTouchEnd = (event) => {
+      pinnedMediaEventHandlersRef.current.touchEnd?.(event);
+    };
+    const handleTouchCancel = (event) => {
+      pinnedMediaEventHandlersRef.current.touchCancel?.(event);
+    };
+    const activeCaptureOptions = { capture: true, passive: false };
+    const passiveCaptureOptions = { capture: true, passive: true };
+
+    scrollEl.addEventListener("wheel", handleWheel, activeCaptureOptions);
+    scrollEl.addEventListener("touchstart", handleTouchStart, passiveCaptureOptions);
+    scrollEl.addEventListener("touchmove", handleTouchMove, activeCaptureOptions);
+    scrollEl.addEventListener("touchend", handleTouchEnd, passiveCaptureOptions);
+    scrollEl.addEventListener("touchcancel", handleTouchCancel, passiveCaptureOptions);
+
+    return () => {
+      scrollEl.removeEventListener("wheel", handleWheel, activeCaptureOptions);
+      scrollEl.removeEventListener("touchstart", handleTouchStart, passiveCaptureOptions);
+      scrollEl.removeEventListener("touchmove", handleTouchMove, activeCaptureOptions);
+      scrollEl.removeEventListener("touchend", handleTouchEnd, passiveCaptureOptions);
+      scrollEl.removeEventListener("touchcancel", handleTouchCancel, passiveCaptureOptions);
+    };
+  }, []);
 
   const handleMarkHotkey = useEffectEvent(() => {
     handleMarkCurrentLine();
@@ -2433,6 +2620,133 @@ export function EditorShell({
     }
   };
 
+  const probeVideoDurationSec = (file) =>
+    new Promise((resolve) => {
+      try {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        video.muted = true;
+        video.playsInline = true;
+
+        const finish = (value) => {
+          URL.revokeObjectURL(url);
+          resolve(value);
+        };
+
+        video.onloadedmetadata = () => {
+          const duration = Number(video.duration);
+          finish(
+            Number.isFinite(duration) && duration > 0 && duration !== Infinity
+              ? duration
+              : null,
+          );
+        };
+        video.onerror = () => finish(null);
+        video.src = url;
+      } catch {
+        resolve(null);
+      }
+    });
+
+  const uploadBackgroundVideoViaR2 = async (file) => {
+    const { getVideoUploadRejectionMessage } = await import("@/lib/upload-limits");
+    const rejection = getVideoUploadRejectionMessage(file, { r2Mode: true });
+
+    if (rejection) {
+      throw new Error(rejection);
+    }
+
+    setBackgroundUpload((currentUpload) => ({
+      ...currentUpload,
+      video: {
+        ...currentUpload.video,
+        message: `Preparing upload for ${file.name}...`,
+        status: "uploading",
+      },
+    }));
+
+    const presignResponse = await fetch("/api/upload/background-video/presign", {
+      body: JSON.stringify({
+        contentType: file.type || "video/mp4",
+        fileName: file.name,
+        sizeBytes: file.size,
+      }),
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+    });
+    const presignPayload = await presignResponse.json().catch(() => ({}));
+
+    if (!presignResponse.ok || !presignPayload.uploadUrl) {
+      throw new Error(
+        presignPayload.error || "Could not prepare cloud video upload.",
+      );
+    }
+
+    setBackgroundUpload((currentUpload) => ({
+      ...currentUpload,
+      video: {
+        ...currentUpload.video,
+        message: `Uploading ${file.name} to cloud storage...`,
+        status: "uploading",
+      },
+    }));
+
+    const putHeaders = {
+      ...(presignPayload.headers || {}),
+      "Content-Type":
+        presignPayload.headers?.["Content-Type"] ||
+        file.type ||
+        "video/mp4",
+    };
+
+    const putResponse = await fetch(presignPayload.uploadUrl, {
+      body: file,
+      headers: putHeaders,
+      method: "PUT",
+    });
+
+    if (!putResponse.ok) {
+      throw new Error(
+        `Cloud upload failed (HTTP ${putResponse.status}). Check R2 CORS allows PUT from this site.`,
+      );
+    }
+
+    const durationSec = await probeVideoDurationSec(file);
+
+    setBackgroundUpload((currentUpload) => ({
+      ...currentUpload,
+      video: {
+        ...currentUpload.video,
+        message: "Finalizing video...",
+        status: "uploading",
+      },
+    }));
+
+    const completeResponse = await fetch(
+      "/api/upload/background-video/complete",
+      {
+        body: JSON.stringify({
+          assetId: presignPayload.assetId,
+          durationSec,
+        }),
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      },
+    );
+    const completePayload = await completeResponse.json().catch(() => ({}));
+
+    if (!completeResponse.ok) {
+      throw new Error(
+        completePayload.error || "Could not finalize cloud video upload.",
+      );
+    }
+
+    return completePayload;
+  };
+
   const handleBackgroundAssetFile = async (kind, file) => {
     if (!file) {
       return;
@@ -2450,19 +2764,89 @@ export function EditorShell({
     }));
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("kind", kind);
+      let payload;
 
-      const response = await fetch("/api/upload", {
-        body: formData,
-        credentials: "same-origin",
-        method: "POST",
-      });
-      const payload = await response.json();
+      if (kind === "video") {
+        const configResponse = await fetch(
+          "/api/upload/background-video/config",
+          {
+            cache: "no-store",
+            credentials: "same-origin",
+          },
+        );
+        const configPayload = await configResponse.json().catch(() => ({}));
+        const r2Mode = configPayload?.backgroundVideo?.mode === "r2";
 
-      if (!response.ok) {
-        throw new Error(payload.error ?? `${kindLabel} upload failed.`);
+        if (r2Mode) {
+          payload = await uploadBackgroundVideoViaR2(file);
+        } else {
+          const { getVideoUploadRejectionMessage } = await import(
+            "@/lib/upload-limits"
+          );
+          const rejection = getVideoUploadRejectionMessage(file, {
+            r2Mode: false,
+          });
+
+          if (rejection) {
+            throw new Error(rejection);
+          }
+
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("kind", kind);
+
+          const response = await fetch("/api/upload", {
+            body: formData,
+            credentials: "same-origin",
+            method: "POST",
+          });
+          const rawText = await response.text();
+
+          try {
+            payload = rawText ? JSON.parse(rawText) : {};
+          } catch {
+            throw new Error(
+              response.status === 413
+                ? `${kindLabel} is too large for this server. Enable R2 for videos up to 80 MB, or use a shorter clip under ~4 MB.`
+                : `${kindLabel} upload failed (HTTP ${response.status || "unknown"}).`,
+            );
+          }
+
+          if (!response.ok) {
+            throw new Error(
+              typeof payload.error === "string" && payload.error.trim()
+                ? payload.error
+                : `${kindLabel} upload failed (HTTP ${response.status}).`,
+            );
+          }
+        }
+      } else {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("kind", kind);
+
+        const response = await fetch("/api/upload", {
+          body: formData,
+          credentials: "same-origin",
+          method: "POST",
+        });
+        const rawText = await response.text();
+
+        try {
+          payload = rawText ? JSON.parse(rawText) : {};
+        } catch {
+          throw new Error(
+            `${kindLabel} upload failed (HTTP ${response.status || "unknown"}).`,
+          );
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            typeof payload.error === "string" && payload.error.trim()
+              ? payload.error
+              : `${kindLabel} upload failed (HTTP ${response.status}).`,
+          );
+        }
       }
 
       setBackgroundUpload((currentUpload) => ({
@@ -2685,6 +3069,14 @@ export function EditorShell({
     if (amountMinor == null) {
       setTopUpStatus("error");
       setTopUpMessage("Enter an amount like 5.00.");
+      return;
+    }
+
+    if (!isValidTopUpMinor(amountMinor)) {
+      setTopUpStatus("error");
+      setTopUpMessage(
+        `Enter between ${formatGbpFromMinor(TOP_UP_MIN_MINOR)} and ${formatGbpFromMinor(TOP_UP_MAX_MINOR)} (SumUp minimum £1).`,
+      );
       return;
     }
 
@@ -4526,11 +4918,6 @@ export function EditorShell({
     <div className={appFrameClasses} data-snap={currentSheetSnap.key}>
         <div
           className="app-responsive mx-auto flex h-full w-full max-w-[1720px] flex-col lg:gap-3 lg:px-5 lg:py-4"
-          onTouchCancelCapture={handlePinnedMediaTouchEnd}
-          onTouchEndCapture={handlePinnedMediaTouchEnd}
-          onTouchMoveCapture={handlePinnedMediaTouchMove}
-          onTouchStartCapture={handlePinnedMediaTouchStart}
-          onWheelCapture={handlePinnedMediaWheel}
           ref={appScrollRef}
           style={
             layoutNoticeCount
@@ -4651,7 +5038,7 @@ export function EditorShell({
               type="file"
             />
             <input
-              accept=".mp4,.webm,video/mp4,video/webm"
+              accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime"
               className="hidden"
               onChange={(event) => {
                 void handleBackgroundVideoFile(event.target.files?.[0] ?? null);
