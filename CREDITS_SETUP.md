@@ -137,6 +137,8 @@ intend to create a live checkout.
 ## 6. Cloudflare R2
 
 R2 stores saved generation audio so `/dashboard` cards can play publicly.
+With the same flag it can also store **session background videos** via
+browser **presigned PUT** (up to **80 MB**, bypassing Vercel body limits).
 
 ```bash
 R2_ENABLED=true
@@ -145,7 +147,27 @@ R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET_NAME=...
 R2_PUBLIC_BASE_URL=
+# Optional: disable session video R2 while keeping generation audio R2
+# R2_SESSION_ASSETS=false
+# Optional max for presigned background videos (default 80)
+# MAX_BACKGROUND_VIDEO_MB=80
 ```
+
+### R2 CORS (required for mobile/desktop direct video upload)
+
+Allow browser `PUT` from your site origin(s), e.g. production + `http://localhost:3000`:
+
+- Methods: `GET`, `HEAD`, `PUT`
+- Headers: `Content-Type`, `Content-Length`
+- Origins: your app origins
+
+Object keys for session videos:
+
+```text
+session-assets/{sessionId}/video/{assetId}.mp4
+```
+
+Session TTL sweep deletes the session prefix when the local session expires.
 
 Smoke test:
 
@@ -155,6 +177,13 @@ npm run credits:r2-smoke
 
 The script writes, HEADs, and deletes a tiny object. If it fails after writing,
 it attempts cleanup and prints a safe error code.
+
+Background video config (client):
+
+```text
+GET /api/upload/background-video/config
+→ { backgroundVideo: { mode: "r2"|"local", maxBytes, ... } }
+```
 
 ## 7. Enablement Checklist (local smoke)
 

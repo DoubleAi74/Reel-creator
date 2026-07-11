@@ -27,6 +27,13 @@ export async function POST(request) {
 
     removeRenderJobsForSessions(sweptSessionIds);
 
+    console.info("[upload] ok", {
+      kind: asset.kind,
+      name: asset.name,
+      sizeBytes: asset.sizeBytes,
+      mimeType: file?.type || null,
+    });
+
     const response = NextResponse.json({
       assetId: asset.assetId,
       durationSec: asset.durationSec,
@@ -48,6 +55,11 @@ export async function POST(request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Upload failed unexpectedly.";
+
+    console.warn("[upload] failed", {
+      message,
+      vercel: process.env.VERCEL === "1",
+    });
 
     return NextResponse.json({ error: message }, { status: 400 });
   }
