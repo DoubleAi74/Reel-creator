@@ -21,12 +21,19 @@ import {
   getClientAudioBlob,
   putClientAudioBlob,
 } from "@/lib/client-audio-store";
-import { isClientExportSupported } from "@/lib/client-export/mime";
+import {
+  isClientExportSupported,
+  MOBILE_EXPORT_UNAVAILABLE_MESSAGE,
+} from "@/lib/client-export/mime";
 import {
   getExportReadiness,
   getRenderPollDelayMs,
   getRenderProgressPercent,
 } from "@/lib/export-flow";
+import {
+  createEmptyGenerationSave,
+  ensureReadyGenerationSave,
+} from "@/lib/generations/save-eligibility";
 import {
   createDefaultProject,
   createLine,
@@ -768,15 +775,8 @@ export function EditorShell({
     enabled: creditsEnabled,
     status: "idle",
   });
-  // Explicit optional save after a successful pipeline run (not auto on generate).
-  const [generationSave, setGenerationSave] = useState({
-    assetId: "",
-    finalJobId: "",
-    generationId: null,
-    message: "",
-    pipelineRunId: "",
-    status: "idle", // idle | ready | saving | saved | error
-  });
+  // Optional dashboard save — ready after pipeline OR when restored lyrics+audio exist.
+  const [generationSave, setGenerationSave] = useState(createEmptyGenerationSave);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [saveIncludeMp3, setSaveIncludeMp3] = useState(false);
   const [saveAudioPassword, setSaveAudioPassword] = useState("");
@@ -2780,14 +2780,7 @@ export function EditorShell({
     setTimingNotice({ message: "", status: "idle" });
     setAutoLyricsState(createIdleAutoLyricsState());
     setAutoTimingState(createIdleAutoTimingState());
-    setGenerationSave({
-      assetId: "",
-      finalJobId: "",
-      generationId: null,
-      message: "",
-      pipelineRunId: "",
-      status: "idle",
-    });
+    setGenerationSave(createEmptyGenerationSave());
     setIsSaveModalOpen(false);
     setSaveIncludeMp3(false);
     setSaveAudioPassword("");
@@ -2830,14 +2823,7 @@ export function EditorShell({
     setAutoLyricsState(createIdleAutoLyricsState());
     setAutoTimingState(createIdleAutoTimingState());
     setTimingNotice({ message: "", status: "idle" });
-    setGenerationSave({
-      assetId: "",
-      finalJobId: "",
-      generationId: null,
-      message: "",
-      pipelineRunId: "",
-      status: "idle",
-    });
+    setGenerationSave(createEmptyGenerationSave());
     setIsSaveModalOpen(false);
     setSaveIncludeMp3(false);
     setSaveAudioPassword("");
@@ -3716,15 +3702,8 @@ export function EditorShell({
     let lastCompletedJobId = null;
     let pipelineSucceeded = false;
 
-    // Saving to the dashboard is an optional action after the run finishes.
-    setGenerationSave({
-      assetId: "",
-      finalJobId: "",
-      generationId: null,
-      message: "",
-      pipelineRunId: "",
-      status: "idle",
-    });
+    // New pipeline run gets new job ids after success; clear prior save slot.
+    setGenerationSave(createEmptyGenerationSave());
     setSaveIncludeMp3(false);
     setSaveAudioPassword("");
 
@@ -3899,12 +3878,20 @@ export function EditorShell({
       return;
     }
 
-    if (
-      generationSave.status === "saving" ||
-      generationSave.status === "saved" ||
-      !generationSave.finalJobId ||
-      !generationSave.pipelineRunId
-    ) {
+    const assetId =
+      generationSave.assetId || audioUpload.asset?.assetId || "";
+    const ready = ensureReadyGenerationSave({
+      assetId,
+      current: generationSave,
+      hasPlayableAudio: Boolean(audioObjectUrl),
+      lines: projectStateRef.current.lines,
+    });
+
+    if (ready.status !== "ready" && ready.status !== "error") {
+      return;
+    }
+
+    if (!ready.finalJobId || !ready.pipelineRunId) {
       return;
     }
 
@@ -3912,10 +3899,22 @@ export function EditorShell({
       return;
     }
 
-    setGenerationSave((current) => ({
-      ...current,
-      message: "",
-    }));
+    if (saveIncludeMp3 && !ready.assetId) {
+      setSaveIncludeMp3(false);
+      setSaveAudioPassword("");
+      setGenerationSave({
+        ...ready,
+        message:
+          "Save MP3 needs a session audio asset. Saving lyrics and YouTube source only.",
+        status: "ready",
+      });
+    } else {
+      setGenerationSave({
+        ...ready,
+        message: "",
+      });
+    }
+
     setIsSaveModalOpen(true);
   };
 
@@ -3924,34 +3923,40 @@ export function EditorShell({
       return;
     }
 
+    const assetId =
+      generationSave.assetId || audioUpload.asset?.assetId || "";
+    const ready = ensureReadyGenerationSave({
+      assetId,
+      current: generationSave,
+      hasPlayableAudio: Boolean(audioObjectUrl),
+      lines: projectStateRef.current.lines,
+    });
+
     if (
-      generationSave.status === "saving" ||
-      generationSave.status === "saved" ||
-      !generationSave.finalJobId ||
-      !generationSave.pipelineRunId
+      ready.status === "saving" ||
+      ready.status === "saved" ||
+      !ready.finalJobId ||
+      !ready.pipelineRunId
     ) {
       return;
     }
 
-    const includeMp3 = saveIncludeMp3 === true;
+    let includeMp3 = saveIncludeMp3 === true;
     const audioPassword = saveAudioPassword.trim();
 
     if (includeMp3 && !audioPassword) {
-      setGenerationSave((current) => ({
-        ...current,
-        message: "Enter the MP3 save password before saving audio.",
+      setGenerationSave({
+        ...ready,
+        message: "Enter the MP3 save password, or uncheck Save MP3.",
         status: "error",
-      }));
+      });
       return;
     }
 
-    if (includeMp3 && !generationSave.assetId) {
-      setGenerationSave((current) => ({
-        ...current,
-        message: "Audio asset is no longer available for MP3 save.",
-        status: "error",
-      }));
-      return;
+    if (includeMp3 && !ready.assetId) {
+      includeMp3 = false;
+      setSaveIncludeMp3(false);
+      setSaveAudioPassword("");
     }
 
     const currentProject = projectStateRef.current;
@@ -3971,11 +3976,11 @@ export function EditorShell({
 
     const projectForSave = projectStateRef.current;
 
-    setGenerationSave((current) => ({
-      ...current,
+    setGenerationSave({
+      ...ready,
       message: "",
       status: "saving",
-    }));
+    });
 
     try {
       const response = await fetch("/api/dashboard/generations", {
@@ -3984,12 +3989,12 @@ export function EditorShell({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          assetId: generationSave.assetId || null,
+          assetId: ready.assetId || null,
           audioDurationSeconds: projectForSave.audio?.duration ?? null,
           audioPassword: includeMp3 ? audioPassword : undefined,
-          finalJobId: generationSave.finalJobId,
+          finalJobId: ready.finalJobId,
           includeMp3: includeMp3 === true,
-          pipelineRunId: generationSave.pipelineRunId,
+          pipelineRunId: ready.pipelineRunId,
           snapshot: {
             project: toProjectJsonValue(projectForSave),
             source: audioSourceReference,
@@ -4014,25 +4019,27 @@ export function EditorShell({
         payload.audioStored === true
           ? " MP3 audio stored."
           : " YouTube/segment reference saved (no MP3).";
+      const again =
+        payload.alreadyExisted === true ? " (updated existing card)" : "";
 
-      setGenerationSave((current) => ({
-        ...current,
+      setGenerationSave({
+        ...ready,
         generationId: payload.id ?? payload.generation?.id ?? null,
-        message: `Saved “${savedTitle}”.${audioNote}`,
+        message: `Saved “${savedTitle}”.${audioNote}${again}`,
         status: "saved",
-      }));
+      });
       setIsSaveModalOpen(false);
       setSaveIncludeMp3(false);
       setSaveAudioPassword("");
     } catch (error) {
-      setGenerationSave((current) => ({
-        ...current,
+      setGenerationSave({
+        ...ready,
         message:
           error instanceof Error
             ? error.message
             : "Generation could not be saved.",
         status: "error",
-      }));
+      });
     }
   };
 
@@ -4201,8 +4208,7 @@ export function EditorShell({
     if (!isClientExportSupported()) {
       setExportState({
         ...createIdleExportState(),
-        errorMessage:
-          "Browser export needs desktop Chrome or Edge with tab capture. Open this site on a computer and try again.",
+        errorMessage: MOBILE_EXPORT_UNAVAILABLE_MESSAGE,
         phase: "error",
         renderStatus: "error",
         textLayerMode,
@@ -4750,6 +4756,12 @@ export function EditorShell({
       setSelectedTimingLineId(null);
       setCurrentAudioTime(getInitialTransportTime(restoredProject));
 
+      let audioRestored = false;
+      let restoredAssetId =
+        restored.audioAsset?.assetId ||
+        restored.generationSave?.assetId ||
+        "";
+
       if (restored.audioAsset?.assetId) {
         setAudioUpload({
           asset: { ...restored.audioAsset, kind: "audio" },
@@ -4769,6 +4781,8 @@ export function EditorShell({
         }
 
         if (playback?.objectUrl) {
+          audioRestored = true;
+          restoredAssetId = restored.audioAsset.assetId;
           audioSourceFileRef.current = playback.file;
           setAudioUpload({
             asset: { ...restored.audioAsset, kind: "audio" },
@@ -4788,6 +4802,16 @@ export function EditorShell({
           });
         }
       }
+
+      // Restore save eligibility (or derive from lyrics + audio after hydrate).
+      setGenerationSave(
+        ensureReadyGenerationSave({
+          assetId: restoredAssetId,
+          current: restored.generationSave,
+          hasPlayableAudio: audioRestored,
+          lines: restoredProject.lines,
+        }),
+      );
 
       if (restored.transcription?.jobId) {
         const { appliedJobId, jobId, phase } = restored.transcription;
@@ -4834,9 +4858,48 @@ export function EditorShell({
     };
   }, [debugProbe]);
 
+  // Keep Save enabled when lyrics + audio exist (including after refresh).
+  useEffect(() => {
+    if (debugProbe || !autosaveHydratedRef.current || !creditState.enabled) {
+      return;
+    }
+
+    setGenerationSave((current) => {
+      if (current.status === "saving") {
+        return current;
+      }
+
+      const next = ensureReadyGenerationSave({
+        assetId: audioUpload.asset?.assetId || current.assetId || "",
+        current,
+        hasPlayableAudio: Boolean(audioObjectUrl),
+        lines: projectState.lines,
+      });
+
+      if (
+        next.status === current.status &&
+        next.finalJobId === current.finalJobId &&
+        next.pipelineRunId === current.pipelineRunId &&
+        next.assetId === current.assetId &&
+        next.generationId === current.generationId &&
+        next.message === current.message
+      ) {
+        return current;
+      }
+
+      return next;
+    });
+  }, [
+    audioObjectUrl,
+    audioUpload.asset?.assetId,
+    creditState.enabled,
+    debugProbe,
+    projectState.lines,
+  ]);
+
   // Debounced full-project autosave: serialized project + audio descriptor +
-  // active transcription pointer. Gated on hydration so it never overwrites
-  // saved state with the blank initial project during mount.
+  // active transcription pointer + save eligibility. Gated on hydration so it
+  // never overwrites saved state with the blank initial project during mount.
   useEffect(() => {
     if (debugProbe || !autosaveHydratedRef.current) {
       return undefined;
@@ -4846,6 +4909,7 @@ export function EditorShell({
       writeAutosaveRaw(
         encodeAutosave({
           audioAsset: audioUpload.asset,
+          generationSave,
           project: projectState,
           transcription,
         }),
@@ -4855,7 +4919,13 @@ export function EditorShell({
     return () => {
       window.clearTimeout(handle);
     };
-  }, [audioUpload.asset, debugProbe, projectState, transcription]);
+  }, [
+    audioUpload.asset,
+    debugProbe,
+    generationSave,
+    projectState,
+    transcription,
+  ]);
 
   useEffect(() => {
     if (exportState.phase !== "polling" || !exportState.jobId) {
@@ -5739,6 +5809,7 @@ export function EditorShell({
             <input
               accept=".mp3,audio/mpeg"
               className="hidden"
+              hidden
               onChange={(event) => {
                 handleAudioFile(event.target.files?.[0] ?? null);
                 event.target.value = "";
@@ -5749,6 +5820,7 @@ export function EditorShell({
             <input
               accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
               className="hidden"
+              hidden
               onChange={(event) => {
                 void handleBackgroundImageFile(event.target.files?.[0] ?? null);
                 event.target.value = "";
@@ -5759,6 +5831,7 @@ export function EditorShell({
             <input
               accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime"
               className="hidden"
+              hidden
               onChange={(event) => {
                 void handleBackgroundVideoFile(event.target.files?.[0] ?? null);
                 event.target.value = "";

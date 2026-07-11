@@ -48,10 +48,26 @@ function buildSnapshotFromPayload(payload) {
   return null;
 }
 
+function messageForR2Failure(errorCode) {
+  if (errorCode === "SOURCE_AUDIO_UNAVAILABLE" || errorCode === "R2_OBJECT_NOT_FOUND") {
+    return "The MP3 is no longer on the server (common after refresh on this host). Uncheck Save MP3 to store the YouTube link and lyrics only, or re-import the audio and try again.";
+  }
+
+  if (errorCode === "R2_DISABLED") {
+    return "Cloud audio storage is not enabled. Uncheck Save MP3 to save lyrics and source reference only.";
+  }
+
+  return "Generation metadata was created, but the MP3 could not be uploaded. Uncheck Save MP3 to save without audio, or try again while the track is available.";
+}
+
 export async function POST(request) {
   if (!isCreditsEnabled()) {
     return NextResponse.json(
-      { enabled: false, error: "credits_disabled" },
+      {
+        enabled: false,
+        error: "credits_disabled",
+        message: "Credits are disabled, so dashboard save is unavailable.",
+      },
       { status: 404 },
     );
   }
@@ -101,7 +117,8 @@ export async function POST(request) {
     return NextResponse.json(
       {
         error: "pipeline_required",
-        message: "Run generate or time lyrics first, then save.",
+        message:
+          "Save needs a project id. Keep lyrics and audio on this page, or run generate/time once, then save.",
       },
       { status: 400 },
     );
@@ -112,7 +129,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error: "audio_password_invalid",
-          message: "Incorrect audio password. MP3 was not saved.",
+          message: "Incorrect audio password. Uncheck Save MP3 or enter the correct password.",
         },
         { status: 403 },
       );
@@ -122,7 +139,8 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error: "asset_required",
-          message: "Audio asset is required to save the MP3.",
+          message:
+            "Audio asset is required to save the MP3. Uncheck Save MP3 to store lyrics and the YouTube link only.",
         },
         { status: 400 },
       );
@@ -133,7 +151,10 @@ export async function POST(request) {
 
   if (!snapshot) {
     return NextResponse.json(
-      { error: "snapshot_required", message: "Project snapshot is required to save." },
+      {
+        error: "snapshot_required",
+        message: "Project snapshot is required to save.",
+      },
       { status: 400 },
     );
   }
@@ -165,7 +186,11 @@ export async function POST(request) {
 
     if (!result?.saved || !result?.generation) {
       return NextResponse.json(
-        { error: "save_failed", message: "Generation could not be saved." },
+        {
+          error: "save_failed",
+          message:
+            "Generation could not be saved. Try again, or uncheck Save MP3 and save lyrics only.",
+        },
         { status: 500 },
       );
     }
@@ -179,9 +204,11 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error: "audio_upload_failed",
-          message:
-            "Generation metadata was created, but the MP3 could not be uploaded. Try again while the audio is still available.",
+          message: messageForR2Failure(r2Error),
           r2ErrorCode: r2Error,
+          // Card may still exist without MP3 — client can treat as partial.
+          id: result.generation._id?.toString?.() ?? result.generation.id ?? null,
+          savedWithoutAudio: true,
         },
         { status: 502 },
       );
@@ -189,25 +216,28 @@ export async function POST(request) {
 
     const generation = result.generation;
     const card = serializeDashboardCard(generation, { sessionId });
+    const alreadyExisted = result.alreadyExisted === true;
 
     return NextResponse.json(
       {
+        alreadyExisted,
         audioStored: result.audioStored === true,
         generation: card,
         id: generation._id?.toString?.() ?? generation.id ?? null,
         saved: true,
       },
-      { status: 201 },
+      { status: alreadyExisted ? 200 : 201 },
     );
   } catch (error) {
-    console.error("POST /api/dashboard/generations error:", {
-      kind: error?.name ?? "unknown_error",
-    });
-
     const message =
       error instanceof Error && error.message
         ? error.message
         : "Generation could not be saved.";
+
+    console.error("POST /api/dashboard/generations error:", {
+      kind: error?.name ?? "unknown_error",
+      message: message.slice(0, 300),
+    });
 
     if (
       message.includes("pipelineRunId is required") ||
@@ -219,8 +249,29 @@ export async function POST(request) {
       );
     }
 
+    if (
+      message.includes("Transactions") ||
+      message.includes("transaction") ||
+      message.includes("replica set")
+    ) {
+      return NextResponse.json(
+        {
+          error: "db_transactions",
+          message:
+            "Database is not ready for saves (transactions required). Check MongoDB configuration.",
+        },
+        { status: 503 },
+      );
+    }
+
     return NextResponse.json(
-      { error: "save_failed", message: "Generation could not be saved." },
+      {
+        error: "save_failed",
+        message:
+          message.length > 0 && message.length < 220
+            ? message
+            : "Generation could not be saved. Try again, or uncheck Save MP3 and save lyrics only.",
+      },
       { status: 500 },
     );
   }
